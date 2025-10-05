@@ -1,0 +1,26 @@
+[
+{
+  "directory": "E:/cooperBower/github/learnOpenGL/build",
+  "command": "C:\\tools\\mingw64\\bin\\gcc.exe  @CMakeFiles/hello.dir/includes_C.rsp -std=gnu11 -o CMakeFiles\\hello.dir\\main.c.obj -c E:\\cooperBower\\github\\learnOpenGL\\main.c",
+  "file": "E:/cooperBower/github/learnOpenGL/main.c",
+  "output": "CMakeFiles/hello.dir/main.c.obj"
+},
+{
+  "directory": "E:/cooperBower/github/learnOpenGL/build",
+  "command": "C:\\tools\\mingw64\\bin\\gcc.exe  @CMakeFiles/hello.dir/includes_C.rsp -std=gnu11 -o CMakeFiles\\hello.dir\\include\\glad\\glad.c.obj -c E:\\cooperBower\\github\\learnOpenGL\\include\\glad\\glad.c",
+  "file": "E:/cooperBower/github/learnOpenGL/include/glad/glad.c",
+  "output": "CMakeFiles/hello.dir/include/glad/glad.c.obj"
+},
+{
+  "directory": "E:/cooperBower/github/learnOpenGL/build",
+  "command": "C:\\tools\\mingw64\\bin\\gcc.exe  @CMakeFiles/hello.dir/includes_C.rsp -std=gnu11 -o CMakeFiles\\hello.dir\\include\\shaders\\shader.c.obj -c E:\\cooperBower\\github\\learnOpenGL\\include\\shaders\\shader.c",
+  "file": "E:/cooperBower/github/learnOpenGL/include/shaders/shader.c",
+  "output": "CMakeFiles/hello.dir/include/shaders/shader.c.obj"
+},
+{
+  "directory": "E:/cooperBower/github/learnOpenGL/build",
+  "command": "C:\\tools\\mingw64\\bin\\gcc.exe  @CMakeFiles/hello.dir/includes_C.rsp -std=gnu11 -o CMakeFiles\\hello.dir\\include\\matrixMath\\matrix_vector_math.c.obj -c E:\\cooperBower\\github\\learnOpenGL\\include\\matrixMath\\matrix_vector_math.c",
+  "file": "E:/cooperBower/github/learnOpenGL/include/matrixMath/matrix_vector_math.c",
+  "output": "CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj"
+}
+]

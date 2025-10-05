@@ -1,0 +1,7 @@
+{
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "files.associations": {
+        "shader.h": "c",
+        "matrix_vector_math.h": "c"
+    }
+}

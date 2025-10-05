@@ -1,0 +1,1 @@
+gcc main.c glad.c -Iinclude -Ilibs/glfw/include -Llibs/glfw/lib-mingw-w64 -lglfw3 -lopengl32 -lgdi32 -o myprog.exe
