@@ -245,19 +245,6 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-        //(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        /*
-        //second container
-        transform = matrix4x4_identity();
-        transform = TranslateMatrix(&transform, -0.5f, 0.5f, 0.0f);
-        float scaleAmount = (float)sin(glfwGetTime());
-        transform = ScaleMatrix(&transform, scaleAmount, scaleAmount, scaleAmount);
-
-        //set the shader matrix again for the second container, kinda smart didnt think of that
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (float*)&transform);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -292,45 +279,6 @@ void processInput(GLFWwindow *window)
         cameraPos = Vector3_Subtract(cameraPos, Vector3_Scale(Vector3_Cross(cameraFront, cameraUp), cameraSpeed * deltaTime));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos = Vector3_Add(cameraPos, Vector3_Scale(Vector3_Cross(cameraFront, cameraUp), cameraSpeed * deltaTime));
-
-        /*
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        forwardBack += 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (forwardBack >= 1.0f)
-            forwardBack = 1.0f;
-    }
-    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        forwardBack -= 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (forwardBack <= -1.0f)
-            forwardBack = -1.0f;
-    }
-    else forwardBack = 0.0f;
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-    {
-        leftRight += 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (leftRight <= -1.0f)
-            leftRight = -1.0f;
-    } else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    {
-        leftRight -= 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (leftRight >= 1.0f)
-            leftRight = 1.0f;
-    } else leftRight = 0.0f;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        upDown -= 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (upDown >= 1.0f)
-            upDown = 1.0f;
-    } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        upDown += 2.0f * deltaTime; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (upDown <= -1.0f)
-            upDown = -1.0f;
-    } else upDown = 0.0f;*/
 }
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
