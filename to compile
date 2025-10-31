@@ -1,4 +1,6 @@
-gcc main.c glad.c -Iinclude -Ilibs/glfw/include -Llibs/glfw/lib-mingw-w64 -lglfw3 -lopengl32 -lgdi32 -o myprog.exe
+linux:
+g++ -std=c++17 -Iinclude -Ilibs/glfw/include main.cpp include/shaders/shader.cpp include/camera/camera.cpp include/glad/glad.c -Llibs/glfw/lib -lglfw -lGL -ldl -lm -pthread -o hello
 
 
-g++ -std=c++17 -Iinclude -Ilibs/glfw/include \ main.cpp include/shaders/shader.cpp include/camera/camera.cpp include/glad/glad.c \ libs/glfw/lib-mingw-w64/libglfw3.a -lopengl32 -lgdi32 -o hello.exe
+windows:
+g++ -std=c++17 -Iinclude -Ilibs/glfw/include main.cpp include/shaders/shader.cpp include/camera/camera.cpp include/glad/glad.c libs/glfw/lib-mingw-w64/libglfw3.a -lopengl32 -lgdi32 -o hello.exe
