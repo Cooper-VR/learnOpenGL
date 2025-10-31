@@ -116,6 +116,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named glad
+
+# Build rule for target.
+glad: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 glad
+.PHONY : glad
+
+# fast build rule for target.
+glad/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/build
+.PHONY : glad/fast
+
+#=============================================================================
 # Target rules for targets named hello
 
 # Build rule for target.
@@ -128,101 +141,77 @@ hello/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/build
 .PHONY : hello/fast
 
-include/glad/glad.obj: include/glad/glad.c.obj
-.PHONY : include/glad/glad.obj
+include/camera/camera.obj: include/camera/camera.cpp.obj
+.PHONY : include/camera/camera.obj
 
 # target to build an object file
-include/glad/glad.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/glad/glad.c.obj
-.PHONY : include/glad/glad.c.obj
+include/camera/camera.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.obj
+.PHONY : include/camera/camera.cpp.obj
 
-include/glad/glad.i: include/glad/glad.c.i
-.PHONY : include/glad/glad.i
-
-# target to preprocess a source file
-include/glad/glad.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/glad/glad.c.i
-.PHONY : include/glad/glad.c.i
-
-include/glad/glad.s: include/glad/glad.c.s
-.PHONY : include/glad/glad.s
-
-# target to generate assembly for a file
-include/glad/glad.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/glad/glad.c.s
-.PHONY : include/glad/glad.c.s
-
-include/matrixMath/matrix_vector_math.obj: include/matrixMath/matrix_vector_math.c.obj
-.PHONY : include/matrixMath/matrix_vector_math.obj
-
-# target to build an object file
-include/matrixMath/matrix_vector_math.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj
-.PHONY : include/matrixMath/matrix_vector_math.c.obj
-
-include/matrixMath/matrix_vector_math.i: include/matrixMath/matrix_vector_math.c.i
-.PHONY : include/matrixMath/matrix_vector_math.i
+include/camera/camera.i: include/camera/camera.cpp.i
+.PHONY : include/camera/camera.i
 
 # target to preprocess a source file
-include/matrixMath/matrix_vector_math.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.i
-.PHONY : include/matrixMath/matrix_vector_math.c.i
+include/camera/camera.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.i
+.PHONY : include/camera/camera.cpp.i
 
-include/matrixMath/matrix_vector_math.s: include/matrixMath/matrix_vector_math.c.s
-.PHONY : include/matrixMath/matrix_vector_math.s
+include/camera/camera.s: include/camera/camera.cpp.s
+.PHONY : include/camera/camera.s
 
 # target to generate assembly for a file
-include/matrixMath/matrix_vector_math.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.s
-.PHONY : include/matrixMath/matrix_vector_math.c.s
+include/camera/camera.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.s
+.PHONY : include/camera/camera.cpp.s
 
-include/shaders/shader.obj: include/shaders/shader.c.obj
+include/shaders/shader.obj: include/shaders/shader.cpp.obj
 .PHONY : include/shaders/shader.obj
 
 # target to build an object file
-include/shaders/shader.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.c.obj
-.PHONY : include/shaders/shader.c.obj
+include/shaders/shader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.obj
+.PHONY : include/shaders/shader.cpp.obj
 
-include/shaders/shader.i: include/shaders/shader.c.i
+include/shaders/shader.i: include/shaders/shader.cpp.i
 .PHONY : include/shaders/shader.i
 
 # target to preprocess a source file
-include/shaders/shader.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.c.i
-.PHONY : include/shaders/shader.c.i
+include/shaders/shader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.i
+.PHONY : include/shaders/shader.cpp.i
 
-include/shaders/shader.s: include/shaders/shader.c.s
+include/shaders/shader.s: include/shaders/shader.cpp.s
 .PHONY : include/shaders/shader.s
 
 # target to generate assembly for a file
-include/shaders/shader.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.c.s
-.PHONY : include/shaders/shader.c.s
+include/shaders/shader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.s
+.PHONY : include/shaders/shader.cpp.s
 
-main.obj: main.c.obj
+main.obj: main.cpp.obj
 .PHONY : main.obj
 
 # target to build an object file
-main.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.c.obj
-.PHONY : main.c.obj
+main.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.obj
+.PHONY : main.cpp.obj
 
-main.i: main.c.i
+main.i: main.cpp.i
 .PHONY : main.i
 
 # target to preprocess a source file
-main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.c.i
-.PHONY : main.c.i
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.i
+.PHONY : main.cpp.i
 
-main.s: main.c.s
+main.s: main.cpp.s
 .PHONY : main.s
 
 # target to generate assembly for a file
-main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.c.s
-.PHONY : main.c.s
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 # Help Target
 help:
@@ -232,13 +221,11 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... glad
 	@echo ... hello
-	@echo ... include/glad/glad.obj
-	@echo ... include/glad/glad.i
-	@echo ... include/glad/glad.s
-	@echo ... include/matrixMath/matrix_vector_math.obj
-	@echo ... include/matrixMath/matrix_vector_math.i
-	@echo ... include/matrixMath/matrix_vector_math.s
+	@echo ... include/camera/camera.obj
+	@echo ... include/camera/camera.i
+	@echo ... include/camera/camera.s
 	@echo ... include/shaders/shader.obj
 	@echo ... include/shaders/shader.i
 	@echo ... include/shaders/shader.s

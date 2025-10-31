@@ -8,10 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "E:/cooperBower/github/learnOpenGL/include/glad/glad.c" "CMakeFiles/hello.dir/include/glad/glad.c.obj" "gcc" "CMakeFiles/hello.dir/include/glad/glad.c.obj.d"
-  "E:/cooperBower/github/learnOpenGL/include/matrixMath/matrix_vector_math.c" "CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj" "gcc" "CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj.d"
-  "E:/cooperBower/github/learnOpenGL/include/shaders/shader.c" "CMakeFiles/hello.dir/include/shaders/shader.c.obj" "gcc" "CMakeFiles/hello.dir/include/shaders/shader.c.obj.d"
-  "E:/cooperBower/github/learnOpenGL/main.c" "CMakeFiles/hello.dir/main.c.obj" "gcc" "CMakeFiles/hello.dir/main.c.obj.d"
+  "E:/cooperBower/github/learnOpenGL/include/camera/camera.cpp" "CMakeFiles/hello.dir/include/camera/camera.cpp.obj" "gcc" "CMakeFiles/hello.dir/include/camera/camera.cpp.obj.d"
+  "E:/cooperBower/github/learnOpenGL/include/shaders/shader.cpp" "CMakeFiles/hello.dir/include/shaders/shader.cpp.obj" "gcc" "CMakeFiles/hello.dir/include/shaders/shader.cpp.obj.d"
+  "E:/cooperBower/github/learnOpenGL/main.cpp" "CMakeFiles/hello.dir/main.cpp.obj" "gcc" "CMakeFiles/hello.dir/main.cpp.obj.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -1,1 +1,1 @@
-CMakeFiles/hello.dir/main.c.obj CMakeFiles/hello.dir/include/glad/glad.c.obj CMakeFiles/hello.dir/include/shaders/shader.c.obj CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj
+CMakeFiles/hello.dir/main.cpp.obj CMakeFiles/hello.dir/include/shaders/shader.cpp.obj CMakeFiles/hello.dir/include/camera/camera.cpp.obj

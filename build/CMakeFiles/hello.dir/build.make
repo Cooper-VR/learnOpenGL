@@ -68,86 +68,70 @@ include CMakeFiles/hello.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/hello.dir/flags.make
 
-CMakeFiles/hello.dir/main.c.obj: CMakeFiles/hello.dir/flags.make
-CMakeFiles/hello.dir/main.c.obj: CMakeFiles/hello.dir/includes_C.rsp
-CMakeFiles/hello.dir/main.c.obj: E:/cooperBower/github/learnOpenGL/main.c
-CMakeFiles/hello.dir/main.c.obj: CMakeFiles/hello.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/hello.dir/main.c.obj"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/hello.dir/main.c.obj -MF CMakeFiles\hello.dir\main.c.obj.d -o CMakeFiles\hello.dir\main.c.obj -c E:\cooperBower\github\learnOpenGL\main.c
+CMakeFiles/hello.dir/main.cpp.obj: CMakeFiles/hello.dir/flags.make
+CMakeFiles/hello.dir/main.cpp.obj: CMakeFiles/hello.dir/includes_CXX.rsp
+CMakeFiles/hello.dir/main.cpp.obj: E:/cooperBower/github/learnOpenGL/main.cpp
+CMakeFiles/hello.dir/main.cpp.obj: CMakeFiles/hello.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/hello.dir/main.cpp.obj"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello.dir/main.cpp.obj -MF CMakeFiles\hello.dir\main.cpp.obj.d -o CMakeFiles\hello.dir\main.cpp.obj -c E:\cooperBower\github\learnOpenGL\main.cpp
 
-CMakeFiles/hello.dir/main.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/hello.dir/main.c.i"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E E:\cooperBower\github\learnOpenGL\main.c > CMakeFiles\hello.dir\main.c.i
+CMakeFiles/hello.dir/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello.dir/main.cpp.i"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E E:\cooperBower\github\learnOpenGL\main.cpp > CMakeFiles\hello.dir\main.cpp.i
 
-CMakeFiles/hello.dir/main.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/hello.dir/main.c.s"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S E:\cooperBower\github\learnOpenGL\main.c -o CMakeFiles\hello.dir\main.c.s
+CMakeFiles/hello.dir/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello.dir/main.cpp.s"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S E:\cooperBower\github\learnOpenGL\main.cpp -o CMakeFiles\hello.dir\main.cpp.s
 
-CMakeFiles/hello.dir/include/glad/glad.c.obj: CMakeFiles/hello.dir/flags.make
-CMakeFiles/hello.dir/include/glad/glad.c.obj: CMakeFiles/hello.dir/includes_C.rsp
-CMakeFiles/hello.dir/include/glad/glad.c.obj: E:/cooperBower/github/learnOpenGL/include/glad/glad.c
-CMakeFiles/hello.dir/include/glad/glad.c.obj: CMakeFiles/hello.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/hello.dir/include/glad/glad.c.obj"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/hello.dir/include/glad/glad.c.obj -MF CMakeFiles\hello.dir\include\glad\glad.c.obj.d -o CMakeFiles\hello.dir\include\glad\glad.c.obj -c E:\cooperBower\github\learnOpenGL\include\glad\glad.c
+CMakeFiles/hello.dir/include/shaders/shader.cpp.obj: CMakeFiles/hello.dir/flags.make
+CMakeFiles/hello.dir/include/shaders/shader.cpp.obj: CMakeFiles/hello.dir/includes_CXX.rsp
+CMakeFiles/hello.dir/include/shaders/shader.cpp.obj: E:/cooperBower/github/learnOpenGL/include/shaders/shader.cpp
+CMakeFiles/hello.dir/include/shaders/shader.cpp.obj: CMakeFiles/hello.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/hello.dir/include/shaders/shader.cpp.obj"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello.dir/include/shaders/shader.cpp.obj -MF CMakeFiles\hello.dir\include\shaders\shader.cpp.obj.d -o CMakeFiles\hello.dir\include\shaders\shader.cpp.obj -c E:\cooperBower\github\learnOpenGL\include\shaders\shader.cpp
 
-CMakeFiles/hello.dir/include/glad/glad.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/hello.dir/include/glad/glad.c.i"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\glad\glad.c > CMakeFiles\hello.dir\include\glad\glad.c.i
+CMakeFiles/hello.dir/include/shaders/shader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello.dir/include/shaders/shader.cpp.i"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\shaders\shader.cpp > CMakeFiles\hello.dir\include\shaders\shader.cpp.i
 
-CMakeFiles/hello.dir/include/glad/glad.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/hello.dir/include/glad/glad.c.s"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\glad\glad.c -o CMakeFiles\hello.dir\include\glad\glad.c.s
+CMakeFiles/hello.dir/include/shaders/shader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello.dir/include/shaders/shader.cpp.s"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\shaders\shader.cpp -o CMakeFiles\hello.dir\include\shaders\shader.cpp.s
 
-CMakeFiles/hello.dir/include/shaders/shader.c.obj: CMakeFiles/hello.dir/flags.make
-CMakeFiles/hello.dir/include/shaders/shader.c.obj: CMakeFiles/hello.dir/includes_C.rsp
-CMakeFiles/hello.dir/include/shaders/shader.c.obj: E:/cooperBower/github/learnOpenGL/include/shaders/shader.c
-CMakeFiles/hello.dir/include/shaders/shader.c.obj: CMakeFiles/hello.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/hello.dir/include/shaders/shader.c.obj"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/hello.dir/include/shaders/shader.c.obj -MF CMakeFiles\hello.dir\include\shaders\shader.c.obj.d -o CMakeFiles\hello.dir\include\shaders\shader.c.obj -c E:\cooperBower\github\learnOpenGL\include\shaders\shader.c
+CMakeFiles/hello.dir/include/camera/camera.cpp.obj: CMakeFiles/hello.dir/flags.make
+CMakeFiles/hello.dir/include/camera/camera.cpp.obj: CMakeFiles/hello.dir/includes_CXX.rsp
+CMakeFiles/hello.dir/include/camera/camera.cpp.obj: E:/cooperBower/github/learnOpenGL/include/camera/camera.cpp
+CMakeFiles/hello.dir/include/camera/camera.cpp.obj: CMakeFiles/hello.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/hello.dir/include/camera/camera.cpp.obj"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello.dir/include/camera/camera.cpp.obj -MF CMakeFiles\hello.dir\include\camera\camera.cpp.obj.d -o CMakeFiles\hello.dir\include\camera\camera.cpp.obj -c E:\cooperBower\github\learnOpenGL\include\camera\camera.cpp
 
-CMakeFiles/hello.dir/include/shaders/shader.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/hello.dir/include/shaders/shader.c.i"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\shaders\shader.c > CMakeFiles\hello.dir\include\shaders\shader.c.i
+CMakeFiles/hello.dir/include/camera/camera.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello.dir/include/camera/camera.cpp.i"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\camera\camera.cpp > CMakeFiles\hello.dir\include\camera\camera.cpp.i
 
-CMakeFiles/hello.dir/include/shaders/shader.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/hello.dir/include/shaders/shader.c.s"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\shaders\shader.c -o CMakeFiles\hello.dir\include\shaders\shader.c.s
-
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj: CMakeFiles/hello.dir/flags.make
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj: CMakeFiles/hello.dir/includes_C.rsp
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj: E:/cooperBower/github/learnOpenGL/include/matrixMath/matrix_vector_math.c
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj: CMakeFiles/hello.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj -MF CMakeFiles\hello.dir\include\matrixMath\matrix_vector_math.c.obj.d -o CMakeFiles\hello.dir\include\matrixMath\matrix_vector_math.c.obj -c E:\cooperBower\github\learnOpenGL\include\matrixMath\matrix_vector_math.c
-
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.i"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\matrixMath\matrix_vector_math.c > CMakeFiles\hello.dir\include\matrixMath\matrix_vector_math.c.i
-
-CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.s"
-	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\matrixMath\matrix_vector_math.c -o CMakeFiles\hello.dir\include\matrixMath\matrix_vector_math.c.s
+CMakeFiles/hello.dir/include/camera/camera.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello.dir/include/camera/camera.cpp.s"
+	C:\tools\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\camera\camera.cpp -o CMakeFiles\hello.dir\include\camera\camera.cpp.s
 
 # Object files for target hello
 hello_OBJECTS = \
-"CMakeFiles/hello.dir/main.c.obj" \
-"CMakeFiles/hello.dir/include/glad/glad.c.obj" \
-"CMakeFiles/hello.dir/include/shaders/shader.c.obj" \
-"CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj"
+"CMakeFiles/hello.dir/main.cpp.obj" \
+"CMakeFiles/hello.dir/include/shaders/shader.cpp.obj" \
+"CMakeFiles/hello.dir/include/camera/camera.cpp.obj"
 
 # External object files for target hello
 hello_EXTERNAL_OBJECTS =
 
-hello.exe: CMakeFiles/hello.dir/main.c.obj
-hello.exe: CMakeFiles/hello.dir/include/glad/glad.c.obj
-hello.exe: CMakeFiles/hello.dir/include/shaders/shader.c.obj
-hello.exe: CMakeFiles/hello.dir/include/matrixMath/matrix_vector_math.c.obj
+hello.exe: CMakeFiles/hello.dir/main.cpp.obj
+hello.exe: CMakeFiles/hello.dir/include/shaders/shader.cpp.obj
+hello.exe: CMakeFiles/hello.dir/include/camera/camera.cpp.obj
 hello.exe: CMakeFiles/hello.dir/build.make
+hello.exe: libglad.a
 hello.exe: E:/cooperBower/github/learnOpenGL/libs/glfw/lib-mingw-w64/libglfw3.a
 hello.exe: CMakeFiles/hello.dir/linkLibs.rsp
 hello.exe: CMakeFiles/hello.dir/objects1.rsp
 hello.exe: CMakeFiles/hello.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C executable hello.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable hello.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\hello.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
