@@ -7,7 +7,7 @@ This project is a small starter for learning modern OpenGL. It contains a minima
 
 ## File structure
 
-.
+
 ├── CMakeLists.txt  
 ├── README.md  
 ├── src/  
@@ -29,18 +29,20 @@ This project is a small starter for learning modern OpenGL. It contains a minima
 
 ## Build
 
-Windows (MinGW)
+Windows (MinGW):
+```bash
 mkdir -p build
 cd build
 cmake -G "MinGW Makefiles" ..
 cmake --build .
-
-Linux
+```
+Linux:
+```bash
 mkdir -p build
 cd build
 cmake ..
 cmake --build .
-
+```
 ## Run
 
 After building, run the produced executable from the build directory (name depends on CMake setup). For example:
