@@ -165,7 +165,7 @@ int main()
         lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("lightPos", lightPos);
+        lightingShader.setVec3("light.position", lightPos);
         lightingShader.setVec3("viewPos", camera.Position);
         lightingShader.setVec3("matrial.ambiant", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("matrial.diffuse", 1.0f, 0.5f, 0.31f);
@@ -204,6 +204,7 @@ int main()
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
         lightCubeShader.setMat4("model", model);
+        lightCubeShader.setVec3("lightColor", lightColor);
 
         glBindVertexArray(lightVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
