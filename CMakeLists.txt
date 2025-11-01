@@ -11,15 +11,28 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 add_library(glad STATIC include/glad/glad.c)
 target_include_directories(glad PUBLIC include)
 
+# --- IMGUI ---
+set(IMGUI_SOURCES
+    include/imgui/imgui.cpp
+    include/imgui/imgui_draw.cpp
+    include/imgui/imgui_tables.cpp
+    include/imgui/imgui_widgets.cpp
+    include/imgui/backends/imgui_impl_glfw.cpp
+    include/imgui/backends/imgui_impl_opengl3.cpp
+)
+
 # --- Executable sources ---
 add_executable(learnOpenGL
     main.cpp
     include/shaders/shader.cpp
     include/camera/camera.cpp
+    ${IMGUI_SOURCES}   # ✅ add ImGui sources here
 )
 
 target_include_directories(learnOpenGL PRIVATE
     include
+    include/imgui
+    include/imgui/backends
     libs/glfw/include
 )
 
