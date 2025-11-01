@@ -68,15 +68,32 @@ include CMakeFiles/glad.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/glad.dir/flags.make
 
+CMakeFiles/glad.dir/include/glad/glad.c.obj: CMakeFiles/glad.dir/flags.make
+CMakeFiles/glad.dir/include/glad/glad.c.obj: CMakeFiles/glad.dir/includes_C.rsp
+CMakeFiles/glad.dir/include/glad/glad.c.obj: E:/cooperBower/github/learnOpenGL/include/glad/glad.c
+CMakeFiles/glad.dir/include/glad/glad.c.obj: CMakeFiles/glad.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/glad.dir/include/glad/glad.c.obj"
+	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/glad.dir/include/glad/glad.c.obj -MF CMakeFiles\glad.dir\include\glad\glad.c.obj.d -o CMakeFiles\glad.dir\include\glad\glad.c.obj -c E:\cooperBower\github\learnOpenGL\include\glad\glad.c
+
+CMakeFiles/glad.dir/include/glad/glad.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/glad.dir/include/glad/glad.c.i"
+	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E E:\cooperBower\github\learnOpenGL\include\glad\glad.c > CMakeFiles\glad.dir\include\glad\glad.c.i
+
+CMakeFiles/glad.dir/include/glad/glad.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/glad.dir/include/glad/glad.c.s"
+	C:\tools\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S E:\cooperBower\github\learnOpenGL\include\glad\glad.c -o CMakeFiles\glad.dir\include\glad\glad.c.s
+
 # Object files for target glad
-glad_OBJECTS =
+glad_OBJECTS = \
+"CMakeFiles/glad.dir/include/glad/glad.c.obj"
 
 # External object files for target glad
 glad_EXTERNAL_OBJECTS =
 
+libglad.a: CMakeFiles/glad.dir/include/glad/glad.c.obj
 libglad.a: CMakeFiles/glad.dir/build.make
 libglad.a: CMakeFiles/glad.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Linking C static library libglad.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C static library libglad.a"
 	$(CMAKE_COMMAND) -P CMakeFiles\glad.dir\cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\glad.dir\link.txt --verbose=$(VERBOSE)
 

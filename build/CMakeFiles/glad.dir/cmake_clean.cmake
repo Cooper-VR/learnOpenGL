@@ -1,9 +1,11 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/glad.dir/include/glad/glad.c.obj"
+  "CMakeFiles/glad.dir/include/glad/glad.c.obj.d"
   "libglad.a"
   "libglad.pdb"
 )
 
 # Per-language clean rules from dependency scanning.
-foreach(lang )
+foreach(lang C)
   include(CMakeFiles/glad.dir/cmake_clean_${lang}.cmake OPTIONAL)
 endforeach()

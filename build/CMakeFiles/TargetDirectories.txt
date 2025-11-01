@@ -1,4 +1,4 @@
 E:/cooperBower/github/learnOpenGL/build/CMakeFiles/glad.dir
-E:/cooperBower/github/learnOpenGL/build/CMakeFiles/hello.dir
+E:/cooperBower/github/learnOpenGL/build/CMakeFiles/learnOpenGL.dir
 E:/cooperBower/github/learnOpenGL/build/CMakeFiles/edit_cache.dir
 E:/cooperBower/github/learnOpenGL/build/CMakeFiles/rebuild_cache.dir

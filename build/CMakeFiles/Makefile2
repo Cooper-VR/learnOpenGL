@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = E:\cooperBower\github\learnOpenGL\build
 
 # The main recursive "all" target.
 all: CMakeFiles/glad.dir/all
-all: CMakeFiles/hello.dir/all
+all: CMakeFiles/learnOpenGL.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,7 +72,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/glad.dir/clean
-clean: CMakeFiles/hello.dir/clean
+clean: CMakeFiles/learnOpenGL.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -82,12 +82,12 @@ clean: CMakeFiles/hello.dir/clean
 CMakeFiles/glad.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=1 "Built target glad"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=1,2 "Built target glad"
 .PHONY : CMakeFiles/glad.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/glad.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/glad.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 0
 .PHONY : CMakeFiles/glad.dir/rule
@@ -102,30 +102,30 @@ CMakeFiles/glad.dir/clean:
 .PHONY : CMakeFiles/glad.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/hello.dir
+# Target rules for target CMakeFiles/learnOpenGL.dir
 
 # All Build rule for target.
-CMakeFiles/hello.dir/all: CMakeFiles/glad.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=2,3,4,5 "Built target hello"
-.PHONY : CMakeFiles/hello.dir/all
+CMakeFiles/learnOpenGL.dir/all: CMakeFiles/glad.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=E:\cooperBower\github\learnOpenGL\build\CMakeFiles --progress-num=3,4,5,6 "Built target learnOpenGL"
+.PHONY : CMakeFiles/learnOpenGL.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/hello.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 5
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/hello.dir/all
+CMakeFiles/learnOpenGL.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 6
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/learnOpenGL.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:\cooperBower\github\learnOpenGL\build\CMakeFiles 0
-.PHONY : CMakeFiles/hello.dir/rule
+.PHONY : CMakeFiles/learnOpenGL.dir/rule
 
 # Convenience name for target.
-hello: CMakeFiles/hello.dir/rule
-.PHONY : hello
+learnOpenGL: CMakeFiles/learnOpenGL.dir/rule
+.PHONY : learnOpenGL
 
 # clean rule for target.
-CMakeFiles/hello.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/clean
-.PHONY : CMakeFiles/hello.dir/clean
+CMakeFiles/learnOpenGL.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/clean
+.PHONY : CMakeFiles/learnOpenGL.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

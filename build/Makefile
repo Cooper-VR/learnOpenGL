@@ -129,24 +129,24 @@ glad/fast:
 .PHONY : glad/fast
 
 #=============================================================================
-# Target rules for targets named hello
+# Target rules for targets named learnOpenGL
 
 # Build rule for target.
-hello: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 hello
-.PHONY : hello
+learnOpenGL: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 learnOpenGL
+.PHONY : learnOpenGL
 
 # fast build rule for target.
-hello/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/build
-.PHONY : hello/fast
+learnOpenGL/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/build
+.PHONY : learnOpenGL/fast
 
 include/camera/camera.obj: include/camera/camera.cpp.obj
 .PHONY : include/camera/camera.obj
 
 # target to build an object file
 include/camera/camera.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/camera/camera.cpp.obj
 .PHONY : include/camera/camera.cpp.obj
 
 include/camera/camera.i: include/camera/camera.cpp.i
@@ -154,7 +154,7 @@ include/camera/camera.i: include/camera/camera.cpp.i
 
 # target to preprocess a source file
 include/camera/camera.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/camera/camera.cpp.i
 .PHONY : include/camera/camera.cpp.i
 
 include/camera/camera.s: include/camera/camera.cpp.s
@@ -162,15 +162,39 @@ include/camera/camera.s: include/camera/camera.cpp.s
 
 # target to generate assembly for a file
 include/camera/camera.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/camera/camera.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/camera/camera.cpp.s
 .PHONY : include/camera/camera.cpp.s
+
+include/glad/glad.obj: include/glad/glad.c.obj
+.PHONY : include/glad/glad.obj
+
+# target to build an object file
+include/glad/glad.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/include/glad/glad.c.obj
+.PHONY : include/glad/glad.c.obj
+
+include/glad/glad.i: include/glad/glad.c.i
+.PHONY : include/glad/glad.i
+
+# target to preprocess a source file
+include/glad/glad.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/include/glad/glad.c.i
+.PHONY : include/glad/glad.c.i
+
+include/glad/glad.s: include/glad/glad.c.s
+.PHONY : include/glad/glad.s
+
+# target to generate assembly for a file
+include/glad/glad.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/include/glad/glad.c.s
+.PHONY : include/glad/glad.c.s
 
 include/shaders/shader.obj: include/shaders/shader.cpp.obj
 .PHONY : include/shaders/shader.obj
 
 # target to build an object file
 include/shaders/shader.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/shaders/shader.cpp.obj
 .PHONY : include/shaders/shader.cpp.obj
 
 include/shaders/shader.i: include/shaders/shader.cpp.i
@@ -178,7 +202,7 @@ include/shaders/shader.i: include/shaders/shader.cpp.i
 
 # target to preprocess a source file
 include/shaders/shader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/shaders/shader.cpp.i
 .PHONY : include/shaders/shader.cpp.i
 
 include/shaders/shader.s: include/shaders/shader.cpp.s
@@ -186,7 +210,7 @@ include/shaders/shader.s: include/shaders/shader.cpp.s
 
 # target to generate assembly for a file
 include/shaders/shader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/include/shaders/shader.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/include/shaders/shader.cpp.s
 .PHONY : include/shaders/shader.cpp.s
 
 main.obj: main.cpp.obj
@@ -194,7 +218,7 @@ main.obj: main.cpp.obj
 
 # target to build an object file
 main.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/main.cpp.obj
 .PHONY : main.cpp.obj
 
 main.i: main.cpp.i
@@ -202,7 +226,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -210,7 +234,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\hello.dir\build.make CMakeFiles/hello.dir/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\learnOpenGL.dir\build.make CMakeFiles/learnOpenGL.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 # Help Target
@@ -222,10 +246,13 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... glad
-	@echo ... hello
+	@echo ... learnOpenGL
 	@echo ... include/camera/camera.obj
 	@echo ... include/camera/camera.i
 	@echo ... include/camera/camera.s
+	@echo ... include/glad/glad.obj
+	@echo ... include/glad/glad.i
+	@echo ... include/glad/glad.s
 	@echo ... include/shaders/shader.obj
 	@echo ... include/shaders/shader.i
 	@echo ... include/shaders/shader.s
