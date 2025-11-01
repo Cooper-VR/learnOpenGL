@@ -33,7 +33,7 @@ Windows (MinGW):
 ```bash
 mkdir -p build
 cd build
-cmake -G "MinGW Makefiles" ..
+cmake -G "MinGW Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON  ..
 cmake --build .
 ```
 Linux:
