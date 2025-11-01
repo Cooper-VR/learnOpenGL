@@ -1,37 +1,33 @@
 # learnOpenGL
 
-Minimal starter repo for following the learnOpenGL tutorials.
+Minimal OpenGL learning project.
 
-## Project layout
+What is this?
+This project is a small starter for learning modern OpenGL. It contains a minimal application that creates a window, initializes OpenGL context, loads simple shaders, and renders a basic scene. It's intended as a hands-on scaffold for experimenting with GLFW/GLAD (or GLEW), shaders, and basic rendering techniques.
 
-E:/cooperBower/github/learnOpenGL/
-├─ README.md
-├─ CMakeLists.txt
-├─ src/
-│  └─ main.cpp
-├─ include/
-│  └─ (headers)
-├─ shaders/
-│  └─ (vertex.glsl, fragment.glsl)
-├─ assets/
-│  └─ (textures, models)
-└─ build/  (generated)
+## File structure
 
-Adjust names/paths to match your code.
+.
+├── CMakeLists.txt  
+├── README.md  
+├── src/  
+│   └── main.cpp  
+├── include/  
+│   └── (headers)  
+├── shaders/  
+│   ├── vertex.glsl  
+│   └── fragment.glsl  
+├── assets/  
+│   └── (textures, models)  
+└── build/ (out-of-source build directory)
 
 ## Prerequisites
 
-- CMake (>= 3.10 recommended)
-- A C++ compiler (MinGW on Windows, gcc/clang on Linux)
-- Libraries commonly used with OpenGL projects (install as needed):
-    - GLFW
-    - GLAD or GLEW
-    - GLM
-    - stb_image (or other helpers)
+- CMake  
+- A compiler (MinGW on Windows, GCC/Clang on Linux)  
+- OpenGL and any libraries you use (GLFW, GLEW/GLAD, glm, etc.)
 
-On Windows with MinGW, ensure MinGW bin is in PATH. On Linux, install the dev packages via your distro package manager.
-
-## Building
+## Build
 
 Windows (MinGW)
 mkdir -p build
@@ -45,22 +41,14 @@ cd build
 cmake ..
 cmake --build .
 
-If you need a Release build:
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build . --config Release
+## Run
 
-## Running
-
-From the build directory:
-./YourExecutableName   (Linux)
-YourExecutableName.exe (Windows)
+After building, run the produced executable from the build directory (name depends on CMake setup). For example:
+./your_executable_name   (Linux)
+your_executable_name.exe (Windows)
 
 ## Notes
 
-- If CMake cannot find dependencies, set CMAKE_PREFIX_PATH or provide paths via -D flags:
-    -DCMAKE_PREFIX_PATH="path/to/deps"
-- Keep shader and asset paths relative to the executable or provide a runtime asset path configuration.
-
-## License
-
-Add your preferred license file (e.g., LICENSE).
+- Use out-of-source builds (the build/ directory) to keep the repository clean.  
+- Adjust CMakeLists.txt to link the libraries you prefer (GLFW, GLAD/GLEW, glm).  
+- Replace shaders and assets as you experiment.
