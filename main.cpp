@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
 #include <shaders/shader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,14 +15,19 @@ using namespace std;
 #define STB_IMAGE_IMPLEMENTATION
 #include <loaders/stb_image.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
-unsigned int loadTexture(char const * path);
+unsigned int loadTexture(char const *path);
+void saveData();
+void loadData();
+void resetData();
 
-unsigned int SCR_WIDTH = 800;
-unsigned int SCR_HEIGHT = 600;
+bool mouseEnabled = false;
+
+unsigned int SCR_WIDTH = 1280;
+unsigned int SCR_HEIGHT = 720;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -29,8 +35,18 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;	
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+float skyColor[3] {0.4f, 0.4f, 0.9f};
+float dirLightDiffuseColor[3] = {0.5f, 0.5f, 0.5f};
+float dirLightAmbientColor[3] = {0.2f, 0.2f, 0.2f};
+float dirLightSpecularColor[3] = {1.0f, 1.0f, 1.0f};
+float lightAmbientColor[3] = {0.05f, 0.05f, 0.05f};
+float lightDiffuseColor[3] = {0.8f, 0.8f, 0.8f};
+float lightSpecularColor[3] = {1.0f, 1.0f, 1.0f};
+float lightLinear = 0.09f;
+float lightQuatratic = 0.032f;
 
 string pointLightAttribs[7] = {
     ".position",
@@ -39,17 +55,17 @@ string pointLightAttribs[7] = {
     ".specular",
     ".constant",
     ".linear",
-    ".quadratic"
-};
+    ".quadratic"};
 
 int main()
 {
+    loadData();
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -72,80 +88,79 @@ int main()
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
 
     ImGui::StyleColorsDark();
 
-    glEnable(GL_DEPTH_TEST);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
+    glEnable(GL_DEPTH_TEST);
 
     Shader lightingShader("resources/shaders/objectLighting_vertex.glsl", "resources/shaders/objectLighting_fragment.glsl");
     Shader lightCubeShader("resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl");
 
-float vertices[] = {
-    // positions          // normals           // texture coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+    float vertices[] = {
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-};
-    
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+
     glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f, 2.0f, -2.5f),
+        glm::vec3(1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)};
 
     glm::vec3 pointLightPositions[] = {
-    	glm::vec3( 0.7f,  0.2f,  2.0f),
-	    glm::vec3( 2.3f, -3.3f, -4.0f),
-	    glm::vec3(-4.0f,  2.0f, -12.0f),
-	    glm::vec3( 0.0f,  0.0f, -3.0f)
-    };  
+        glm::vec3(0.7f, 0.2f, 2.0f),
+        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f, 2.0f, -12.0f),
+        glm::vec3(0.0f, 0.0f, -3.0f)};
 
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
@@ -155,23 +170,22 @@ float vertices[] = {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindVertexArray(cubeVAO);
-    
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
     unsigned int lightVAO;
     glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-
 
     unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
     unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
@@ -187,8 +201,47 @@ float vertices[] = {
 
         processInput(window);
 
-        glClearColor(0.4f, 0.4f, 0.9f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+        // Start new ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Example window
+                    /*
+            ".position",
+    ".ambient",
+    ".diffuse",
+    ".specular",
+    ".constant",
+    ".linear",
+    ".quadratic"
+            */
+
+        ImGui::Begin("Hello, ImGui!");
+
+        ImGui::ColorEdit3("SkyColor", skyColor);
+        ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
+        ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
+        ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
+        ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
+        ImGui::ColorEdit3("LightDiffuseColor", lightDiffuseColor);
+        ImGui::ColorEdit3("LightSpecularColor", lightSpecularColor);
+        ImGui::InputFloat("light linear", &lightLinear, 0.01, 0.01);
+        ImGui::InputFloat("light quadratic", &lightQuatratic, 0.005, 0.05);
+        if(ImGui::Button("Save Data")){
+            saveData();
+        }
+        if (ImGui::Button("reset save data"))
+        {
+            resetData();
+        }
+        
+        ImGui::End();
+
+        glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -198,7 +251,7 @@ float vertices[] = {
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, pointLightPositions[i]);
-            model = glm::scale(model, glm::vec3(0.2f)); 
+            model = glm::scale(model, glm::vec3(0.2f));
 
             lightCubeShader.use();
             lightCubeShader.setMat4("projection", projection);
@@ -218,9 +271,9 @@ float vertices[] = {
         lightingShader.setVec3("ViewDir", camera.Position);
         lightingShader.setFloat("material.shininess", 32.0f);
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader.setVec3("dirLight.diffuse", 0.9f, 0.9f, 0.9f);
-        lightingShader.setVec3("dirLight.specular", 0.7f, 0.7f, 0.7f);
+        lightingShader.setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+        lightingShader.setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+        lightingShader.setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
 
         lightingShader.setVec3("spotLight.position", camera.Position);
         lightingShader.setVec3("spotLight.direction", camera.Front);
@@ -231,20 +284,19 @@ float vertices[] = {
         lightingShader.setFloat("spotLight.linear", 0.09f);
         lightingShader.setFloat("spotLight.quadratic", 0.032f);
         lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));   
+        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         for (int i = 0; i < 4; i++)
         {
-            
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], 0.05f, 0.05f, 0.05f);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], 0.8f, 0.8f, 0.8f);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], 1.0f, 1.0f, 1.0f);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], 0.09f);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], 0.032f);
-        }
 
+            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
+            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
+            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
+            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
+            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
+            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
+            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
+        }
 
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -263,10 +315,23 @@ float vertices[] = {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    // Cleanup
+
+    cout << "closing application" << endl;
+
+    //get the imguiu stuff store it in a file
+    saveData();
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteVertexArrays(1, &lightVAO);
@@ -276,10 +341,94 @@ float vertices[] = {
     return 0;
 }
 
+void saveData(){
+    ofstream saveFile;
+    saveFile.open("localData/saveData.sv");
+    if (saveFile.is_open()){
+        cout << "save file opened" << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << skyColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << dirLightAmbientColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << dirLightDiffuseColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << dirLightSpecularColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << lightAmbientColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << lightDiffuseColor[i] << ' ';
+        saveFile << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile << lightSpecularColor[i] << ' ';
+
+        saveFile << endl;
+        saveFile << lightLinear << endl;
+        saveFile << lightQuatratic << endl;
+
+        saveFile << SCR_HEIGHT << endl;
+        saveFile << SCR_WIDTH << endl;
+
+        saveFile.close();
+    }
+}
+
+void loadData(){
+    ifstream saveFile;
+    saveFile.open("localData/saveData.sv");
+    if (saveFile.is_open()){
+        cout << "save file opened" << endl;
+        for (int i = 0; i < 3; i++)
+            saveFile >> skyColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> dirLightAmbientColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> dirLightDiffuseColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> dirLightSpecularColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> lightAmbientColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> lightDiffuseColor[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> lightSpecularColor[i];
+
+        saveFile >> lightLinear;
+        saveFile >> lightQuatratic;
+
+        saveFile >> SCR_HEIGHT;
+        saveFile >> SCR_WIDTH;
+
+        saveFile.close();
+    }
+}
+
+void resetData(){
+    skyColor[0] = 0.4f; skyColor[1] = 0.4f; skyColor[2] = 0.9f;
+    dirLightDiffuseColor[0] = 0.5f; dirLightDiffuseColor[1] = 0.5f; dirLightDiffuseColor[2] = 0.5f;
+    dirLightAmbientColor[0] = 0.2f; dirLightAmbientColor[1] = 0.2f; dirLightAmbientColor[2] = 0.2f;
+    dirLightSpecularColor[0] = 1.0f; dirLightSpecularColor[1] = 1.0f; dirLightSpecularColor[2] = 1.0f;
+    lightAmbientColor[0] = 0.05f; lightAmbientColor[1] = 0.05f; lightAmbientColor[2] = 0.05f;
+    lightDiffuseColor[0] = 0.8f; lightDiffuseColor[1] = 0.8f; lightDiffuseColor[2] = 0.8f;
+    lightSpecularColor[0] = 1.0f; lightSpecularColor[1] = 1.0f; lightSpecularColor[2] = 1.0f;
+    lightLinear = 0.09f;
+    lightQuatratic = 0.032f;
+}
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+        mouseEnabled = !mouseEnabled;
+    if (mouseEnabled){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }else{
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -291,19 +440,21 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-    // make sure the viewport matches the new window dimensions; note that width and 
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
     SCR_HEIGHT = height;
     SCR_WIDTH = width;
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
+    if (mouseEnabled) return;
     if (firstMouse)
     {
         lastX = xpos;
@@ -320,12 +471,12 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-unsigned int loadTexture(const char* path){
+unsigned int loadTexture(const char *path){
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
