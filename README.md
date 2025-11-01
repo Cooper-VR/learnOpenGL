@@ -10,16 +10,19 @@ This project is a small starter for learning modern OpenGL. It contains a minima
 
 ├── CMakeLists.txt  
 ├── README.md  
-├── src/  
-│   └── main.cpp  
+├── main.cpp  
 ├── include/  
-│   └── (headers)  
-├── shaders/  
-│   ├── vertex.glsl  
-│   └── fragment.glsl  
-├── assets/  
-│   └── (textures, models)  
-└── build/ (out-of-source build directory)
+│   └── (headers)
+├── lib/  
+│   └── (libraries)
+├── resources/
+│   ├── shaders/
+│   │   ├── vertex.glsl  
+│   │   └── fragment.glsl  
+│   └── textures/
+│       ├── container.jpg
+│       └── awesomeface.png
+└── build/ (built by user)
 
 ## Prerequisites
 
