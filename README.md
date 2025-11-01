@@ -6,8 +6,7 @@ What is this?
 This project is a small starter for learning modern OpenGL. It contains a minimal application that creates a window, initializes OpenGL context, loads simple shaders, and renders a basic scene. It's intended as a hands-on scaffold for experimenting with GLFW/GLAD (or GLEW), shaders, and basic rendering techniques.
 
 ## File structure
-
-
+```
 ├── CMakeLists.txt  
 ├── README.md  
 ├── main.cpp  
@@ -23,7 +22,7 @@ This project is a small starter for learning modern OpenGL. It contains a minima
 │       ├── container.jpg
 │       └── awesomeface.png
 └── build/ (built by user)
-
+```
 ## Prerequisites
 
 - CMake  
