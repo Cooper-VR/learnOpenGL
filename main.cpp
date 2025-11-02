@@ -512,10 +512,10 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    //nope
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
     {
-        cout << "not middle press" << endl;
+        std::cout << "Middle mouse held!\n";
+        // you can add camera pan logic or something else here
     }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS)
