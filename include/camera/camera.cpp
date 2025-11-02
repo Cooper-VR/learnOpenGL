@@ -33,13 +33,14 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     Pitch += yoffset;
 
     // make sure that when pitch is out of bounds, screen doesn't get flipped
+    /*
     if (constrainPitch)
     {
         if (Pitch > 89.0f)
             Pitch = 89.0f;
         if (Pitch < -89.0f)
             Pitch = -89.0f;
-    }
+    }*/
 
     // update Front, Right and Up Vectors using the updated Euler angles
     updateCameraVectors();
@@ -48,11 +49,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 void Camera::ProcessMouseScroll(float yoffset)
 {
-    Zoom -= (float)yoffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
+    //Zoom -= (float)yoffset;
+    Camera::Position += Front * (yoffset * 0.2f);
 }
 
 // calculates the front vector from the Camera's (updated) Euler Angles

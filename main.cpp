@@ -25,9 +25,6 @@ void saveData();
 void loadData();
 void resetData();
 
-bool mousePressLeft = false;
-bool mousePressRight = false;
-
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 720;
 
@@ -35,6 +32,9 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+bool mousePressLeft = false;
+bool mousePressRight = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -80,7 +80,7 @@ int main()
     glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -207,17 +207,6 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        // Example window
-        /*
-".position",
-".ambient",
-".diffuse",
-".specular",
-".constant",
-".linear",
-".quadratic"
-*/
 
         ImGui::Begin("Hello, ImGui!");
 
@@ -478,22 +467,13 @@ void resetData()
 
 void processInput(GLFWwindow *window)
 {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
-        if (!mousePressRight)
-        {
-            if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            else
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            mousePressRight = true;
-        }
-    }
-    else
-    {
-        mousePressRight = false;
+        //nothing
     }
 
+    /*
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -502,10 +482,10 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+        */
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow *window, int width, int height){
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
@@ -515,6 +495,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
+    
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
@@ -531,8 +512,21 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    if (mousePressRight || glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
-        xoffset = yoffset = 0;
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS)
+    {
+        return;
+        xoffset = ypos = 0.0f;
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    {
+        //camera rotation
+        if (!mousePressRight) xoffset = yoffset = 0.0f;
+        mousePressRight = true;
+        
+    }else{
+        mousePressRight = false;
+    }
 
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
@@ -542,8 +536,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-unsigned int loadTexture(const char *path)
-{
+unsigned int loadTexture(const char *path){
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
