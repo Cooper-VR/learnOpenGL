@@ -5,3 +5,5 @@ learnOpenGL.exe
 learnOpenGL
 
 .vscode
+localData/saveData.sv
+/localData

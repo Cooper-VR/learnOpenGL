@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <shaders/shader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,7 +25,8 @@ void saveData();
 void loadData();
 void resetData();
 
-bool mouseEnabled = false;
+bool mousePressLeft = false;
+bool mousePressRight = false;
 
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 720;
@@ -144,7 +146,7 @@ int main()
         -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 
-    glm::vec3 cubePositions[] = {
+    vector<glm::vec3> cubePositions = {
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -235,6 +237,20 @@ int main()
         {
             resetData();
         }
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        {
+
+            if (!mousePressLeft)
+            {
+                glm::vec3 newPos = camera.Position;
+                newPos += camera.Front;
+                cubePositions.push_back(newPos);
+            }
+            mousePressLeft = true;
+        }else{
+            mousePressLeft = false;
+        }
         
         ImGui::End();
 
@@ -288,8 +304,7 @@ int main()
 
         for (int i = 0; i < 4; i++)
         {
-
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
+            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[i]);
             lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
             lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
             lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
@@ -298,7 +313,7 @@ int main()
             lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
         }
 
-        for (unsigned int i = 0; i < 10; i++)
+        for (unsigned int i = 0; i < cubePositions.size(); i++)
         {
             model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
             model = glm::translate(model, cubePositions[i]);
@@ -422,13 +437,21 @@ void resetData(){
 
 void processInput(GLFWwindow *window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        mouseEnabled = !mouseEnabled;
-    if (mouseEnabled){
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+        if (!mousePressRight)
+        {
+            if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            else
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            cout << mousePressRight << endl;
+            mousePressRight = true;
+        }
     }else{
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        mousePressRight = false;
     }
+
+ 
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -454,7 +477,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (mouseEnabled) return;
+
     if (firstMouse)
     {
         lastX = xpos;
@@ -468,7 +491,10 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
+    if (mousePressRight || glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL) xoffset = yoffset = 0;
+
     camera.ProcessMouseMovement(xoffset, yoffset);
+    
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
