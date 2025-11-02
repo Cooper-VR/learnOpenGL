@@ -7,3 +7,4 @@ learnOpenGL
 .vscode
 localData/saveData.sv
 /localData
+libs/assimp/
