@@ -7,7 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <camera/camera.hpp>
-#include <mesh/mesh.hpp>
+#include <model/mesh/mesh.hpp>
+#include <model/model.hpp>
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
