@@ -512,6 +512,12 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
+    //nope
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        cout << "not middle press" << endl;
+    }
+
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS)
     {
         return;
@@ -527,6 +533,8 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     }else{
         mousePressRight = false;
     }
+
+    
 
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
