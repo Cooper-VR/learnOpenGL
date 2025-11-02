@@ -26,6 +26,7 @@ add_executable(learnOpenGL
     main.cpp
     include/shaders/shader.cpp
     include/camera/camera.cpp
+    include/mesh/mesh.cpp
     ${IMGUI_SOURCES}
 )
 
