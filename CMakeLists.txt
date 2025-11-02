@@ -26,9 +26,10 @@ add_executable(learnOpenGL
     main.cpp
     include/shaders/shader.cpp
     include/camera/camera.cpp
-    ${IMGUI_SOURCES}   # ✅ add ImGui sources here
+    ${IMGUI_SOURCES}
 )
 
+# --- Include directories ---
 target_include_directories(learnOpenGL PRIVATE
     include
     include/imgui
@@ -47,4 +48,16 @@ if (WIN32)
 else()
     find_package(OpenGL REQUIRED)
     target_link_libraries(learnOpenGL PRIVATE glad glfw ${OPENGL_gl_LIBRARY} dl)
+endif()
+
+# --- ASSIMP ---
+set(ASSIMP_DIR ${CMAKE_SOURCE_DIR}/libs/assimp)
+target_include_directories(learnOpenGL PRIVATE ${ASSIMP_DIR}/include)
+
+if (WIN32)
+    # link release libraries
+    target_link_libraries(learnOpenGL PRIVATE
+        ${ASSIMP_DIR}/lib/Release/assimp-vc143-mt.lib
+        ${ASSIMP_DIR}/lib/Release/unit.lib
+    )
 endif()

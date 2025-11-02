@@ -54,7 +54,7 @@ class Camera
         void RotateCamera(float xoffset, float yoffset, GLboolean constrainPitch = true);
         void MoveCameraForward(float yoffset);
 
-    private:s
+    private:
         void updateCameraVectors();
 };
 #endif

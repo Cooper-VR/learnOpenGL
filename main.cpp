@@ -10,11 +10,14 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
+#include <assimp/Importer.hpp>      // for Assimp::Importer
+#include <assimp/scene.h>           // for aiScene
+#include <assimp/postprocess.h>     // for post-processing flags
+#include <loaders/stb_image.h>
 
 using namespace std;
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <loaders/stb_image.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
