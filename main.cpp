@@ -40,6 +40,10 @@ bool mousePressRight = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+float RotateSensitivity = 1.0f;
+float PanSensitivity = 1.0f;
+float ForwardSensitivity = 1.0f;
+
 float skyColor[3]{0.4f, 0.4f, 0.9f};
 float dirLightDiffuseColor[3] = {0.5f, 0.5f, 0.5f};
 float dirLightAmbientColor[3] = {0.2f, 0.2f, 0.2f};
@@ -208,7 +212,11 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello, ImGui!");
+        ImGui::Begin("OpenGL UI");
+
+        ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
+        ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
+        ImGui::SliderFloat("ForwardSensitivity", &ForwardSensitivity, 0.1f, 5.0f);
 
         ImGui::ColorEdit3("SkyColor", skyColor);
         ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
@@ -363,6 +371,11 @@ void saveData()
     if (saveFile.is_open())
     {
         cout << "save file opened" << endl;
+
+        saveFile << PanSensitivity << endl;
+        saveFile << RotateSensitivity << endl;
+        saveFile << ForwardSensitivity << endl;
+
         for (int i = 0; i < 3; i++)
             saveFile << skyColor[i] << ' ';
         saveFile << endl;
@@ -405,6 +418,11 @@ void loadData()
     if (saveFile.is_open())
     {
         cout << "save file opened" << endl;
+
+        saveFile >> PanSensitivity;
+        saveFile >> RotateSensitivity;
+        saveFile >> ForwardSensitivity;
+
         for (int i = 0; i < 3; i++)
             saveFile >> skyColor[i];
         for (int i = 0; i < 3; i++)
@@ -512,10 +530,12 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    if (!ImGui::GetIO().WantCaptureMouse)
     {
-        std::cout << "Middle mouse held!\n";
-        // you can add camera pan logic or something else here
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS){
+            //std::cout << "Middle mouse held!\n";
+            camera.PanCamera(-xoffset * PanSensitivity, yoffset * PanSensitivity, deltaTime);
+        }
     }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS)
@@ -536,12 +556,12 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 
     
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.RotateCamera(xoffset * RotateSensitivity, yoffset * RotateSensitivity);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
 }
 
 unsigned int loadTexture(const char *path){
