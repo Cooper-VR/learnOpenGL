@@ -1,4 +1,7 @@
 #include <model/mesh/mesh.hpp>
+#include <assimp/Importer.hpp>      // for Assimp::Importer
+#include <assimp/scene.h>           // for aiScene
+#include <assimp/postprocess.h>     // for post-processing flags
 
 class Model{
     public:

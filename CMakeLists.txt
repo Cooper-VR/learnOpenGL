@@ -37,6 +37,7 @@ target_include_directories(learnOpenGL PRIVATE
     include/imgui
     include/imgui/backends
     libs/glfw/include
+    libs/assimp/include
 )
 
 # --- Link libraries ---
