@@ -312,6 +312,7 @@ int main()
     delete test;
     // get the imguiu stuff store it in a file
     saveData();
+    saveScene();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -324,6 +325,42 @@ int main()
 void saveScene()
 {
     // save the scene to a file
+    ofstream sceneFile;
+    sceneFile.open("localData/scene.sn");
+    if (sceneFile.is_open())
+    {
+        for (int i = 0; i < sceneModels.size(); i++)
+        {
+            Model *model = sceneModels[i];
+            sceneFile << model->directory << endl;
+            sceneFile << model->instanceCount << endl;
+
+            for (unsigned int j = 0; j < model->instanceCount; j++)
+            {
+
+                sceneFile << model->Hash_ID[j] << endl;
+
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile << model->position[j][k] << ' ';
+                }
+                sceneFile << endl;
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile << model->rotation[j][k] << ' ';
+                }
+                sceneFile << endl;
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile << model->scale[j][k] << ' ';
+                }
+                sceneFile << endl;
+            }
+            
+        }
+
+        sceneFile.close();
+    }
 
     /*
     loop through each model,
