@@ -180,6 +180,7 @@ int main()
         ImGui::NewFrame();
 
         ImGui::Begin("OpenGL UI");
+        ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
 
         ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
         ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
