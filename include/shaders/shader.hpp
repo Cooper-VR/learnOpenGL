@@ -11,7 +11,7 @@ public:
     unsigned int ID; // OpenGL program ID
 
     // Constructor that builds the shader program from vertex and fragment shader file paths
-    Shader(const char* vertexPath, const char* fragmentPath);
+    Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr);
 
     // Activate the shader
     void use() const;

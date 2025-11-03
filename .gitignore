@@ -8,3 +8,5 @@ learnOpenGL
 localData/saveData.sv
 /localData
 libs/assimp/
+
+/resources/textures/textures

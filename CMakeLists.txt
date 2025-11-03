@@ -28,6 +28,7 @@ add_executable(learnOpenGL
     include/camera/camera.cpp
     include/model/mesh/mesh.cpp
     include/model/model.cpp
+    include/loaders/stb_image.cpp
     ${IMGUI_SOURCES}
 )
 
@@ -47,20 +48,9 @@ if (WIN32)
         ${CMAKE_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a
         opengl32
         gdi32
+        ${CMAKE_SOURCE_DIR}/libs/assimp/lib/libassimp.dll.a  # ✅ Add this line
     )
 else()
     find_package(OpenGL REQUIRED)
     target_link_libraries(learnOpenGL PRIVATE glad glfw ${OPENGL_gl_LIBRARY} dl)
-endif()
-
-# --- ASSIMP ---
-set(ASSIMP_DIR ${CMAKE_SOURCE_DIR}/libs/assimp)
-target_include_directories(learnOpenGL PRIVATE ${ASSIMP_DIR}/include)
-
-if (WIN32)
-    # link release libraries
-    target_link_libraries(learnOpenGL PRIVATE
-        ${ASSIMP_DIR}/lib/Release/assimp-vc143-mt.lib
-        ${ASSIMP_DIR}/lib/Release/unit.lib
-    )
 endif()
