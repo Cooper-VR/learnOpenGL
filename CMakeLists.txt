@@ -41,16 +41,43 @@ target_include_directories(learnOpenGL PRIVATE
     libs/assimp/include
 )
 
-# --- Link libraries ---
+# --- Platform specific linking ---
 if (WIN32)
     target_link_libraries(learnOpenGL PRIVATE
         glad
         ${CMAKE_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a
         opengl32
         gdi32
-        ${CMAKE_SOURCE_DIR}/libs/assimp/lib/libassimp.dll.a  # ✅ Add this line
+        ${CMAKE_SOURCE_DIR}/libs/assimp/lib/libassimp.dll.a
     )
 else()
     find_package(OpenGL REQUIRED)
-    target_link_libraries(learnOpenGL PRIVATE glad glfw ${OPENGL_gl_LIBRARY} dl)
+    find_package(Threads REQUIRED)
+
+    # On Linux, use system packages for GLFW + Assimp if available
+    find_package(glfw3 QUIET)
+    find_package(assimp QUIET)
+
+    if (NOT glfw3_FOUND)
+        message(WARNING "GLFW not found — linking manually")
+        target_link_directories(learnOpenGL PRIVATE ${CMAKE_SOURCE_DIR}/libs/glfw/lib-linux)
+        target_link_libraries(learnOpenGL PRIVATE glfw)
+    else()
+        target_link_libraries(learnOpenGL PRIVATE glfw)
+    endif()
+
+    if (NOT assimp_FOUND)
+        message(WARNING "Assimp not found — linking manually")
+        target_link_directories(learnOpenGL PRIVATE ${CMAKE_SOURCE_DIR}/libs/assimp/bin)
+        target_link_libraries(learnOpenGL PRIVATE assimp)
+    else()
+        target_link_libraries(learnOpenGL PRIVATE assimp::assimp)
+    endif()
+
+    target_link_libraries(learnOpenGL PRIVATE
+        glad
+        ${OPENGL_LIBRARIES}
+        dl
+        Threads::Threads
+    )
 endif()

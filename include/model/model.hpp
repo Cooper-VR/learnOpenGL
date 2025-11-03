@@ -85,7 +85,6 @@ class Model{
     bool gammaCorrection;
     vector<Texture> textures_loaded;
     vector<Mesh> meshes;
-    string directory;
 
     void loadModel(string const &path);
     void processNode(aiNode *node, const aiScene *scene);
