@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <vector>
 #include <stack>
@@ -15,6 +16,8 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 using namespace std;
+namespace fs = std::filesystem;
+
 void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -282,6 +285,15 @@ int main()
         }
 
         ImGui::End();
+
+        ImGui::Begin("models Folder");
+        for (const auto &entry : fs::directory_iterator("resources/models/"))
+        {
+            ImGui::Text("%s", entry.path().filename().string().c_str());
+        }
+
+        ImGui::End();
+
 
         ImGui::End();
         ImGui::Render();

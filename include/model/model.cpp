@@ -134,12 +134,12 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
 
 unsigned int Model::TextureFromFile(const char *path, const string &directory, bool gamma){
     
-    cout << path << endl;
+    //cout << path << endl;
     string filename = string(path);
     filename = directory + '/' + filename;
     filename = path;
 
-    cout << filename << endl;
+    //cout << filename << endl;
 
     unsigned int textureID;
     glGenTextures(1, &textureID);
