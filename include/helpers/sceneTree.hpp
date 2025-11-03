@@ -1,0 +1,62 @@
+#ifndef SCENE_TREE_HPP
+#define SCENE_TREE_HPP
+
+#include <vector>
+#include <model/model.hpp>
+
+struct SceneTreeNode{
+    Model* NodeModel;
+    unsigned int instanceCount;
+    SceneTreeNode* leftChildInstance;
+    SceneTreeNode* rightChildInstance;
+} typedef SceneTreeNode;
+
+void insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int instanceIndex){
+    if(root->NodeModel == nullptr){
+        root->NodeModel = model;
+        return;
+    }else{
+        if(model->Hash_ID[instanceIndex] < root->NodeModel->Hash_ID[0]){
+            if(root->leftChildInstance == nullptr){
+                SceneTreeNode* newNode = new SceneTreeNode();
+                newNode->NodeModel = model;
+                newNode->instanceCount = instanceIndex;
+                newNode->leftChildInstance = nullptr;
+                newNode->rightChildInstance = nullptr;
+                root->leftChildInstance = newNode;
+                return;
+            }else{
+                insertInstanceToSceneTree(root->leftChildInstance, model, instanceIndex);
+            }
+        }else{
+            if(root->rightChildInstance == nullptr){
+                SceneTreeNode* newNode = new SceneTreeNode();
+                newNode->NodeModel = model;
+                newNode->instanceCount = instanceIndex;
+                newNode->leftChildInstance = nullptr;
+                newNode->rightChildInstance = nullptr;
+                root->rightChildInstance = newNode;
+                return;
+            }else{
+                insertInstanceToSceneTree(root->rightChildInstance, model, instanceIndex);
+            }
+        }
+    }
+}
+
+void removeInstanceFromSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
+
+}
+
+void removeInstanceFromSceneTreeByName(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
+
+}
+
+Model* getInstacesInSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
+    return nullptr;
+}
+
+Model* getInstacesInSceneTreeByName(SceneTreeNode& root, const std::string& name){
+    return nullptr;
+}
+#endif

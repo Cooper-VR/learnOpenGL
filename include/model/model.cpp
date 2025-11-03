@@ -1,3 +1,5 @@
+#include <functional>
+#include <string>
 #include <model/model.hpp>
 #include <assimp/Importer.hpp>      // for Assimp::Importer
 #include <assimp/scene.h>           // for aiScene

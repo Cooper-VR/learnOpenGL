@@ -34,7 +34,7 @@ class Mesh{
         vector<unsigned int> indices;
         vector<Texture> textures;
         Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) : vertices(vertices), indices(indices), textures(textures) {setupMesh();};
-        void Draw(Shader &shader);
+        void Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix);
     private:
         unsigned int VAO, VBO, EBO;
         void setupMesh();

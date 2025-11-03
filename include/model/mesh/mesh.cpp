@@ -1,13 +1,19 @@
 #include "mesh.hpp"
 #include <iostream>
 
-void Mesh::Draw(Shader &shader)
+void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
     unsigned int heightNr = 1;
 
+
+    shader.use();
+    shader.setMat4("projection", projection);
+    shader.setMat4("view", viewMatrix);
+    shader.setMat4("model", modelMatrix);
+    
     for(unsigned int i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -28,6 +34,7 @@ void Mesh::Draw(Shader &shader)
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
+
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
