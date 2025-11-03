@@ -9,13 +9,17 @@ struct SceneTreeNode{
     unsigned int instanceCount;
     SceneTreeNode* leftChildInstance;
     SceneTreeNode* rightChildInstance;
+
+    vector<SceneTreeNode*> childrenInstances;
+    SceneTreeNode* parentNode;
+
 } typedef SceneTreeNode;
 
-void insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int instanceIndex){
+SceneTreeNode* insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int instanceIndex){
     if(root->NodeModel == nullptr){
         root->instanceCount = instanceIndex;
         root->NodeModel = model;
-        return;
+        return root;
     }else{
         if(model->Hash_ID[instanceIndex] < root->NodeModel->Hash_ID[0]){
             if(root->leftChildInstance == nullptr){
@@ -25,7 +29,7 @@ void insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int i
                 newNode->leftChildInstance = nullptr;
                 newNode->rightChildInstance = nullptr;
                 root->leftChildInstance = newNode;
-                return;
+                return newNode;
             }else{
                 insertInstanceToSceneTree(root->leftChildInstance, model, instanceIndex);
             }
@@ -37,12 +41,14 @@ void insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int i
                 newNode->leftChildInstance = nullptr;
                 newNode->rightChildInstance = nullptr;
                 root->rightChildInstance = newNode;
-                return;
+                return newNode;
             }else{
                 insertInstanceToSceneTree(root->rightChildInstance, model, instanceIndex);
             }
         }
     }
+
+    return nullptr;
 }
 
 void removeInstanceFromSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
