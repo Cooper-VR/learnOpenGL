@@ -15,6 +15,7 @@ class Model{
 
         loadModel(path);
 
+        directory = path;
         if (instanceCount == 0) {
             addInstance(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), name);
         }
@@ -24,6 +25,7 @@ class Model{
     {
 
         loadModel(path);
+        directory = path;
 
         this->position.push_back(position);
         this->rotation.push_back(rotation);
@@ -78,6 +80,7 @@ class Model{
     vector<glm::vec3> position;
     vector<glm::vec3> rotation;
     vector<glm::vec3> scale;
+    string directory;
     private:
     bool gammaCorrection;
     vector<Texture> textures_loaded;

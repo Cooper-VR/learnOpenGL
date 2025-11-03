@@ -23,6 +23,9 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+void ShowFileBrowser();
+void saveScene();
+void loadScene();
 void saveData();
 void loadData();
 void resetData();
@@ -64,6 +67,9 @@ string pointLightAttribs[7] = {
     ".constant",
     ".linear",
     ".quadratic"};
+
+static fs::path currentPath = fs::current_path();
+static std::string selectedFile = "";
 
 vector<Model *> sceneModels;
 int main()
@@ -286,13 +292,7 @@ int main()
 
         ImGui::End();
 
-        ImGui::Begin("models Folder");
-        for (const auto &entry : fs::directory_iterator("resources/models/"))
-        {
-            ImGui::Text("%s", entry.path().filename().string().c_str());
-        }
-
-        ImGui::End();
+        ShowFileBrowser();
 
 
         ImGui::End();
@@ -318,6 +318,28 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void saveScene()
+{
+    // save the scene to a file
+
+    /*
+    loop through each model,
+        save the path, number of instances
+        loop though for the number of instances
+            save the name, position, rotation, scale, hash id
+    */
+}
+
+void loadScene()
+{
+    /*
+    loop through each model,
+        load the path, number of instances
+        loop though for the number of instances
+            load the name, position, rotation, scale, hash id
+    */
 }
 
 void saveData()
@@ -363,6 +385,8 @@ void saveData()
         saveFile << SCR_HEIGHT << endl;
         saveFile << SCR_WIDTH << endl;
 
+        saveFile << currentPath << endl;
+
         saveFile.close();
     }
 }
@@ -401,6 +425,8 @@ void loadData()
         saveFile >> SCR_HEIGHT;
         saveFile >> SCR_WIDTH;
 
+        saveFile >> currentPath;
+
         saveFile.close();
     }
 }
@@ -431,6 +457,8 @@ void resetData()
     lightSpecularColor[2] = 1.0f;
     lightLinear = 0.09f;
     lightQuatratic = 0.032f;
+
+    currentPath = fs::current_path();
 }
 
 void processInput(GLFWwindow *window)
@@ -453,8 +481,7 @@ void processInput(GLFWwindow *window)
         */
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow *window, int width, int height){
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
@@ -543,4 +570,40 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
 
         ImGui::TreePop();
     }
+}
+
+void ShowFileBrowser()
+{
+    ImGui::Begin("File Browser");
+
+    // Back button
+    if (ImGui::Button("⬅ Up") && currentPath.has_parent_path()) {
+        currentPath = currentPath.parent_path();
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Current Path: %s", currentPath.string().c_str());
+    ImGui::Separator();
+
+    // Iterate through directory
+    for (auto& entry : fs::directory_iterator(currentPath)) {
+        const auto& path = entry.path();
+        std::string filename = path.filename().string();
+
+        if (entry.is_directory()) {
+            // Folders: click to enter
+            if (ImGui::Selectable((filename + "/").c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+                if (ImGui::IsMouseDoubleClicked(0)) {
+                    currentPath = path;
+                }
+            }
+        } else {
+            // Files: click to select
+            if (ImGui::Selectable(filename.c_str(), selectedFile == filename)) {
+                selectedFile = filename;
+            }
+        }
+    }
+
+    ImGui::End();
 }
