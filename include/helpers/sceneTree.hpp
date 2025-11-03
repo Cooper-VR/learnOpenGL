@@ -31,7 +31,7 @@ SceneTreeNode* insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsi
                 root->leftChildInstance = newNode;
                 return newNode;
             }else{
-                insertInstanceToSceneTree(root->leftChildInstance, model, instanceIndex);
+                return insertInstanceToSceneTree(root->leftChildInstance, model, instanceIndex);
             }
         }else{
             if(root->rightChildInstance == nullptr){
@@ -43,12 +43,10 @@ SceneTreeNode* insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsi
                 root->rightChildInstance = newNode;
                 return newNode;
             }else{
-                insertInstanceToSceneTree(root->rightChildInstance, model, instanceIndex);
+                return insertInstanceToSceneTree(root->rightChildInstance, model, instanceIndex);
             }
         }
     }
-
-    return nullptr;
 }
 
 void removeInstanceFromSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){

@@ -15,7 +15,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 using namespace std;
-void drawSceneTreeFlat(SceneTreeNode* root, SceneTreeNode*& selectedNode);
+void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -114,38 +114,51 @@ int main()
 
     string path = "resources/models/champion.fbx";
 
-    SceneTreeNode* rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
+    SceneTreeNode *rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
 
-    Model test(path.c_str(), lightingShader, "champion");
-    test.position[0] = glm::vec3(0.0f, 0.0f, 0.0f);
-    test.scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
-    test.rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+    Model* test = new Model(path.c_str(), lightingShader, "champion");
+    test->position[0] = glm::vec3(0.0f, 0.0f, 0.0f);
+    test->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
+    test->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
 
-    insertInstanceToSceneTree(rootNode, &test, 0);
+    SceneTreeNode *sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
+
+    cout << "Inserted model with Hash ID: " << sceneRootNode->NodeModel->Hash_ID[sceneRootNode->instanceCount] << endl;
 
     path = "resources/models/testCube.fbx";
-    Model cubeModel(path.c_str(), lightCubeShader, "cube");
-    cubeModel.position[0] = pointLightPositions[0];
-    cubeModel.scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
-    cubeModel.rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+    Model* cubeModel = new Model(path.c_str(), lightCubeShader, "cube");
+    cubeModel->position[0] = pointLightPositions[0];
+    cubeModel->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
+    cubeModel->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
 
-    insertInstanceToSceneTree(rootNode, &cubeModel, 0);
+    SceneTreeNode *sceneLightNode = insertInstanceToSceneTree(rootNode, cubeModel, 0);
+    cout << "Inserted model with Hash ID: " << cubeModel->Hash_ID[0] << endl;
+    sceneRootNode->childrenInstances.push_back(sceneLightNode);
+    sceneLightNode->parentNode = sceneRootNode;
+
+    SceneTreeNode* sceneNode;
 
     for (unsigned int i = 1; i < 4; i++)
     {
-        cubeModel.addInstance(pointLightPositions[i], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), "lightCube " + std::to_string(i));
-        insertInstanceToSceneTree(rootNode, &cubeModel, i);
+        cubeModel->addInstance(pointLightPositions[i], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), "lightCube " + std::to_string(i));
+        sceneNode = insertInstanceToSceneTree(rootNode, cubeModel, i);
+        cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[i] << endl;
+        sceneLightNode->childrenInstances.push_back(sceneNode);
+        sceneNode->parentNode = sceneLightNode;
     }
 
-    sceneModels.push_back(&test);
-    sceneModels.push_back(&cubeModel);
-
-    int selectedButton = 0;
-    Model* selectedModel = sceneModels[0];
-    int selectedInstance = 0;
+    sceneModels.push_back(test);
+    sceneModels.push_back(cubeModel);
 
     while (!glfwWindowShouldClose(window))
     {
+        // Skip frame if minimized
+        if (SCR_WIDTH == 0 || SCR_HEIGHT == 0)
+        {
+            SCR_HEIGHT = 1;
+            SCR_WIDTH = 1;
+        }
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -187,6 +200,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
         glm::mat4 view = camera.GetViewMatrix();
 
         if (ImGui::Button("Save Data"))
@@ -226,9 +240,9 @@ int main()
 
         for (int i = 0; i < 4; i++)
         {
-            pointLightPositions[i].x = cubeModel.position[i].x;
-            pointLightPositions[i].y = cubeModel.position[i].y;
-            pointLightPositions[i].z = cubeModel.position[i].z;
+            pointLightPositions[i].x = cubeModel->position[i].x;
+            pointLightPositions[i].y = cubeModel->position[i].y;
+            pointLightPositions[i].z = cubeModel->position[i].z;
 
             lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
             lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
@@ -245,49 +259,26 @@ int main()
             lightCubeShader.setVec3("mainColor", glm::vec3(lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]));
         }
 
-
-
         for (int i = 0; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
 
             model->Draw(projection, view);
-
-            for (unsigned int j = 0; j < model->Hash_ID.size(); j++){
-                ImGui::PushID(j);
-                if (ImGui::RadioButton(model->names[j].c_str(), selectedButton == j + i)){
-                    selectedButton = j + i;
-                    selectedModel = model;
-                    selectedInstance = j;
-                }
-                ImGui::PopID();
-            }
         }
 
-        if (selectedModel)
-        {
-            ImGui::Text("Selected Model: %s", std::to_string(selectedModel->names.size()).c_str());
-            ImGui::DragFloat3("Position", glm::value_ptr(selectedModel->position[selectedInstance]), 0.1f);
-            ImGui::DragFloat3("Rotation", glm::value_ptr(selectedModel->rotation[selectedInstance]), 1.0f);
-            ImGui::DragFloat3("Scale", glm::value_ptr(selectedModel->scale[selectedInstance]), 0.1f, 0.1f, 10.0f);
-        }
-        else
-        {
-            ImGui::Text("No Model Selected");
-        }
 
         ImGui::Begin("Scene Tree");
 
-        static SceneTreeNode* selectedNode = nullptr;
-        drawSceneTreeFlat(rootNode, selectedNode);
+        static SceneTreeNode *selectedNode = nullptr;
+        drawSceneTreeHierarchical(rootNode, selectedNode);
 
         if (selectedNode)
         {
             ImGui::Separator();
-            ImGui::Text("Selected: %s",
-                        selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
-            ImGui::Text("Hash ID: %u",
-                        selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
+            ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
+            ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->position[selectedNode->instanceCount]), 0.1f);
+            ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->rotation[selectedNode->instanceCount]), 1.0f);
+            ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->scale[selectedNode->instanceCount]), 0.1f, 0.1f, 10.0f);
         }
 
         ImGui::End();
@@ -304,6 +295,8 @@ int main()
 
     cout << "closing application" << endl;
 
+    delete cubeModel;
+    delete test;
     // get the imguiu stuff store it in a file
     saveData();
 
@@ -353,6 +346,8 @@ void saveData()
         saveFile << lightLinear << endl;
         saveFile << lightQuatratic << endl;
 
+        if(SCR_HEIGHT == 1) SCR_HEIGHT = 720;
+        if(SCR_WIDTH == 1) SCR_WIDTH = 1280;
         saveFile << SCR_HEIGHT << endl;
         saveFile << SCR_WIDTH << endl;
 
@@ -508,33 +503,32 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
     camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
 }
 
-void drawSceneTreeFlat(SceneTreeNode* root, SceneTreeNode*& selectedNode){
-    if (!root) return;
+void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode)
+{
+    if (!node || !node->NodeModel)
+        return;
 
-    std::stack<SceneTreeNode*> stack;
-    SceneTreeNode* current = root;
+    // label for this node
+    std::string label = node->NodeModel->names[node->instanceCount];
 
-    while (current != nullptr || !stack.empty())
+    // is this node selected?
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
+                               ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                               (node->childrenInstances.empty() ? ImGuiTreeNodeFlags_Leaf : 0) |
+                               ((selectedNode == node) ? ImGuiTreeNodeFlags_Selected : 0);
+
+    bool open = ImGui::TreeNodeEx((void*)node, flags, "%s", label.c_str());
+
+    // handle selection
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        selectedNode = node;
+
+    // draw children recursively
+    if (open)
     {
-        // go left
-        while (current != nullptr)
-        {
-            stack.push(current);
-            current = current->leftChildInstance;
-        }
+        for (SceneTreeNode* child : node->childrenInstances)
+            drawSceneTreeHierarchical(child, selectedNode);
 
-        // visit
-        current = stack.top();
-        stack.pop();
-
-        // each object is a selectable ImGui item
-        if (ImGui::Selectable(current->NodeModel->names[current->instanceCount].c_str(),
-                              selectedNode == current))
-        {
-            selectedNode = current;
-        }
-
-        // go right
-        current = current->rightChildInstance;
+        ImGui::TreePop();
     }
 }
