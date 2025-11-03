@@ -13,6 +13,7 @@ struct SceneTreeNode{
 
 void insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int instanceIndex){
     if(root->NodeModel == nullptr){
+        root->instanceCount = instanceIndex;
         root->NodeModel = model;
         return;
     }else{

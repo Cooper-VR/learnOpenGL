@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stack>
 #include <shaders/shader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,7 +15,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 using namespace std;
-
+void drawSceneTreeFlat(SceneTreeNode* root, SceneTreeNode*& selectedNode);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -113,7 +114,7 @@ int main()
 
     string path = "resources/models/champion.fbx";
 
-    SceneTreeNode* rootNode;
+    SceneTreeNode* rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
 
     Model test(path.c_str(), lightingShader, "champion");
     test.position[0] = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -274,6 +275,22 @@ int main()
         {
             ImGui::Text("No Model Selected");
         }
+
+        ImGui::Begin("Scene Tree");
+
+        static SceneTreeNode* selectedNode = nullptr;
+        drawSceneTreeFlat(rootNode, selectedNode);
+
+        if (selectedNode)
+        {
+            ImGui::Separator();
+            ImGui::Text("Selected: %s",
+                        selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
+            ImGui::Text("Hash ID: %u",
+                        selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
+        }
+
+        ImGui::End();
 
         ImGui::End();
         ImGui::Render();
@@ -489,4 +506,35 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
+}
+
+void drawSceneTreeFlat(SceneTreeNode* root, SceneTreeNode*& selectedNode){
+    if (!root) return;
+
+    std::stack<SceneTreeNode*> stack;
+    SceneTreeNode* current = root;
+
+    while (current != nullptr || !stack.empty())
+    {
+        // go left
+        while (current != nullptr)
+        {
+            stack.push(current);
+            current = current->leftChildInstance;
+        }
+
+        // visit
+        current = stack.top();
+        stack.pop();
+
+        // each object is a selectable ImGui item
+        if (ImGui::Selectable(current->NodeModel->names[current->instanceCount].c_str(),
+                              selectedNode == current))
+        {
+            selectedNode = current;
+        }
+
+        // go right
+        current = current->rightChildInstance;
+    }
 }
