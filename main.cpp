@@ -372,6 +372,31 @@ void saveScene()
 
 void loadScene()
 {
+    ifstream sceneFile;
+    sceneFile.open("localData/scene.sn");
+
+    if (sceneFile.is_open())
+    {
+        string path;
+        sceneFile >> path;
+        unsigned int numInstances;
+        sceneFile >> numInstances;
+
+        for (unsigned int i = 0; i < numInstances; i++)
+        {
+            glm::vec3 position;
+            glm::vec3 rotation;
+            glm::vec3 scale;
+            size_t hashID;
+            sceneFile >> hashID;
+            sceneFile >> position.x >> position.y >> position.z;
+            sceneFile >> rotation.x >> rotation.y >> rotation.z;
+            sceneFile >> scale.x >> scale.y >> scale.z;
+
+
+        }
+        
+    }
     /*
     loop through each model,
         load the path, number of instances
