@@ -1,5 +1,6 @@
 #include <functional>
 #include <string>
+#include <iostream>
 #include <model/model.hpp>
 #include <assimp/Importer.hpp>      // for Assimp::Importer
 #include <assimp/scene.h>           // for aiScene
@@ -31,6 +32,12 @@ void Model::processNode(aiNode *node, const aiScene *scene)
     for(unsigned int i = 0; i < node->mNumChildren; i++){
         processNode(node->mChildren[i], scene);
     }
+}
+
+void Model::reloadShader() {
+    string vertexPath = shader->vertex;
+    string fragmentPath = shader->fragment;
+    shader = new Shader(vertexPath.c_str(), fragmentPath.c_str());
 }
 
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene){

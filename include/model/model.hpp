@@ -85,6 +85,8 @@ class Model{
         }
     }
 
+    void reloadShader();
+
     Shader *shader;
     vector<size_t> Hash_ID;
     unsigned int instanceCount = 0;

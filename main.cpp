@@ -672,16 +672,12 @@ void ShowFileBrowser()
             if (ImGui::Selectable(filename.c_str(), selectedFile == filename)) {
                 selectedFile = filename;
                 cout << "Selected file path: " << currentPath << '\\' << filename << endl;
-                
             }
-            
         }
         
     }
 
     if (ImGui::Button("Spawn Model?")){
-
-
         bool alreadyLoaded = false;
         SceneTreeNode *sceneNode;
 
@@ -718,5 +714,10 @@ void ShowFileBrowser()
         
     }
 
+    if (ImGui::Button("reload shaders")){
+        for (Model* model : sceneModels) {
+            model->reloadShader();
+        }
+    }
     ImGui::End();
 }

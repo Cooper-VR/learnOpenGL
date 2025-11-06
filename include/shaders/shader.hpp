@@ -4,6 +4,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
+#include <iostream>
 
 // A simple OpenGL shader class for loading, compiling, linking, and using GLSL programs.
 class Shader {
@@ -33,6 +34,9 @@ public:
     void setMat2(const std::string& name, const glm::mat2& mat) const;
     void setMat3(const std::string& name, const glm::mat3& mat) const;
     void setMat4(const std::string& name, const glm::mat4& mat) const;
+
+    std::string vertex;
+    std::string fragment;
 
 private:
     // Internal utility for error checking

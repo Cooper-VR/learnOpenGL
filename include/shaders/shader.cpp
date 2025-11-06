@@ -9,6 +9,9 @@ using namespace std;
 Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath)
 {
     // 1. retrieve the vertex/fragment source code from filePath
+    vertex = vertexPath;
+    fragment = fragmentPath;
+
     std::string vertexCode;
     std::string fragmentCode;
     std::string geometryCode;
