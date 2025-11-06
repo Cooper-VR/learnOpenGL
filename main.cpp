@@ -72,6 +72,8 @@ static fs::path currentPath = fs::current_path();
 static std::string selectedFile = "";
 
 vector<Model *> sceneModels;
+SceneTreeNode *rootNode;
+SceneTreeNode *sceneRootNode;
 int main()
 {
     loadData();
@@ -120,7 +122,7 @@ int main()
 
     string path = "resources/models/champion.fbx";
 
-    SceneTreeNode *rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
+    rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
     
     string fragment = "resources/shaders/objectLighting_fragment.glsl";
     string vertex = "resources/shaders/objectLighting_vertex.glsl";
@@ -129,7 +131,7 @@ int main()
     test->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
     test->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
 
-    SceneTreeNode *sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
+    sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
 
     cout << "Inserted model with Hash ID: " << sceneRootNode->NodeModel->Hash_ID[sceneRootNode->instanceCount] << endl;
 
@@ -150,7 +152,7 @@ int main()
 
     for (unsigned int i = 1; i < 4; i++)
     {
-        cubeModel->addInstance(pointLightPositions[i], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), "lightCube " + std::to_string(i));
+        int index = cubeModel->addInstance(pointLightPositions[i], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), "lightCube " + std::to_string(i));
         sceneNode = insertInstanceToSceneTree(rootNode, cubeModel, i);
         cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[i] << endl;
         sceneLightNode->childrenInstances.push_back(sceneNode);
@@ -651,11 +653,12 @@ void ShowFileBrowser()
     ImGui::Separator();
     ImGui::Text("Current Path: %s", currentPath.string().c_str());
     ImGui::Separator();
+    std::string filename;
 
     // Iterate through directory
     for (auto& entry : fs::directory_iterator(currentPath)) {
         const auto& path = entry.path();
-        std::string filename = path.filename().string();
+        filename = path.filename().string();
 
         if (entry.is_directory()) {
             // Folders: click to enter
@@ -668,8 +671,51 @@ void ShowFileBrowser()
             // Files: click to select
             if (ImGui::Selectable(filename.c_str(), selectedFile == filename)) {
                 selectedFile = filename;
+                cout << "Selected file path: " << currentPath << '\\' << filename << endl;
+                
+            }
+            
+        }
+        
+    }
+
+    if (ImGui::Button("Spawn Model?")){
+
+
+        bool alreadyLoaded = false;
+        SceneTreeNode *sceneNode;
+
+        //check if the selected file is already a loeaded model
+        for (Model* model : sceneModels) {
+            cout << "Checking loaded model: " << model->directory << endl;
+            if (model->directory == (currentPath / selectedFile).string()) {
+                alreadyLoaded = true;
+                cout << "Model already loaded: " << model->directory << endl;
+                int index = model->addInstance(camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), selectedFile);
+                sceneNode = insertInstanceToSceneTree(rootNode, model, index);
+                cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[index] << endl;
+                sceneRootNode->childrenInstances.push_back(sceneNode);
+                sceneNode->parentNode = sceneRootNode;
+                break;
             }
         }
+
+        string fragment = "resources/shaders/missingShader_fragment.glsl";
+        string vertex = "resources/shaders/missingShader_vertex.glsl";
+        if (!alreadyLoaded){
+            cout << "Loading model from: " << (currentPath / selectedFile).string() << endl;
+            Model *newModel = new Model((currentPath / selectedFile).string().c_str(), vertex.c_str(), fragment.c_str(), selectedFile);
+            newModel->position[0] = camera.Position + camera.Front * 2.0f;
+            newModel->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
+            newModel->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+
+            sceneNode = insertInstanceToSceneTree(rootNode, newModel, 0);
+            cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[0] << endl;
+            sceneRootNode->childrenInstances.push_back(sceneNode);
+            sceneModels.push_back(newModel);
+            sceneNode->parentNode = sceneRootNode;
+        }
+        
     }
 
     ImGui::End();

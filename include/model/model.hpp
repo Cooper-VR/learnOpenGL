@@ -7,6 +7,7 @@
 #include <assimp/postprocess.h>     // for post-processing flags
 #include <loaders/stb_image.h>
 #include <iostream>
+#include <filesystem>
 
 class Model{
     public:
@@ -15,7 +16,10 @@ class Model{
         shader = new Shader(vertexShader, fragShader);
         loadModel(path);
 
-        directory = path;
+        std::filesystem::path relativePath(path);
+        std::filesystem::path absolutePath = std::filesystem::absolute(relativePath);
+
+        directory = absolutePath.string();
         if (instanceCount == 0) {
             addInstance(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), name);
         }
@@ -25,7 +29,11 @@ class Model{
     {
         shader = new Shader(vertexShader, fragShader);
         loadModel(path);
-        directory = path;
+        
+        std::filesystem::path relativePath(path);
+        std::filesystem::path absolutePath = std::filesystem::absolute(relativePath);
+
+        directory = absolutePath.string();
 
         this->position.push_back(position);
         this->rotation.push_back(rotation);
@@ -36,7 +44,7 @@ class Model{
         }
     }
 
-    void addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, string name = "empty") {
+    int addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, string name = "empty") {
         this->position.push_back(position);
         this->rotation.push_back(rotation);
         this->scale.push_back(scale);
@@ -56,6 +64,7 @@ class Model{
 
         Hash_ID.push_back(h);
         instanceCount++;
+        return instanceCount - 1;
     }
 
     void Draw(glm::mat4 projection, glm::mat4 viewMatrix) {
