@@ -10,9 +10,9 @@
 
 class Model{
     public:
-    Model (const char* path, Shader &shader, string name, bool gammaCorrection = false) : shader(shader), gammaCorrection(gammaCorrection) 
+    Model (const char* path, const char* vertexShader, const char* fragShader, string name, bool gammaCorrection = false) : gammaCorrection(gammaCorrection) 
     {
-
+        shader = new Shader(vertexShader, fragShader);
         loadModel(path);
 
         directory = path;
@@ -21,9 +21,9 @@ class Model{
         }
     }
 
-    Model (const char* path, Shader &shader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection = false) : shader(shader), gammaCorrection(gammaCorrection) 
+    Model (const char* path, const char* vertexShader, const char* fragShader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection = false) : gammaCorrection(gammaCorrection) 
     {
-
+        shader = new Shader(vertexShader, fragShader);
         loadModel(path);
         directory = path;
 
@@ -61,18 +61,22 @@ class Model{
     void Draw(glm::mat4 projection, glm::mat4 viewMatrix) {
         for(unsigned int i = 0; i < meshes.size(); i++){
             for (unsigned int j = 0; j < modelMatrix.size(); j++){
+                shader->use();
                 modelMatrix[j] = glm::mat4(1.0f);
                 modelMatrix[j] = glm::translate(modelMatrix[j], position[j]);
                 modelMatrix[j] = glm::scale(modelMatrix[j], scale[j]);
                 modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(rotation[j].x), glm::vec3(1.0f, 0.0f, 0.0f));
                 modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(rotation[j].y), glm::vec3(0.0f, 1.0f, 0.0f));
                 modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(rotation[j].z), glm::vec3(0.0f, 0.0f, 1.0f));
-                meshes[i].Draw(shader, modelMatrix[j], projection, viewMatrix);
+                shader->setMat4("projection", projection);
+                shader->setMat4("view", viewMatrix);
+                shader->setMat4("model", modelMatrix[j]);
+                meshes[i].Draw(*shader, modelMatrix[j], projection, viewMatrix);
             }
         }
     }
 
-    Shader &shader;
+    Shader *shader;
     vector<size_t> Hash_ID;
     unsigned int instanceCount = 0;
     vector<string> names;

@@ -9,10 +9,6 @@ void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm
     unsigned int heightNr = 1;
 
 
-    shader.use();
-    shader.setMat4("projection", projection);
-    shader.setMat4("view", viewMatrix);
-    shader.setMat4("model", modelMatrix);
     
     for(unsigned int i = 0; i < textures.size(); i++)
     {

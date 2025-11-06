@@ -112,9 +112,6 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    Shader lightingShader("resources/shaders/objectLighting_vertex.glsl", "resources/shaders/objectLighting_fragment.glsl");
-    Shader lightCubeShader("resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl");
-
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f, 0.2f, 2.0f),
         glm::vec3(2.3f, -3.3f, -4.0f),
@@ -124,8 +121,10 @@ int main()
     string path = "resources/models/champion.fbx";
 
     SceneTreeNode *rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
-
-    Model* test = new Model(path.c_str(), lightingShader, "champion");
+    
+    string fragment = "resources/shaders/objectLighting_fragment.glsl";
+    string vertex = "resources/shaders/objectLighting_vertex.glsl";
+    Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "champion");
     test->position[0] = glm::vec3(0.0f, 0.0f, 0.0f);
     test->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
     test->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
@@ -135,7 +134,9 @@ int main()
     cout << "Inserted model with Hash ID: " << sceneRootNode->NodeModel->Hash_ID[sceneRootNode->instanceCount] << endl;
 
     path = "resources/models/testCube.fbx";
-    Model* cubeModel = new Model(path.c_str(), lightCubeShader, "cube");
+    fragment = "resources/shaders/litObject_fragment.glsl";
+    vertex = "resources/shaders/litObject_vertex.glsl";
+    Model* cubeModel = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "cube");
     cubeModel->position[0] = pointLightPositions[0];
     cubeModel->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
     cubeModel->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
@@ -222,24 +223,25 @@ int main()
             resetData();
         }
 
-        lightingShader.use();
-        lightingShader.setVec3("ViewDir", camera.Position);
-        lightingShader.setFloat("material.shininess", 0.0f);
-        lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        lightingShader.setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-        lightingShader.setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-        lightingShader.setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+        Model *model = sceneModels[0];
+        model->shader->use();
+        model->shader->setVec3("ViewDir", camera.Position);
+        model->shader->setFloat("material.shininess", 0.0f);
+        model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+        model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+        model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
 
-        lightingShader.setVec3("spotLight.position", camera.Position);
-        lightingShader.setVec3("spotLight.direction", camera.Front);
-        lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        lightingShader.setFloat("spotLight.constant", 1.0f);
-        lightingShader.setFloat("spotLight.linear", 0.09f);
-        lightingShader.setFloat("spotLight.quadratic", 0.032f);
-        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        model->shader->setVec3("spotLight.position", camera.Position);
+        model->shader->setVec3("spotLight.direction", camera.Front);
+        model->shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        model->shader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        model->shader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        model->shader->setFloat("spotLight.constant", 1.0f);
+        model->shader->setFloat("spotLight.linear", 0.09f);
+        model->shader->setFloat("spotLight.quadratic", 0.032f);
+        model->shader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        model->shader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         ImGui::Text("lights");
         ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
@@ -254,19 +256,21 @@ int main()
             pointLightPositions[i].y = cubeModel->position[i].y;
             pointLightPositions[i].z = cubeModel->position[i].z;
 
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
-            lightingShader.setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
-            lightingShader.setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
+            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
+            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
+            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
+            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
+            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
+            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
+            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
         }
 
+        model = sceneModels[1];
         for (unsigned int i = 0; i < 1; i++)
         {
-            lightCubeShader.use();
-            lightCubeShader.setVec3("mainColor", glm::vec3(lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]));
+
+            model->shader->use();
+            model->shader->setVec3("mainColor", glm::vec3(lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]));
         }
 
         for (int i = 0; i < sceneModels.size(); i++)
