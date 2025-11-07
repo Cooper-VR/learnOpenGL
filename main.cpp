@@ -127,9 +127,7 @@ int main()
     string fragment = "resources/shaders/objectLighting_fragment.glsl";
     string vertex = "resources/shaders/objectLighting_vertex.glsl";
     Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "champion");
-    test->position[0] = glm::vec3(0.0f, 0.0f, 0.0f);
-    test->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
-    test->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+    test->transforms[0] = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
 
     sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
 
@@ -139,9 +137,8 @@ int main()
     fragment = "resources/shaders/litObject_fragment.glsl";
     vertex = "resources/shaders/litObject_vertex.glsl";
     Model* cubeModel = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "cube");
-    cubeModel->position[0] = pointLightPositions[0];
-    cubeModel->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
-    cubeModel->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+    cubeModel->transforms[0] = Transform{pointLightPositions[0], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+
 
     SceneTreeNode *sceneLightNode = insertInstanceToSceneTree(rootNode, cubeModel, 0);
     cout << "Inserted model with Hash ID: " << cubeModel->Hash_ID[0] << endl;
@@ -254,9 +251,9 @@ int main()
 
         for (int i = 0; i < 4; i++)
         {
-            pointLightPositions[i].x = cubeModel->position[i].x;
-            pointLightPositions[i].y = cubeModel->position[i].y;
-            pointLightPositions[i].z = cubeModel->position[i].z;
+            pointLightPositions[i].x = cubeModel->transforms[i].position.x;
+            pointLightPositions[i].y = cubeModel->transforms[i].position.y;
+            pointLightPositions[i].z = cubeModel->transforms[i].position.z;
 
             model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
             model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
@@ -292,9 +289,9 @@ int main()
         {
             ImGui::Separator();
             ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
-            ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->position[selectedNode->instanceCount]), 0.1f);
-            ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->rotation[selectedNode->instanceCount]), 1.0f);
-            ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->scale[selectedNode->instanceCount]), 0.1f, 0.1f, 10.0f);
+            ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
+            ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
+            ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         }
 
         ImGui::End();
@@ -348,17 +345,17 @@ void saveScene()
 
                 for (unsigned int k = 0; k < 3; k++)
                 {
-                    sceneFile << model->position[j][k] << ' ';
+                    sceneFile << model->transforms[j].position[k] << ' ';
                 }
                 sceneFile << endl;
                 for (unsigned int k = 0; k < 3; k++)
                 {
-                    sceneFile << model->rotation[j][k] << ' ';
+                    sceneFile << model->transforms[j].rotation[k] << ' ';
                 }
                 sceneFile << endl;
                 for (unsigned int k = 0; k < 3; k++)
                 {
-                    sceneFile << model->scale[j][k] << ' ';
+                    sceneFile << model->transforms[j].scale[k] << ' ';
                 }
                 sceneFile << endl;
             }
@@ -701,9 +698,9 @@ void ShowFileBrowser()
         if (!alreadyLoaded){
             cout << "Loading model from: " << (currentPath / selectedFile).string() << endl;
             Model *newModel = new Model((currentPath / selectedFile).string().c_str(), vertex.c_str(), fragment.c_str(), selectedFile);
-            newModel->position[0] = camera.Position + camera.Front * 2.0f;
-            newModel->scale[0] = glm::vec3(0.2f, 0.2f, 0.2f);
-            newModel->rotation[0] = glm::vec3(-90.0f, 0.0f, 0.0f);
+            newModel->transforms[0].position = camera.Position + camera.Front * 2.0f;
+            newModel->transforms[0].scale = glm::vec3(0.2f, 0.2f, 0.2f);
+            newModel->transforms[0].rotation = glm::vec3(-90.0f, 0.0f, 0.0f);
 
             sceneNode = insertInstanceToSceneTree(rootNode, newModel, 0);
             cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[0] << endl;
