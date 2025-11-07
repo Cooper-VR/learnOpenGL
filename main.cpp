@@ -35,6 +35,7 @@ void saveData();
 void loadData();
 void resetData();
 
+float cameraFOV = 45.0f;
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 720;
 
@@ -117,7 +118,6 @@ int main()
     Model* cubeModel = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "cube");
     cubeModel->transforms[0] = Transform{pointLightPositions[0], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
 
-
     SceneTreeNode *sceneLightNode = insertInstanceToSceneTree(rootNode, cubeModel, 0);
     cout << "Inserted model with Hash ID: " << cubeModel->Hash_ID[0] << endl;
     sceneRootNode->childrenInstances.push_back(sceneLightNode);
@@ -152,9 +152,6 @@ int main()
 
         processInput(window);
 
-        // Start new ImGui frame
-
-
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
         {
 
@@ -173,57 +170,57 @@ int main()
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-
         Model *model = sceneModels[0];
-        model->shader->use();
-        model->shader->setVec3("ViewDir", camera.Position);
-        model->shader->setFloat("material.shininess", 0.0f);
-        model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-        model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-        model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
-
-        model->shader->setVec3("spotLight.position", camera.Position);
-        model->shader->setVec3("spotLight.direction", camera.Front);
-        model->shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        model->shader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        model->shader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        model->shader->setFloat("spotLight.constant", 1.0f);
-        model->shader->setFloat("spotLight.linear", 0.09f);
-        model->shader->setFloat("spotLight.quadratic", 0.032f);
-        model->shader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        model->shader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-
-        for (int i = 0; i < 4; i++)
+        //setting lighting uniforms
         {
-            pointLightPositions[i].x = cubeModel->transforms[i].position.x;
-            pointLightPositions[i].y = cubeModel->transforms[i].position.y;
-            pointLightPositions[i].z = cubeModel->transforms[i].position.z;
+            model->shader->use();
+            model->shader->setVec3("ViewDir", camera.Position);
+            model->shader->setFloat("material.shininess", 0.0f);
+            model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+            model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+            model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+            model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
 
-            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
-            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
-            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
-            model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
-            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
-            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
-            model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
+            model->shader->setVec3("spotLight.position", camera.Position);
+            model->shader->setVec3("spotLight.direction", camera.Front);
+            model->shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+            model->shader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+            model->shader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+            model->shader->setFloat("spotLight.constant", 1.0f);
+            model->shader->setFloat("spotLight.linear", 0.09f);
+            model->shader->setFloat("spotLight.quadratic", 0.032f);
+            model->shader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+            model->shader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+            for (int i = 0; i < 4; i++)
+            {
+                pointLightPositions[i].x = cubeModel->transforms[i].position.x;
+                pointLightPositions[i].y = cubeModel->transforms[i].position.y;
+                pointLightPositions[i].z = cubeModel->transforms[i].position.z;
+
+                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
+                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
+                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
+                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
+                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
+                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
+                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
+            }
         }
 
         model = sceneModels[1];
         for (unsigned int i = 0; i < 1; i++)
         {
-
             model->shader->use();
             model->shader->setVec3("mainColor", glm::vec3(lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]));
         }
 
+        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+
         for (int i = 0; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
-
             model->Draw(projection, view);
         }
 
@@ -233,16 +230,13 @@ int main()
         glfwPollEvents();
     }
 
-    // Cleanup
-
     cout << "closing application" << endl;
 
     for (unsigned int i = 0; i < sceneModels.size(); i++)
     {
         delete sceneModels[i];
     }
-    
-    // get the imguiu stuff store it in a file
+
     saveData();
     saveScene();
 
@@ -424,6 +418,7 @@ void saveData()
         saveFile << SCR_WIDTH << endl;
 
         saveFile << currentPath << endl;
+        saveFile << cameraFOV << endl;
 
         saveFile.close();
     }
@@ -464,6 +459,7 @@ void loadData()
         saveFile >> SCR_WIDTH;
 
         saveFile >> currentPath;
+        saveFile >> cameraFOV;
 
         saveFile.close();
     }
@@ -599,11 +595,13 @@ void drawMainUI(){
     ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("ForwardSensitivity", &ForwardSensitivity, 0.1f, 5.0f);
+    ImGui::SliderFloat("CameraFOV", &cameraFOV, 45.0f, 120.0f);
 
     ImGui::ColorEdit3("SkyColor", skyColor);
     ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
+
     if (ImGui::Button("Save Data"))
     {
         saveData();
