@@ -26,6 +26,7 @@ void processInput(GLFWwindow *window);
 GLFWwindow* setupOpenGL();
 void setUpImGui(GLFWwindow* window);
 void ShowFileBrowser();
+void drawAllUI();
 void drawMainUI();
 void drawSceneTree();
 void saveScene();
@@ -173,7 +174,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
         glm::mat4 view = camera.GetViewMatrix();
 
         Model *model = sceneModels[0];
@@ -227,15 +227,7 @@ int main()
             model->Draw(projection, view);
         }
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        drawMainUI();
-        drawSceneTree();
-        ShowFileBrowser();
-        ImGui::End();
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        drawAllUI();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -586,6 +578,18 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
+}
+
+void drawAllUI(){
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    drawMainUI();
+    drawSceneTree();
+    ShowFileBrowser();
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void drawMainUI(){
