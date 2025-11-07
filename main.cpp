@@ -23,7 +23,11 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+GLFWwindow* setupOpenGL();
+void setUpImGui(GLFWwindow* window);
 void ShowFileBrowser();
+void drawMainUI();
+void drawSceneTree();
 void saveScene();
 void loadScene();
 void saveData();
@@ -77,42 +81,15 @@ SceneTreeNode *sceneRootNode;
 int main()
 {
     loadData();
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
+    GLFWwindow* window = setupOpenGL();
+    if (window == nullptr)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cout << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    glEnable(GL_DEPTH_TEST);
+    setUpImGui(window);
 
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f, 0.2f, 2.0f),
@@ -175,21 +152,7 @@ int main()
         processInput(window);
 
         // Start new ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
 
-        ImGui::Begin("OpenGL UI");
-        ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
-
-        ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
-        ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
-        ImGui::SliderFloat("ForwardSensitivity", &ForwardSensitivity, 0.1f, 5.0f);
-
-        ImGui::ColorEdit3("SkyColor", skyColor);
-        ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
-        ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
-        ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
         {
@@ -213,15 +176,6 @@ int main()
 
         glm::mat4 view = camera.GetViewMatrix();
 
-        if (ImGui::Button("Save Data"))
-        {
-            saveData();
-        }
-        if (ImGui::Button("reset save data"))
-        {
-            resetData();
-        }
-
         Model *model = sceneModels[0];
         model->shader->use();
         model->shader->setVec3("ViewDir", camera.Position);
@@ -242,12 +196,6 @@ int main()
         model->shader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         model->shader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-        ImGui::Text("lights");
-        ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
-        ImGui::ColorEdit3("LightDiffuseColor", lightDiffuseColor);
-        ImGui::ColorEdit3("LightSpecularColor", lightSpecularColor);
-        ImGui::DragFloat("light linear", &lightLinear, 0.01, 0.01);
-        ImGui::DragFloat("light quadratic", &lightQuatratic, 0.005, 0.05);
 
         for (int i = 0; i < 4; i++)
         {
@@ -279,26 +227,12 @@ int main()
             model->Draw(projection, view);
         }
 
-
-        ImGui::Begin("Scene Tree");
-
-        static SceneTreeNode *selectedNode = nullptr;
-        drawSceneTreeHierarchical(rootNode, selectedNode);
-
-        if (selectedNode)
-        {
-            ImGui::Separator();
-            ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
-            ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
-            ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
-            ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
-        }
-
-        ImGui::End();
-
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        drawMainUI();
+        drawSceneTree();
         ShowFileBrowser();
-
-
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -311,8 +245,11 @@ int main()
 
     cout << "closing application" << endl;
 
-    delete cubeModel;
-    delete test;
+    for (unsigned int i = 0; i < sceneModels.size(); i++)
+    {
+        delete sceneModels[i];
+    }
+    
     // get the imguiu stuff store it in a file
     saveData();
     saveScene();
@@ -323,6 +260,49 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+GLFWwindow* setupOpenGL(){
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return nullptr;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return nullptr;
+    }
+
+    glEnable(GL_DEPTH_TEST);
+
+    return window;
+}
+
+void setUpImGui(GLFWwindow* window){
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 void saveScene()
@@ -606,6 +586,53 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
+}
+
+void drawMainUI(){
+    ImGui::Begin("OpenGL UI");
+    ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
+
+    ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
+    ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
+    ImGui::SliderFloat("ForwardSensitivity", &ForwardSensitivity, 0.1f, 5.0f);
+
+    ImGui::ColorEdit3("SkyColor", skyColor);
+    ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
+    ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
+    ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
+    if (ImGui::Button("Save Data"))
+    {
+        saveData();
+    }
+    if (ImGui::Button("reset save data"))
+    {
+        resetData();
+    }
+
+    ImGui::Text("lights");
+    ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
+    ImGui::ColorEdit3("LightDiffuseColor", lightDiffuseColor);
+    ImGui::ColorEdit3("LightSpecularColor", lightSpecularColor);
+    ImGui::DragFloat("light linear", &lightLinear, 0.01, 0.01);
+    ImGui::DragFloat("light quadratic", &lightQuatratic, 0.005, 0.05);
+}
+
+void drawSceneTree(){
+    ImGui::Begin("Scene Tree");
+
+    static SceneTreeNode *selectedNode = nullptr;
+    drawSceneTreeHierarchical(rootNode, selectedNode);
+
+    if (selectedNode)
+    {
+        ImGui::Separator();
+        ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
+        ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
+        ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
+        ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
+    }
+
+    ImGui::End();
 }
 
 void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode)

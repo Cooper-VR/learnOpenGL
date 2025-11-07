@@ -49,19 +49,11 @@ SceneTreeNode* insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsi
     }
 }
 
-void removeInstanceFromSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
+void removeInstanceFromSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){}
 
-}
+void removeInstanceFromSceneTreeByName(SceneTreeNode& root, Model* model, unsigned int instanceIndex){}
 
-void removeInstanceFromSceneTreeByName(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
+Model* getInstacesInSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){return nullptr;}
 
-}
-
-Model* getInstacesInSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){
-    return nullptr;
-}
-
-Model* getInstacesInSceneTreeByName(SceneTreeNode& root, const std::string& name){
-    return nullptr;
-}
+Model* getInstacesInSceneTreeByName(SceneTreeNode& root, const std::string& name){return nullptr;}
 #endif
