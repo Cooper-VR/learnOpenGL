@@ -1,6 +1,3 @@
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <camera/camera.hpp>
 
 // returns the view matrix calculated using Euler Angles and the LookAt Matrix

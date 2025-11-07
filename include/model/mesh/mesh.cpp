@@ -1,5 +1,4 @@
 #include "mesh.hpp"
-#include <iostream>
 
 void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix)
 {

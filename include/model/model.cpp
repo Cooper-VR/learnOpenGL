@@ -1,10 +1,5 @@
-#include <functional>
-#include <string>
-#include <iostream>
+
 #include <model/model.hpp>
-#include <assimp/Importer.hpp>      // for Assimp::Importer
-#include <assimp/scene.h>           // for aiScene
-#include <assimp/postprocess.h>     // for post-processing flags
 
 Model::Model(const char *path, const char *vertexShader, const char *fragShader, string name, bool gammaCorrection)
 {

@@ -1,10 +1,13 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <iostream>
 #include <string>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 // A simple OpenGL shader class for loading, compiling, linking, and using GLSL programs.
 class Shader {

@@ -2,6 +2,7 @@
 #define MESH_HPP
 
 #include <glm/glm.hpp>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <shaders/shader.hpp>

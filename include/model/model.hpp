@@ -6,8 +6,10 @@
 #include <assimp/scene.h>           // for aiScene
 #include <assimp/postprocess.h>     // for post-processing flags
 #include <loaders/stb_image.h>
-#include <iostream>
 #include <filesystem>
+#include <functional>
+#include <string>
+#include <iostream>
 
 struct Transform{
     glm::vec3 position;
