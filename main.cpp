@@ -352,22 +352,35 @@ void loadScene()
     {
         unsigned int numModels;
         sceneFile >> numModels;
-        string vertexShaderPath;
-        string fragmentShaderPath;
-        sceneFile >> vertexShaderPath;
-        sceneFile >> fragmentShaderPath;
-
-        for (int i = 0; i < numModels; i++)
+        for (int i = 1; i < numModels; i++)
         {
-            string name;
-            sceneFile >> name;
             string path;
             sceneFile >> path;
             unsigned int numInstances;
             sceneFile >> numInstances;
+            string vertexShaderPath;
+            string fragmentShaderPath;
+            sceneFile >> vertexShaderPath;
+            sceneFile >> fragmentShaderPath;
 
+            string name;
+            sceneFile >> name;
+
+            Model *test = new Model(path.c_str(), vertexShaderPath.c_str(), fragmentShaderPath.c_str(), name);
+            glm::vec3 position;
+            glm::vec3 rotation;
+            glm::vec3 scale;
+            size_t hashID;
+            sceneFile >> hashID;
+            sceneFile >> position.x >> position.y >> position.z;
+            sceneFile >> rotation.x >> rotation.y >> rotation.z;
+            sceneFile >> scale.x >> scale.y >> scale.z;
+            test->transforms[0] = Transform{position, rotation, scale};
+            SceneTreeNode* sceneNode;
+            sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
             for (unsigned int j = 0; j < numInstances; j++)
             {
+                sceneFile >> name;
                 glm::vec3 position;
                 glm::vec3 rotation;
                 glm::vec3 scale;
@@ -376,6 +389,9 @@ void loadScene()
                 sceneFile >> position.x >> position.y >> position.z;
                 sceneFile >> rotation.x >> rotation.y >> rotation.z;
                 sceneFile >> scale.x >> scale.y >> scale.z;
+
+                int index = test->addInstance(position, rotation, scale, name);
+                sceneNode = insertInstanceToSceneTree(rootNode, test, j);
             }
         }
     }
