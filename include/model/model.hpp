@@ -35,9 +35,9 @@ class Model{
         string directory;
         string vertexShaderPath;
         string fragmentShaderPath;
+        vector<Texture> textures_loaded;
     private:
         bool gammaCorrection;
-        vector<Texture> textures_loaded;
         vector<Mesh> meshes;
 
         void loadModel(string const &path);
