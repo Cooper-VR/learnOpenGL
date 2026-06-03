@@ -22,6 +22,7 @@ class Model{
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, bool gammaCorrection = false);
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection = false);
         int addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, string name = "empty");
+        void removeInstance(size_t ID);
         void Draw(glm::mat4 projection, glm::mat4 viewMatrix);
         void reloadShader();
 

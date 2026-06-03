@@ -102,7 +102,12 @@ int main()
 
     string path = "resources/models/champion.fbx";
 
-    rootNode = new SceneTreeNode{nullptr, 0, nullptr, nullptr};
+    rootNode = new SceneTreeNode();
+    rootNode->NodeModel = nullptr;
+    rootNode->instanceCount = 0;
+    rootNode->leftChildInstance = nullptr;
+    rootNode->rightChildInstance = nullptr;
+    rootNode->parentNode = nullptr;
     
     string fragment = "resources/shaders/objectLighting_fragment.glsl";
     string vertex = "resources/shaders/objectLighting_vertex.glsl";
@@ -635,15 +640,18 @@ void drawSceneTree(){
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         if (ImGui::Button("Delete"))
         {
-            removeInstanceFromSceneTreeByName(rootNode, selectedNode->NodeModel, selectedNode->NodeModel->names[selectedNode->instanceCount]);
-            // remove from scene tree
-            if (selectedNode->parentNode)
-            {
-                auto &siblings = selectedNode->parentNode->childrenInstances;
-                siblings.erase(std::remove(siblings.begin(), siblings.end(), selectedNode), siblings.end());
-            }
-            delete selectedNode;
+            SceneTreeNode* nodeToDelete = selectedNode;
+            SceneTreeNode* parentNode = nodeToDelete->parentNode;
+            std::string instanceName = nodeToDelete->NodeModel->names[nodeToDelete->instanceCount];
+
             selectedNode = nullptr;
+            removeInstanceFromSceneTreeByName(rootNode, nodeToDelete->NodeModel, instanceName);
+
+            if (parentNode)
+            {
+                auto &siblings = parentNode->childrenInstances;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
+            }
         }
     }
 

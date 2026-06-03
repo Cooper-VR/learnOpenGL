@@ -44,7 +44,7 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix){
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
-        for (unsigned int j = 0; j < modelMatrix.size(); j++)
+        for (unsigned int j = 0; j < instanceCount; j++)
         {
             shader->use();
             modelMatrix[j] = glm::mat4(1.0f);
@@ -80,6 +80,24 @@ int Model::addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, 
     Hash_ID.push_back(h);
     instanceCount++;
     return instanceCount - 1;
+}
+
+void Model::removeInstance(size_t ID){
+    for(int i = 0; i < instanceCount; i++){
+        if(Hash_ID[i] == ID){
+            cout << "removing instance with ID: " << ID << endl;
+            transforms.erase(transforms.begin() + i);
+            cout << "transform size: " << transforms.size() << endl;
+            names.erase(names.begin() + i);
+            cout << "names size: " << names.size() << endl;
+            modelMatrix.erase(modelMatrix.begin() + i);
+            cout << "modelMatrix size: " << modelMatrix.size() << endl;
+            Hash_ID.erase(Hash_ID.begin() + i);
+            cout << "Hash_ID size: " << Hash_ID.size() << endl;
+            instanceCount--;
+            return;
+        }
+    }
 }
 
 void Model::loadModel(string const &path) {
