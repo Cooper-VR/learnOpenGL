@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <cstdio>
 #include <vector>
 #include <stack>
 #include <shaders/shader.hpp>
@@ -115,33 +116,8 @@ int main()
     test->transforms[0] = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
 
     sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
-
-    cout << "Inserted model with Hash ID: " << sceneRootNode->NodeModel->Hash_ID[sceneRootNode->instanceCount] << endl;
-
-    path = "resources/models/testCube.fbx";
-    fragment = "resources/shaders/litObject_fragment.glsl";
-    vertex = "resources/shaders/litObject_vertex.glsl";
-    Model* cubeModel = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "cube");
-    cubeModel->transforms[0] = Transform{pointLightPositions[0], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
-
-    SceneTreeNode *sceneLightNode = insertInstanceToSceneTree(rootNode, cubeModel, 0);
-    cout << "Inserted model with Hash ID: " << cubeModel->Hash_ID[0] << endl;
-    sceneRootNode->childrenInstances.push_back(sceneLightNode);
-    sceneLightNode->parentNode = sceneRootNode;
-
-    SceneTreeNode* sceneNode;
-
-    for (unsigned int i = 1; i < 4; i++)
-    {
-        int index = cubeModel->addInstance(pointLightPositions[i], glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), "lightCube " + std::to_string(i));
-        sceneNode = insertInstanceToSceneTree(rootNode, cubeModel, i);
-        cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[i] << endl;
-        sceneLightNode->childrenInstances.push_back(sceneNode);
-        sceneNode->parentNode = sceneLightNode;
-    }
-
+    
     sceneModels.push_back(test);
-    sceneModels.push_back(cubeModel);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -638,6 +614,29 @@ void drawSceneTree(){
         ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
+        ImGui::Text("Hash ID: %zu", selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
+
+        char vertexShaderBuffer[512];
+        char fragmentShaderBuffer[512];
+
+        std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", selectedNode->NodeModel->vertexShaderPath.c_str());
+        std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", selectedNode->NodeModel->fragmentShaderPath.c_str());
+
+        if (ImGui::InputText("Vertex Shader", vertexShaderBuffer, IM_ARRAYSIZE(vertexShaderBuffer)))
+        {
+            selectedNode->NodeModel->vertexShaderPath = vertexShaderBuffer;
+        }
+
+        if (ImGui::InputText("Fragment Shader", fragmentShaderBuffer, IM_ARRAYSIZE(fragmentShaderBuffer)))
+        {
+            selectedNode->NodeModel->fragmentShaderPath = fragmentShaderBuffer;
+        }
+
+        if (ImGui::Button("Reload Selected Shader"))
+        {
+            selectedNode->NodeModel->reloadShader();
+        }
+
         if (ImGui::Button("Delete"))
         {
             SceneTreeNode* nodeToDelete = selectedNode;

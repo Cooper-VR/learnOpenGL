@@ -128,9 +128,8 @@ void Model::processNode(aiNode *node, const aiScene *scene)
 }
 
 void Model::reloadShader() {
-    string vertexPath = shader->vertex;
-    string fragmentPath = shader->fragment;
-    shader = new Shader(vertexPath.c_str(), fragmentPath.c_str());
+    delete shader;
+    shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 }
 
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene){
