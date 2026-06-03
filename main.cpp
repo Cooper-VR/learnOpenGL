@@ -112,7 +112,7 @@ int main()
     
     string fragment = "resources/shaders/objectLighting_fragment.glsl";
     string vertex = "resources/shaders/objectLighting_vertex.glsl";
-    Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "champion");
+    Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "rootObject");
     test->transforms[0] = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
 
     sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
@@ -244,7 +244,7 @@ void saveScene()
     if (sceneFile.is_open())
     {
         sceneFile << sceneModels.size() << endl;
-        for (int i = 0; i < sceneModels.size(); i++)
+        for (int i = 1; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
             sceneFile << model->directory << endl;
@@ -300,42 +300,86 @@ void loadScene()
         {
             string path;
             sceneFile >> path;
-            unsigned int numInstances;
-            sceneFile >> numInstances;
+            unsigned int instanceCount;
+            sceneFile >> instanceCount;
             string vertexShaderPath;
-            string fragmentShaderPath;
             sceneFile >> vertexShaderPath;
+            string fragmentShaderPath;
             sceneFile >> fragmentShaderPath;
 
             string name;
             sceneFile >> name;
 
-            Model *test = new Model(path.c_str(), vertexShaderPath.c_str(), fragmentShaderPath.c_str(), name);
+            size_t hashID;
+            sceneFile >> hashID;
+
             glm::vec3 position;
             glm::vec3 rotation;
             glm::vec3 scale;
-            size_t hashID;
-            sceneFile >> hashID;
-            sceneFile >> position.x >> position.y >> position.z;
-            sceneFile >> rotation.x >> rotation.y >> rotation.z;
-            sceneFile >> scale.x >> scale.y >> scale.z;
-            test->transforms[0] = Transform{position, rotation, scale};
-            SceneTreeNode* sceneNode;
-            sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
-            for (unsigned int j = 0; j < numInstances; j++)
+
+            for (unsigned int k = 0; k < 3; k++)
             {
+                sceneFile >> position[k];
+            }
+            for (unsigned int k = 0; k < 3; k++)
+            {
+                sceneFile >> rotation[k];
+            }
+            for (unsigned int k = 0; k < 3; k++)
+            {
+                sceneFile >> scale[k];
+            }
+
+            Model *model = new Model(path.c_str(), vertexShaderPath.c_str(), fragmentShaderPath.c_str(), name, position, rotation, scale);
+            model->Hash_ID[0] = hashID;
+
+            sceneModels.push_back(model);
+
+            SceneTreeNode *sceneNode;
+            sceneNode = insertInstanceToSceneTree(rootNode, model, 0);
+            cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[0] << endl;
+            sceneRootNode->childrenInstances.push_back(sceneNode);
+            sceneNode->parentNode = sceneRootNode;
+
+            cout << "loaded model with path: " << path << endl;
+
+
+            for (unsigned int j = 1; j < instanceCount; j++)
+            {
+                string name;
                 sceneFile >> name;
+
+                size_t hashID;
+                sceneFile >> hashID;
+
                 glm::vec3 position;
                 glm::vec3 rotation;
                 glm::vec3 scale;
-                size_t hashID;
-                sceneFile >> hashID;
-                sceneFile >> position.x >> position.y >> position.z;
-                sceneFile >> rotation.x >> rotation.y >> rotation.z;
-                sceneFile >> scale.x >> scale.y >> scale.z;
 
-                int index = test->addInstance(position, rotation, scale, name);
-                sceneNode = insertInstanceToSceneTree(rootNode, test, j);
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile >> position[k];
+                }
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile >> rotation[k];
+                }
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    sceneFile >> scale[k];
+                }
+                
+                model->names[i] = name;
+                model->Hash_ID[i] = hashID;
+                model->transforms[i] = Transform{position, rotation, scale};
+
+                int index = model->addInstance(position, rotation, scale, name);
+
+                SceneTreeNode *sceneNode;
+                sceneNode = insertInstanceToSceneTree(rootNode, model, j);
+                cout << "Inserted model with Hash ID: " << sceneNode->NodeModel->Hash_ID[j] << endl;
+                sceneRootNode->childrenInstances.push_back(sceneNode);
+                sceneNode->parentNode = sceneRootNode;
             }
         }
     }
