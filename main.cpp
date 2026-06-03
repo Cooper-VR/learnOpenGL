@@ -57,14 +57,14 @@ float PanSensitivity = 1.0f;
 float ForwardSensitivity = 1.0f;
 
 float skyColor[3]{0.4f, 0.4f, 0.9f};
+float dirLightDirection[3] = {-0.2f, -1.0f, -0.3f};
 float dirLightDiffuseColor[3] = {0.5f, 0.5f, 0.5f};
 float dirLightAmbientColor[3] = {0.2f, 0.2f, 0.2f};
 float dirLightSpecularColor[3] = {1.0f, 1.0f, 1.0f};
-float lightAmbientColor[3] = {0.05f, 0.05f, 0.05f};
-float lightDiffuseColor[3] = {0.8f, 0.8f, 0.8f};
-float lightSpecularColor[3] = {1.0f, 1.0f, 1.0f};
-float lightLinear = 0.09f;
-float lightQuatratic = 0.032f;
+float newVal = 0.0f;
+int newIntVal = 0;
+float newFloat3Val[3] = {0.0f, 0.0f, 0.0f};
+char newStringVal[256] = "";
 
 string pointLightAttribs[7] = {
     ".position",
@@ -160,9 +160,9 @@ int main()
         {
             Model *model = sceneModels[i];
             model->shader->use();
-            model->shader->setVec3("ViewDir", camera.Position);
-            model->shader->setFloat("material.shininess", 0.0f);
-            model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+            model->shader->setVec3("viewPos", camera.Position);
+
+            model->shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
             model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
             model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
             model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
@@ -183,7 +183,6 @@ int main()
     }
 
     saveData();
-    //saveScene();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -278,13 +277,6 @@ void saveScene()
 
         sceneFile.close();
     }
-
-    /*
-    loop through each model,
-        save the path, number of instances
-        loop though for the number of instances
-            save the name, position, rotation, scale, hash id
-    */
 }
 
 void loadScene()
@@ -383,12 +375,6 @@ void loadScene()
             }
         }
     }
-    /*
-    loop through each model,
-        load the path, number of instances
-        loop though for the number of instances
-            load the name, position, rotation, scale, hash id
-    */
 }
 
 void saveData()
@@ -416,19 +402,6 @@ void saveData()
             saveFile << dirLightSpecularColor[i] << ' ';
         saveFile << endl;
 
-        for (int i = 0; i < 3; i++)
-            saveFile << lightAmbientColor[i] << ' ';
-        saveFile << endl;
-        for (int i = 0; i < 3; i++)
-            saveFile << lightDiffuseColor[i] << ' ';
-        saveFile << endl;
-        for (int i = 0; i < 3; i++)
-            saveFile << lightSpecularColor[i] << ' ';
-
-        saveFile << endl;
-        saveFile << lightLinear << endl;
-        saveFile << lightQuatratic << endl;
-
         if(SCR_HEIGHT == 1) SCR_HEIGHT = 720;
         if(SCR_WIDTH == 1) SCR_WIDTH = 1280;
         saveFile << SCR_HEIGHT << endl;
@@ -436,6 +409,9 @@ void saveData()
 
         saveFile << currentPath << endl;
         saveFile << cameraFOV << endl;
+
+        for (int i = 0; i < 3; i++)
+            saveFile << dirLightDirection[i] << ' ';
 
         saveFile.close();
     }
@@ -462,21 +438,14 @@ void loadData()
         for (int i = 0; i < 3; i++)
             saveFile >> dirLightSpecularColor[i];
 
-        for (int i = 0; i < 3; i++)
-            saveFile >> lightAmbientColor[i];
-        for (int i = 0; i < 3; i++)
-            saveFile >> lightDiffuseColor[i];
-        for (int i = 0; i < 3; i++)
-            saveFile >> lightSpecularColor[i];
-
-        saveFile >> lightLinear;
-        saveFile >> lightQuatratic;
-
         saveFile >> SCR_HEIGHT;
         saveFile >> SCR_WIDTH;
 
         saveFile >> currentPath;
         saveFile >> cameraFOV;
+
+        for (int i = 0; i < 3; i++)
+            saveFile >> dirLightDirection[i];
 
         saveFile.close();
     }
@@ -497,17 +466,9 @@ void resetData()
     dirLightSpecularColor[1] = 1.0f;
     dirLightSpecularColor[2] = 1.0f;
 
-    lightAmbientColor[0] = 0.05f;
-    lightAmbientColor[1] = 0.05f;
-    lightAmbientColor[2] = 0.05f;
-    lightDiffuseColor[0] = 0.8f;
-    lightDiffuseColor[1] = 0.8f;
-    lightDiffuseColor[2] = 0.8f;
-    lightSpecularColor[0] = 1.0f;
-    lightSpecularColor[1] = 1.0f;
-    lightSpecularColor[2] = 1.0f;
-    lightLinear = 0.09f;
-    lightQuatratic = 0.032f;
+    dirLightDirection[0] = -0.2f;
+    dirLightDirection[1] = -1.0f;
+    dirLightDirection[2] = -0.3f;
 
     currentPath = fs::current_path();
 }
@@ -615,6 +576,7 @@ void drawMainUI(){
     ImGui::SliderFloat("CameraFOV", &cameraFOV, 45.0f, 120.0f);
 
     ImGui::ColorEdit3("SkyColor", skyColor);
+    ImGui::DragFloat3("DirLightDirection", dirLightDirection, 0.1f);
     ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
@@ -636,13 +598,6 @@ void drawMainUI(){
     {
         loadScene();
     }
-
-    ImGui::Text("lights");
-    ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
-    ImGui::ColorEdit3("LightDiffuseColor", lightDiffuseColor);
-    ImGui::ColorEdit3("LightSpecularColor", lightSpecularColor);
-    ImGui::DragFloat("light linear", &lightLinear, 0.01, 0.01);
-    ImGui::DragFloat("light quadratic", &lightQuatratic, 0.005, 0.05);
 }
 
 void drawSceneTree(){
@@ -659,6 +614,31 @@ void drawSceneTree(){
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         ImGui::Text("Hash ID: %zu", selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
+
+
+        ImGui::Separator();
+
+        ImGui::Text("setShader property");
+
+
+        ImGui::InputText("string value", newStringVal, IM_ARRAYSIZE(newStringVal));
+        ImGui::InputFloat("float value", &newVal);
+        ImGui::InputInt("int value", &newIntVal);
+        ImGui::InputFloat3("float3 value", newFloat3Val);
+        if (ImGui::Button("Set Shader Int"))
+        {
+            selectedNode->NodeModel->shader->setInt(newStringVal, newIntVal);
+        }
+        if (ImGui::Button("Set Shader Float"))
+        {
+            selectedNode->NodeModel->shader->setFloat(newStringVal, newVal);
+        }
+        if (ImGui::Button("Set Shader Float3"))
+        {
+            selectedNode->NodeModel->shader->setVec3(newStringVal, newFloat3Val[0], newFloat3Val[1], newFloat3Val[2]);
+        }
+
+        ImGui::Separator();
 
         char vertexShaderBuffer[512];
         char fragmentShaderBuffer[512];
