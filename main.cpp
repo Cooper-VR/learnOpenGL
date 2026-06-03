@@ -83,7 +83,7 @@ SceneTreeNode *sceneRootNode;
 int main()
 {
     loadData();
-    loadScene();
+    //loadScene();
 
     GLFWwindow* window = setupOpenGL();
     if (window == nullptr)
@@ -171,50 +171,6 @@ int main()
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Model *model = sceneModels[0];
-        //setting lighting uniforms
-        {
-            model->shader->use();
-            model->shader->setVec3("ViewDir", camera.Position);
-            model->shader->setFloat("material.shininess", 0.0f);
-            model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-            model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-            model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-            model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
-
-            model->shader->setVec3("spotLight.position", camera.Position);
-            model->shader->setVec3("spotLight.direction", camera.Front);
-            model->shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            model->shader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-            model->shader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-            model->shader->setFloat("spotLight.constant", 1.0f);
-            model->shader->setFloat("spotLight.linear", 0.09f);
-            model->shader->setFloat("spotLight.quadratic", 0.032f);
-            model->shader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            model->shader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-            for (int i = 0; i < 4; i++)
-            {
-                pointLightPositions[i].x = cubeModel->transforms[i].position.x;
-                pointLightPositions[i].y = cubeModel->transforms[i].position.y;
-                pointLightPositions[i].z = cubeModel->transforms[i].position.z;
-
-                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[0], pointLightPositions[0]);
-                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[1], lightAmbientColor[0], lightAmbientColor[1], lightAmbientColor[2]);
-                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[2], lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]);
-                model->shader->setVec3("pointLights[" + to_string(i) + "]" + pointLightAttribs[3], lightSpecularColor[0], lightSpecularColor[1], lightSpecularColor[2]);
-                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[4], 1.0f);
-                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[5], lightLinear);
-                model->shader->setFloat("pointLights[" + to_string(i) + "]" + pointLightAttribs[6], lightQuatratic);
-            }
-        }
-
-        model = sceneModels[1];
-        for (unsigned int i = 0; i < 1; i++)
-        {
-            model->shader->use();
-            model->shader->setVec3("mainColor", glm::vec3(lightDiffuseColor[0], lightDiffuseColor[1], lightDiffuseColor[2]));
-        }
 
         glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -222,6 +178,13 @@ int main()
         for (int i = 0; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
+            model->shader->use();
+            model->shader->setVec3("ViewDir", camera.Position);
+            model->shader->setFloat("material.shininess", 0.0f);
+            model->shader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+            model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+            model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+            model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
             model->Draw(projection, view);
         }
 
@@ -672,6 +635,7 @@ void drawSceneTree(){
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         if (ImGui::Button("Delete"))
         {
+            removeInstanceFromSceneTreeByName(rootNode, selectedNode->NodeModel, selectedNode->NodeModel->names[selectedNode->instanceCount]);
             // remove from scene tree
             if (selectedNode->parentNode)
             {
