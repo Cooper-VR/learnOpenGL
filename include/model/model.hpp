@@ -32,6 +32,8 @@ class Model{
         vector<Transform> transforms;
         vector<glm::mat4> modelMatrix;
         string directory;
+        string vertexShaderPath;
+        string fragmentShaderPath;
     private:
         bool gammaCorrection;
         vector<Texture> textures_loaded;

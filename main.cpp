@@ -83,6 +83,7 @@ SceneTreeNode *sceneRootNode;
 int main()
 {
     loadData();
+    loadScene();
 
     GLFWwindow* window = setupOpenGL();
     if (window == nullptr)
@@ -298,15 +299,18 @@ void saveScene()
     sceneFile.open("localData/scene.sn");
     if (sceneFile.is_open())
     {
+        sceneFile << sceneModels.size() << endl;
         for (int i = 0; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
             sceneFile << model->directory << endl;
             sceneFile << model->instanceCount << endl;
+            sceneFile << model->vertexShaderPath << endl;
+            sceneFile << model->fragmentShaderPath << endl;
 
             for (unsigned int j = 0; j < model->instanceCount; j++)
             {
-
+                sceneFile << model->names[j] << endl;
                 sceneFile << model->Hash_ID[j] << endl;
 
                 for (unsigned int k = 0; k < 3; k++)
@@ -346,25 +350,34 @@ void loadScene()
 
     if (sceneFile.is_open())
     {
-        string path;
-        sceneFile >> path;
-        unsigned int numInstances;
-        sceneFile >> numInstances;
+        unsigned int numModels;
+        sceneFile >> numModels;
+        string vertexShaderPath;
+        string fragmentShaderPath;
+        sceneFile >> vertexShaderPath;
+        sceneFile >> fragmentShaderPath;
 
-        for (unsigned int i = 0; i < numInstances; i++)
+        for (int i = 0; i < numModels; i++)
         {
-            glm::vec3 position;
-            glm::vec3 rotation;
-            glm::vec3 scale;
-            size_t hashID;
-            sceneFile >> hashID;
-            sceneFile >> position.x >> position.y >> position.z;
-            sceneFile >> rotation.x >> rotation.y >> rotation.z;
-            sceneFile >> scale.x >> scale.y >> scale.z;
+            string name;
+            sceneFile >> name;
+            string path;
+            sceneFile >> path;
+            unsigned int numInstances;
+            sceneFile >> numInstances;
 
-
+            for (unsigned int j = 0; j < numInstances; j++)
+            {
+                glm::vec3 position;
+                glm::vec3 rotation;
+                glm::vec3 scale;
+                size_t hashID;
+                sceneFile >> hashID;
+                sceneFile >> position.x >> position.y >> position.z;
+                sceneFile >> rotation.x >> rotation.y >> rotation.z;
+                sceneFile >> scale.x >> scale.y >> scale.z;
+            }
         }
-        
     }
     /*
     loop through each model,
@@ -611,6 +624,15 @@ void drawMainUI(){
         resetData();
     }
 
+    if (ImGui::Button("Save Scene"))
+    {
+        saveScene();
+    }
+    if (ImGui::Button("Load Scene"))
+    {
+        loadScene();
+    }
+
     ImGui::Text("lights");
     ImGui::ColorEdit3("LightAmbientColor", lightAmbientColor);
     ImGui::ColorEdit3("LightDiffuseColor", lightDiffuseColor);
@@ -632,6 +654,17 @@ void drawSceneTree(){
         ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
+        if (ImGui::Button("Delete"))
+        {
+            // remove from scene tree
+            if (selectedNode->parentNode)
+            {
+                auto &siblings = selectedNode->parentNode->childrenInstances;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), selectedNode), siblings.end());
+            }
+            delete selectedNode;
+            selectedNode = nullptr;
+        }
     }
 
     ImGui::End();

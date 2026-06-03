@@ -5,6 +5,8 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 {
     this->gammaCorrection = gammaCorrection;
     shader = new Shader(vertexShader, fragShader);
+    vertexShaderPath = vertexShader;
+    fragmentShaderPath = fragShader;
     loadModel(path);
 
     std::filesystem::path relativePath(path);
@@ -21,6 +23,8 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 {
     this->gammaCorrection = gammaCorrection;
     shader = new Shader(vertexShader, fragShader);
+    vertexShaderPath = vertexShader;
+    fragmentShaderPath = fragShader;
     loadModel(path);
 
     std::filesystem::path relativePath(path);
