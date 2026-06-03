@@ -183,7 +183,7 @@ int main()
     }
 
     saveData();
-    saveScene();
+    //saveScene();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
