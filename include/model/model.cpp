@@ -44,8 +44,11 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix){
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
+
         for (unsigned int j = 0; j < instanceCount; j++)
         {
+            numberOfBatches++;
+            numberOfVertices += meshes[i].vertices.size();
             shader->use();
             modelMatrix[j] = glm::mat4(1.0f);
             modelMatrix[j] = glm::translate(modelMatrix[j], transforms[j].position);

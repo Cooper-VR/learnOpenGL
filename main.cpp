@@ -52,6 +52,9 @@ bool mousePressRight = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+static int numberOfVertices = 0;
+static int numberOfBatches = 0;
+
 float RotateSensitivity = 1.0f;
 float PanSensitivity = 1.0f;
 float ForwardSensitivity = 1.0f;
@@ -159,6 +162,10 @@ int main()
         for (int i = 0; i < sceneModels.size(); i++)
         {
             Model *model = sceneModels[i];
+            numberOfVertices += model->numberOfVertices;
+            numberOfBatches += model->numberOfBatches;
+            model->numberOfVertices = 0;
+            model->numberOfBatches = 0;
             model->shader->use();
             model->shader->setVec3("viewPos", camera.Position);
 
@@ -173,6 +180,8 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        numberOfVertices = 0;
+        numberOfBatches = 0;
     }
 
     cout << "closing application" << endl;
@@ -566,9 +575,13 @@ void drawAllUI(){
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+Texture texture;
+
 void drawMainUI(){
     ImGui::Begin("OpenGL UI");
     ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
+    ImGui::Text("Number of Vertices: %d", numberOfVertices);
+    ImGui::Text("Number of Batches: %d", numberOfBatches);
 
     ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
@@ -597,6 +610,18 @@ void drawMainUI(){
     if (ImGui::Button("Load Scene"))
     {
         loadScene();
+    }
+
+    if(ImGui::Button("loadNewTextureTest")){
+        //texture = sceneModels[0]->TextureFromFile("E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png", sceneModels[0]->directory, false);
+        Texture texture;
+        texture.id = sceneModels[0]->TextureFromFile("E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png", sceneModels[0]->directory, false);
+        texture.type = "texture_diffuse";
+        texture.path = "E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png";
+        
+        for(int i = 0; i < sceneModels[0]->textures_loaded.size(); i++){
+            sceneModels[0]->textures_loaded[i] = texture;
+        }
     }
 }
 
@@ -675,6 +700,8 @@ void drawSceneTree(){
                 auto &siblings = parentNode->childrenInstances;
                 siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
             }
+
+            sceneModels.erase(std::remove(sceneModels.begin(), sceneModels.end(), nodeToDelete->NodeModel), sceneModels.end());
         }
     }
 

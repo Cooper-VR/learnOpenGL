@@ -25,6 +25,7 @@ class Model{
         void removeInstance(size_t ID);
         void Draw(glm::mat4 projection, glm::mat4 viewMatrix);
         void reloadShader();
+        unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
 
         Shader *shader;
         vector<size_t> Hash_ID;
@@ -36,6 +37,8 @@ class Model{
         string vertexShaderPath;
         string fragmentShaderPath;
         vector<Texture> textures_loaded;
+        int numberOfVertices = 0;
+        int numberOfBatches = 0;
     private:
         bool gammaCorrection;
         vector<Mesh> meshes;
@@ -45,7 +48,7 @@ class Model{
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);
 
         vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
-        unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
+        
 };
 
 #endif
