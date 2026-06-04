@@ -19,13 +19,28 @@ void Camera::PanCamera(float X, float Y, float deltaTime)
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
 void Camera::RotateCamera(float xoffset, float yoffset, GLboolean constrainPitch)
 {
-    xoffset *= MouseSensitivity;
+    xoffset *= -MouseSensitivity;
     yoffset *= MouseSensitivity;
 
-    Yaw += xoffset;
-    Pitch += yoffset;
+    glm::quat yawRotation = glm::angleAxis(glm::radians(xoffset), glm::normalize(WorldUp));
+    glm::quat yawedOrientation = glm::normalize(yawRotation * Orientation);
+    glm::vec3 pitchAxis = glm::normalize(glm::rotate(yawedOrientation, glm::vec3(1.0f, 0.0f, 0.0f)));
+    glm::quat pitchRotation = glm::angleAxis(glm::radians(yoffset), pitchAxis);
 
-    // update Front, Right and Up Vectors using the updated Euler angles
+    glm::quat candidateOrientation = glm::normalize(pitchRotation * yawedOrientation);
+
+    if (constrainPitch)
+    {
+        glm::vec3 candidateFront = glm::rotate(candidateOrientation, glm::vec3(0.0f, 0.0f, -1.0f));
+        if (glm::abs(glm::dot(glm::normalize(candidateFront), glm::normalize(WorldUp))) > 0.99f)
+        {
+            candidateOrientation = yawedOrientation;
+        }
+    }
+
+    Orientation = candidateOrientation;
+
+    // update Front, Right and Up Vectors using the updated orientation
     updateCameraVectors();
 }
 
@@ -36,16 +51,13 @@ void Camera::MoveCameraForward(float yoffset)
     Camera::Position += Front * (yoffset * 0.2f);
 }
 
-// calculates the front vector from the Camera's (updated) Euler Angles
+// calculates the direction vectors from the Camera's updated orientation
 void Camera::updateCameraVectors()
 {
-    // calculate the new Front vector
-    glm::vec3 front;
-    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    front.y = sin(glm::radians(Pitch));
-    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    Front = glm::normalize(front);
-    // also re-calculate the Right and Up vector
-    Right = glm::normalize(glm::cross(Front, WorldUp)); // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    glm::mat3 rotationMatrix = glm::mat3_cast(Orientation);
+
+    Front = glm::normalize(rotationMatrix * glm::vec3(0.0f, 0.0f, -1.0f));
+    Right = glm::normalize(rotationMatrix * glm::vec3(1.0f, 0.0f, 0.0f));
     Up = glm::normalize(glm::cross(Right, Front));
 }
+

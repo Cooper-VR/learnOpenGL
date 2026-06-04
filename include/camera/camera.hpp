@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 // Default camera values
 const float YAW         = -90.0f;
@@ -13,7 +16,7 @@ const float SENSITIVITY =  0.1f;
 const float FOV        =  45.0f;
 
 
-// An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
+// An abstract camera class that processes input and calculates the corresponding orientation vectors and matrices for use in OpenGL
 class Camera
 {
     public:
@@ -23,9 +26,7 @@ class Camera
         glm::vec3 Up;
         glm::vec3 Right;
         glm::vec3 WorldUp;
-        // euler Angles
-        float Yaw;
-        float Pitch;
+        glm::quat Orientation;
         // camera options
         float MovementSpeed;
         float MouseSensitivity;
@@ -36,8 +37,7 @@ class Camera
         {
             Position = position;
             WorldUp = up;
-            Yaw = yaw;
-            Pitch = pitch;
+            Orientation = glm::normalize(glm::angleAxis(glm::radians(yaw), WorldUp) * glm::angleAxis(glm::radians(pitch), glm::vec3(1.0f, 0.0f, 0.0f)));
             updateCameraVectors();
         }
         // constructor with scalar values
@@ -45,8 +45,7 @@ class Camera
         {
             Position = glm::vec3(posX, posY, posZ);
             WorldUp = glm::vec3(upX, upY, upZ);
-            Yaw = yaw;
-            Pitch = pitch;
+            Orientation = glm::normalize(glm::angleAxis(glm::radians(yaw), WorldUp) * glm::angleAxis(glm::radians(pitch), glm::vec3(1.0f, 0.0f, 0.0f)));
             updateCameraVectors();
         }
         glm::mat4 GetViewMatrix();
@@ -55,6 +54,7 @@ class Camera
         void MoveCameraForward(float yoffset);
 
     private:
+
         void updateCameraVectors();
 };
 #endif

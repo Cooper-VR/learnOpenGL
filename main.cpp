@@ -87,8 +87,6 @@ SceneTreeNode *sceneRootNode;
 int main()
 {
     loadData();
-    //loadScene();
-
     GLFWwindow* window = setupOpenGL();
     if (window == nullptr)
     {
@@ -121,6 +119,8 @@ int main()
     sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
     
     sceneModels.push_back(test);
+
+    //loadScene();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -229,6 +229,8 @@ GLFWwindow* setupOpenGL(){
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);  
 
     return window;
 }
@@ -421,6 +423,16 @@ void saveData()
 
         for (int i = 0; i < 3; i++)
             saveFile << dirLightDirection[i] << ' ';
+        
+        for (int i = 0; i < 3; i++)
+            saveFile << camera.Position[i] << ' ';
+        
+        for (int i = 0; i < 4; i++)
+            saveFile << camera.Orientation[i] << ' ';
+        for (int i = 0; i < 3; i++)
+            saveFile << camera.Front[i] << ' ';
+        for (int i = 0; i < 3; i++)
+            saveFile << camera.Up[i] << ' ';
 
         saveFile.close();
     }
@@ -455,6 +467,15 @@ void loadData()
 
         for (int i = 0; i < 3; i++)
             saveFile >> dirLightDirection[i];
+        
+        for (int i = 0; i < 3; i++)
+            saveFile >> camera.Position[i];
+        for (int i = 0; i < 4; i++)
+            saveFile >> camera.Orientation[i];
+        for (int i = 0; i < 3; i++) 
+            saveFile >> camera.Front[i];
+        for (int i = 0; i < 3; i++)
+            saveFile >> camera.Up[i];
 
         saveFile.close();
     }
@@ -478,6 +499,8 @@ void resetData()
     dirLightDirection[0] = -0.2f;
     dirLightDirection[1] = -1.0f;
     dirLightDirection[2] = -0.3f;
+
+
 
     currentPath = fs::current_path();
 }
@@ -555,7 +578,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
         mousePressRight = false;
     }
 
-    camera.RotateCamera(xoffset * RotateSensitivity, yoffset * RotateSensitivity);
+    camera.RotateCamera(xoffset * RotateSensitivity, yoffset * RotateSensitivity, false);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
@@ -635,7 +658,7 @@ void drawSceneTree(){
     {
         ImGui::Separator();
         ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
-        ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.1f);
+        ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.001f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         ImGui::Text("Hash ID: %zu", selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
