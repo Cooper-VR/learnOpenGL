@@ -69,15 +69,6 @@ int newIntVal = 0;
 float newFloat3Val[3] = {0.0f, 0.0f, 0.0f};
 char newStringVal[256] = "";
 
-string pointLightAttribs[7] = {
-    ".position",
-    ".ambient",
-    ".diffuse",
-    ".specular",
-    ".constant",
-    ".linear",
-    ".quadratic"};
-
 static fs::path currentPath = fs::current_path();
 static std::string selectedFile = "";
 
@@ -95,12 +86,6 @@ int main()
     }
 
     setUpImGui(window);
-
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f, 0.2f, 2.0f),
-        glm::vec3(2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f, 2.0f, -12.0f),
-        glm::vec3(0.0f, 0.0f, -3.0f)};
 
     string path = "resources/models/champion.fbx";
 
@@ -598,8 +583,6 @@ void drawAllUI(){
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-Texture texture;
-
 void drawMainUI(){
     ImGui::Begin("OpenGL UI");
     ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
@@ -633,18 +616,6 @@ void drawMainUI(){
     if (ImGui::Button("Load Scene"))
     {
         loadScene();
-    }
-
-    if(ImGui::Button("loadNewTextureTest")){
-        //texture = sceneModels[0]->TextureFromFile("E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png", sceneModels[0]->directory, false);
-        Texture texture;
-        texture.id = sceneModels[0]->TextureFromFile("E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png", sceneModels[0]->directory, false);
-        texture.type = "texture_diffuse";
-        texture.path = "E:\\cooperBower\\github\\learnOpenGL\\resources\\textures\\awesomeface.png";
-        
-        for(int i = 0; i < sceneModels[0]->textures_loaded.size(); i++){
-            sceneModels[0]->textures_loaded[i] = texture;
-        }
     }
 }
 
