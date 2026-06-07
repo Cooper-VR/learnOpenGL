@@ -149,6 +149,69 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
+bool Shader::getBool(const std::string &name) const
+{
+    int value;
+    glGetUniformiv(ID, glGetUniformLocation(ID, name.c_str()), &value);
+    return value != 0;
+}
+
+int Shader::getInt(const std::string &name) const
+{
+    int value;
+    glGetUniformiv(ID, glGetUniformLocation(ID, name.c_str()), &value);
+    return value;
+}
+
+float Shader::getFloat(const std::string &name) const
+{
+    float value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value);
+    return value;
+}
+
+glm::vec2 Shader::getVec2(const std::string &name) const
+{
+    glm::vec2 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0]);
+    return value;
+}
+
+glm::vec3 Shader::getVec3(const std::string &name) const
+{
+    glm::vec3 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0]);
+    return value;
+}
+
+glm::vec4 Shader::getVec4(const std::string &name) const
+{
+    glm::vec4 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0]);
+    return value;
+}
+
+glm::mat2 Shader::getMat2(const std::string &name) const
+{
+    glm::mat2 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0][0]);
+    return value;
+}
+
+glm::mat3 Shader::getMat3(const std::string &name) const
+{
+    glm::mat3 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0][0]);
+    return value;
+}
+
+glm::mat4 Shader::getMat4(const std::string &name) const
+{
+    glm::mat4 value;
+    glGetUniformfv(ID, glGetUniformLocation(ID, name.c_str()), &value[0][0]);
+    return value;
+}
+
 void Shader::checkCompileErrors(GLuint shader, std::string type)
 {
     GLint success;

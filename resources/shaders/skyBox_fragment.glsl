@@ -13,8 +13,6 @@ uniform vec3 _SkyColor;
 uniform vec3 _HorizonColor;
 uniform vec3 _groundColor;
 
-
-
 float hash31(vec3 p)
 {
     p = fract(p * 0.1031);
@@ -48,8 +46,6 @@ float fbm(vec2 p)
     }
     return value;
 }
-
-
 
 
 void main()

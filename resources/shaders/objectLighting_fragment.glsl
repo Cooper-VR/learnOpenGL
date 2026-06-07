@@ -32,6 +32,8 @@ uniform DirLight dirLight;
 uniform vec3 rimColor;
 uniform float rimStrength;
 uniform float rimPower;
+uniform float rimMin;
+uniform float rimMax;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 
@@ -63,10 +65,16 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 
     vec3 normView = normalize(NormalView);
     vec3 viewDirView = normalize(-FragPosView);
-    //float rim = pow(1.0 - max(dot(normView, viewDirView), 0.0), rimPower) * rimStrength;
-    float rim = clamp(round(pow(1.0 - max(dot(normView, viewDirView), 0.0), 1) * 1), 0, 0.1);
+    float rim = pow(1.0 - max(dot(normView, viewDirView), 0.0), rimPower) * rimStrength;
+    //float rim = clamp(round(pow(1.0 - max(dot(normView, viewDirView), 0.0), 1) * 1), 0, 0.1);
+
+    if (rim < rimMin) rim = 0;
+    if (rim > rimMax) rim = rimMax;
+    
+    //rim = 1.0 - rim;
 
     rim *= diff;
+
 
     diffuse += rim;
 

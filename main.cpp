@@ -75,6 +75,25 @@ static std::string selectedFile = "";
 vector<Model *> sceneModels;
 SceneTreeNode *rootNode;
 SceneTreeNode *sceneRootNode;
+
+//for shader editing
+bool alreadyCreated = false;
+vector<string> vertexUniforms;
+vector<string> fragmentUniforms;
+
+vector<string> vertexUniformTypes;
+vector<string> fragmentUniformTypes;
+
+vector<int> vertexUniformInts;
+vector<int> fragmentUniformInts;
+
+vector<float> vertexUniformFloats;
+vector<float> fragmentUniformFloats;
+
+vector<glm::vec3> vertexUniformVec3s;
+vector<glm::vec3> fragmentUniformVec3s;
+
+
 int main()
 {
     loadData();
@@ -87,7 +106,7 @@ int main()
 
     setUpImGui(window);
 
-    string path = "resources/models/champion.fbx";
+    string path = "resources/models/testCube.fbx";
 
     rootNode = new SceneTreeNode();
     rootNode->NodeModel = nullptr;
@@ -153,6 +172,23 @@ int main()
             model->numberOfBatches = 0;
             model->shader->use();
             model->shader->setVec3("viewPos", camera.Position);
+            //set view pos for shader editor part too
+            for (int j = 0; j < vertexUniforms.size(); j++)
+            {
+                if (vertexUniforms[j] == "viewPos")
+                {
+                    vertexUniformVec3s[j] = camera.Position;
+                    model->shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                }
+            }
+            for (int j = 0; j < fragmentUniforms.size(); j++)
+            {
+                if (fragmentUniforms[j] == "viewPos")
+                {
+                    fragmentUniformVec3s[j] = camera.Position;
+                    model->shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                }
+            }
 
             model->shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
             model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
@@ -238,6 +274,13 @@ void saveScene()
     sceneFile.open("localData/scene.sn");
     if (sceneFile.is_open())
     {
+
+        vector<string> uniformNames;
+        vector<string> uniformTypes;
+        vector<int> uniformInts;
+        vector<float> uniformFloats;
+        vector<glm::vec3> uniformVec3s;
+
         sceneFile << sceneModels.size() << endl;
         for (int i = 1; i < sceneModels.size(); i++)
         {
@@ -246,6 +289,139 @@ void saveScene()
             sceneFile << model->instanceCount << endl;
             sceneFile << model->vertexShaderPath << endl;
             sceneFile << model->fragmentShaderPath << endl;
+
+            //we need to save the shader properties
+            //so parse the shader files, get the properties name, type and value. then save them
+            ifstream vertexShaderFile;
+            vertexShaderFile.open(model->vertexShaderPath);
+            if (vertexShaderFile.is_open())
+            {
+                for (string line; getline(vertexShaderFile, line);)
+                {
+                    if (line.find("uniform") != string::npos)
+                    {
+                        bool foundFirstSpace = false;
+                        bool foundSecondSpace = false;
+
+                        string type;
+                        string name;
+                        for (int i = 0; i < line.size(); i++)
+                        {
+                            if (!foundFirstSpace && line[i] == ' ')
+                            {
+                                foundFirstSpace = true;
+                            }
+                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                            {
+                                foundSecondSpace = true;
+                            }
+
+                            if (line[i] == ' ' || line[i] == ';')
+                                continue;
+
+                            if (foundFirstSpace && !foundSecondSpace)
+                            {
+                                type += line[i];
+                            }
+                            else if (foundSecondSpace)
+                            {
+                                name += line[i];
+                            }
+                        }
+
+                        sceneFile << name << endl;
+                        sceneFile << type << endl;
+
+                        if (type == "int")
+                        {
+                            int value;
+                            value = model->shader->getInt(name.c_str());
+                            uniformInts.push_back(value);
+                            sceneFile << value << endl;
+                        }
+                        else if (type == "float")
+                        {
+                            float value;
+                            value = model->shader->getFloat(name.c_str());
+                            uniformFloats.push_back(value);
+                            sceneFile << value << endl;
+                        }
+                        else if (type == "vec3")
+                        {
+                            glm::vec3 value;
+                            value = model->shader->getVec3(name.c_str());
+                            uniformVec3s.push_back(value);
+                            sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
+                        }
+                    }
+                }
+            }
+            sceneFile << "EOV" << endl; // End of vertex shader uniforms
+            ifstream fragmentShaderFile;
+            fragmentShaderFile.open(model->fragmentShaderPath);
+            if (fragmentShaderFile.is_open())
+            {
+                for (string line; getline(fragmentShaderFile, line);)
+                {
+                    if (line.find("uniform") != string::npos)
+                    {
+                        bool foundFirstSpace = false;
+                        bool foundSecondSpace = false;
+
+                        string type;
+                        string name;
+                        for (int i = 0; i < line.size(); i++)
+                        {
+                            if (!foundFirstSpace && line[i] == ' ')
+                            {
+                                foundFirstSpace = true;
+                            }
+                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                            {
+                                foundSecondSpace = true;
+                            }
+
+                            if (line[i] == ' ' || line[i] == ';')
+                                continue;
+
+                            if (foundFirstSpace && !foundSecondSpace)
+                            {
+                                type += line[i];
+                            }
+                            else if (foundSecondSpace)
+                            {
+                                name += line[i];
+                            }
+                        }
+
+                        sceneFile << name << endl;
+                        sceneFile << type << endl;
+
+                        if (type == "int")
+                        {
+                            int value;
+                            value = model->shader->getInt(name.c_str());
+                            uniformInts.push_back(value);
+                            sceneFile << value << endl;
+                        }
+                        else if (type == "float")
+                        {
+                            float value;
+                            value = model->shader->getFloat(name.c_str());
+                            uniformFloats.push_back(value);
+                            sceneFile << value << endl;
+                        }
+                        else if (type == "vec3")
+                        {
+                            glm::vec3 value;
+                            value = model->shader->getVec3(name.c_str());
+                            uniformVec3s.push_back(value);
+                            sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
+                        }
+                    }
+                }
+            }
+            sceneFile << "EOF" << endl; // End of fragment shader uniforms
 
             for (unsigned int j = 0; j < model->instanceCount; j++)
             {
@@ -295,6 +471,88 @@ void loadScene()
             string fragmentShaderPath;
             sceneFile >> fragmentShaderPath;
 
+            //we need to load the shader properties
+            //so parse the shader files, get the properties name, type and value. then load
+            bool foundEOV = false;
+
+            vector<string> names;
+            vector<string> types;
+
+            vector<int> ints;
+            vector<float> floats;
+            vector<glm::vec3> vec3s;
+
+            while (true)
+            {
+                string name;
+                sceneFile >> name;
+                if (name == "EOV")
+                {
+                    break; // End of vertex shader uniforms
+                }
+
+                string type;
+                sceneFile >> type;
+
+                names.push_back(name);
+                types.push_back(type);
+
+                if (type == "int")
+                {
+                    int intValue;
+                    sceneFile >> intValue;
+                    ints.push_back(intValue);
+                }
+                else if (type == "float")
+                {
+                    float floatValue;
+                    sceneFile >> floatValue;
+                    floats.push_back(floatValue);
+                }
+                else if (type == "vec3")
+                {
+                    glm::vec3 vec3Value;
+                    sceneFile >> vec3Value.x >> vec3Value.y >> vec3Value.z;
+                    vec3s.push_back(vec3Value);
+                }
+            }
+
+            while (true)
+            {
+                string name;
+                sceneFile >> name;
+                if (name == "EOF")
+                {
+                    break; // End of fragment shader uniforms
+                }
+
+                string type;
+                sceneFile >> type;
+
+                names.push_back(name);
+                types.push_back(type);
+
+                if (type == "int")
+                {
+                    int intValue;
+                    sceneFile >> intValue;
+                    ints.push_back(intValue);
+                }
+                else if (type == "float")
+                {
+                    float floatValue;
+                    sceneFile >> floatValue;
+                    floats.push_back(floatValue);
+                }
+                else if (type == "vec3")
+                {
+                    glm::vec3 vec3Value;
+                    sceneFile >> vec3Value.x >> vec3Value.y >> vec3Value.z;
+                    vec3s.push_back(vec3Value);
+                }
+            }
+
+
             string name;
             sceneFile >> name;
 
@@ -319,6 +577,33 @@ void loadScene()
             }
 
             Model *model = new Model(path.c_str(), vertexShaderPath.c_str(), fragmentShaderPath.c_str(), name, position, rotation, scale);
+            
+            int intCount = 0;
+            int floatCount = 0;
+            int vec3Count = 0;
+
+            model->shader->use();
+
+            for(int i = 0; i < names.size(); i++)
+            {
+                cout << "Loading uniform: " << names[i] << " of type: " << types[i] << " with value: ";
+                if (types[i] == "int")
+                {
+                    model->shader->setInt(names[i].c_str(), ints[intCount++]);
+                    cout << ints[intCount-1] << endl;
+                }
+                else if (types[i] == "float")
+                {
+                    model->shader->setFloat(names[i].c_str(), floats[floatCount++]);
+                    cout << floats[floatCount-1] << endl;
+                }
+                else if (types[i] == "vec3")
+                {
+                    model->shader->setVec3(names[i].c_str(), vec3s[vec3Count++]);
+                    cout << vec3s[vec3Count-1].x << ' ' << vec3s[vec3Count-1].y << ' ' << vec3s[vec3Count-1].z << endl;
+                }
+            }
+
             model->Hash_ID[0] = hashID;
 
             sceneModels.push_back(model);
@@ -596,6 +881,7 @@ void drawMainUI(){
 
     ImGui::ColorEdit3("SkyColor", skyColor);
     ImGui::DragFloat3("DirLightDirection", dirLightDirection, 0.1f);
+
     ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
@@ -623,6 +909,7 @@ void drawSceneTree(){
     ImGui::Begin("Scene Tree");
 
     static SceneTreeNode *selectedNode = nullptr;
+    static SceneTreeNode *previousSelectedNode = nullptr;
     drawSceneTreeHierarchical(rootNode, selectedNode);
 
     if (selectedNode)
@@ -633,31 +920,6 @@ void drawSceneTree(){
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
         ImGui::Text("Hash ID: %zu", selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
-
-
-        ImGui::Separator();
-
-        ImGui::Text("setShader property");
-
-
-        ImGui::InputText("string value", newStringVal, IM_ARRAYSIZE(newStringVal));
-        ImGui::InputFloat("float value", &newVal);
-        ImGui::InputInt("int value", &newIntVal);
-        ImGui::InputFloat3("float3 value", newFloat3Val);
-        if (ImGui::Button("Set Shader Int"))
-        {
-            selectedNode->NodeModel->shader->setInt(newStringVal, newIntVal);
-        }
-        if (ImGui::Button("Set Shader Float"))
-        {
-            selectedNode->NodeModel->shader->setFloat(newStringVal, newVal);
-        }
-        if (ImGui::Button("Set Shader Float3"))
-        {
-            selectedNode->NodeModel->shader->setVec3(newStringVal, newFloat3Val[0], newFloat3Val[1], newFloat3Val[2]);
-        }
-
-        ImGui::Separator();
 
         char vertexShaderBuffer[512];
         char fragmentShaderBuffer[512];
@@ -674,6 +936,213 @@ void drawSceneTree(){
         {
             selectedNode->NodeModel->fragmentShaderPath = fragmentShaderBuffer;
         }
+
+        //lets try to parse the shaders so we can set values easier
+        ifstream vertexShaderFile;
+        ifstream fragmentShaderFile;
+        vertexShaderFile.open(selectedNode->NodeModel->vertexShaderPath);
+        fragmentShaderFile.open(selectedNode->NodeModel->fragmentShaderPath);
+
+        if (selectedNode != previousSelectedNode)
+        {
+            alreadyCreated = false;
+            vertexUniforms.clear();
+            vertexUniformTypes.clear();
+            vertexUniformInts.clear();
+            vertexUniformFloats.clear();
+            vertexUniformVec3s.clear();
+
+            fragmentUniforms.clear();
+            fragmentUniformTypes.clear();
+            fragmentUniformInts.clear();
+            fragmentUniformFloats.clear();
+            fragmentUniformVec3s.clear();
+
+            previousSelectedNode = selectedNode;
+        }
+
+        if (!alreadyCreated)
+        {
+            for (string line; getline(vertexShaderFile, line);)
+            {
+                if (line.find("uniform") != string::npos)
+                {
+                    // get data type and name
+                    bool foundFirstSpace = false;
+                    bool foundSecondSpace = false;
+
+                    string type;
+                    string name;
+                    for (int i = 0; i < line.size(); i++)
+                    {
+                        if (!foundFirstSpace && line[i] == ' ')
+                        {
+                            foundFirstSpace = true;
+                            // while this is false we found "uniform" so we can start looking for the type
+                        }
+                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                        {
+                            foundSecondSpace = true;
+                            // this is the type of the uniform
+                        }
+
+                        if (line[i] == ' ' || line[i] == ';')
+                            continue;
+
+                        if (foundFirstSpace && !foundSecondSpace)
+                        {
+                            type += line[i];
+                        }
+                        else if (foundSecondSpace)
+                        {
+                            name += line[i];
+                        }
+                    }
+
+                    vertexUniforms.push_back(name);
+                    vertexUniformTypes.push_back(type);
+
+                    //cout << "Found vertex shader uniform: " << vertexUniforms.back() << " of type " << vertexUniformTypes.back() << endl;
+                }
+            }
+            for (string line; getline(fragmentShaderFile, line);)
+            {
+                if (line.find("uniform") != string::npos)
+                {
+                    // get data type and name
+                    // get data type and name
+                    bool foundFirstSpace = false;
+                    bool foundSecondSpace = false;
+
+                    string type;
+                    string name;
+                    for (int i = 0; i < line.size(); i++)
+                    {
+                        if (!foundFirstSpace && line[i] == ' ')
+                        {
+                            foundFirstSpace = true;
+                            // while this is false we found "uniform" so we can start looking for the type
+                        }
+                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                        {
+                            foundSecondSpace = true;
+                            // this is the type of the uniform
+                        }
+
+                        if (line[i] == ' ' || line[i] == ';')
+                            continue;
+
+                        if (foundFirstSpace && !foundSecondSpace)
+                        {
+                            type += line[i];
+                        }
+                        else if (foundSecondSpace)
+                        {
+                            name += line[i];
+                        }
+                    }
+
+                    fragmentUniforms.push_back(name);
+                    fragmentUniformTypes.push_back(type);
+
+                    //cout << "Found fragment shader uniform: " << fragmentUniforms.back() << " of type " << fragmentUniformTypes.back() << endl;
+                }
+            }
+            
+            //alreadyCreated = true;
+        }
+        ImGui::Separator();
+
+        ImGui::Text("Set Shader properties:");
+        ImGui::Text("Vertex Shader Uniforms:");
+
+        int intCounter = 0;
+        int floatCounter = 0;
+        int vec3Counter = 0;
+
+        for (int i = 0; i < vertexUniforms.size(); i++)
+        {
+            ImGui::Text("%s: ", vertexUniforms[i].c_str());
+            if (vertexUniformTypes[i] == "float")
+            {
+
+                if (!alreadyCreated) vertexUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(vertexUniforms[i].c_str()));
+                if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1.0f))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
+                }
+                floatCounter++;
+            }
+            else if (vertexUniformTypes[i] == "vec3")
+            {
+                if (!alreadyCreated) vertexUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(vertexUniforms[i].c_str()));
+                if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
+                }
+                vec3Counter++;
+            }
+            else if (vertexUniformTypes[i] == "int")
+            {
+                if (!alreadyCreated) vertexUniformInts.push_back(selectedNode->NodeModel->shader->getInt(vertexUniforms[i].c_str()));
+                if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 100))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
+                }
+                intCounter++;
+            }
+            
+        }
+        ImGui::Text("Fragment Shader Uniforms:");
+
+        floatCounter = 0;
+        vec3Counter = 0;
+        intCounter = 0;
+
+        for (int i = 0; i < fragmentUniforms.size(); i++)
+        {
+            ImGui::Text("%s: ", fragmentUniforms[i].c_str());
+            if (fragmentUniformTypes[i] == "float")
+            {
+                if (!alreadyCreated) fragmentUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(fragmentUniforms[i].c_str()));
+                if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1.0f))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
+                }
+                floatCounter++;
+            }
+            else if (fragmentUniformTypes[i] == "vec3")
+            {
+                if (!alreadyCreated) fragmentUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(fragmentUniforms[i].c_str()));
+                if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
+                }
+                vec3Counter++;
+            }
+            else if (fragmentUniformTypes[i] == "int")
+            {
+                if (!alreadyCreated) fragmentUniformInts.push_back(selectedNode->NodeModel->shader->getInt(fragmentUniforms[i].c_str()));
+                if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 100))
+                {
+                    selectedNode->NodeModel->shader->use();
+                    selectedNode->NodeModel->shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
+                }
+                intCounter++;
+            }
+        }
+
+        if (!alreadyCreated)
+        {
+            alreadyCreated = true;
+        }
+
+        ImGui::Separator();
 
         if (ImGui::Button("Reload Selected Shader"))
         {
