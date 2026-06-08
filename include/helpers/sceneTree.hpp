@@ -5,6 +5,8 @@
 #include <utility>
 #include <model/model.hpp>
 
+
+
 struct SceneTreeNode{
     Model* NodeModel;
     unsigned int instanceCount;
@@ -15,6 +17,10 @@ struct SceneTreeNode{
     SceneTreeNode* parentNode;
 
 } typedef SceneTreeNode;
+
+SceneTreeNode *runtimeTextureTargetNode = nullptr;
+unsigned int runtimeTestTextureID = 0;
+int runtimeTestTextureUnit = 15;
 
 static inline size_t getSceneTreeNodeHash(SceneTreeNode* node){
     if(node == nullptr || node->NodeModel == nullptr || node->instanceCount >= node->NodeModel->Hash_ID.size()){
