@@ -42,8 +42,6 @@ int main()
     setTreeNode(test, rootNode, sceneRootNode, Transform{glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)}, "rootObject");
     insertSceneTreeNode(rootNode);
 
-
-
     while (!glfwWindowShouldClose(window))
     {
         // Skip frame if minimized

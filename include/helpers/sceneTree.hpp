@@ -108,6 +108,14 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     }
 
     // Remove the node from its parent's children
+
+    //get the children of the node
+    auto &children = nodeToDelete->childrenInstances;
+    for(auto &child : children){
+        child->parentNode = nodeToDelete->parentNode;
+        nodeToDelete->parentNode->childrenInstances.push_back(child);
+    }
+
     if(nodeToDelete->parentNode != nullptr){
         auto &siblings = nodeToDelete->parentNode->childrenInstances;
         siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
