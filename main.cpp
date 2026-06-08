@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <cstdio>
+#include <algorithm>
 #include <vector>
 #include <stack>
 #include <shaders/shader.hpp>
@@ -47,6 +48,10 @@ bool firstMouse = true;
 
 bool mousePressLeft = false;
 bool mousePressRight = false;
+
+SceneTreeNode *runtimeTextureTargetNode = nullptr;
+unsigned int runtimeTestTextureID = 0;
+int runtimeTestTextureUnit = 15;
 
 // timing
 float deltaTime = 0.0f;
@@ -115,8 +120,8 @@ int main()
     rootNode->rightChildInstance = nullptr;
     rootNode->parentNode = nullptr;
     
-    string fragment = "resources/shaders/objectLighting_fragment.glsl";
-    string vertex = "resources/shaders/objectLighting_vertex.glsl";
+    string fragment = "resources/shaders/litObject_fragment.glsl";
+    string vertex = "resources/shaders/litObject_vertex.glsl";
     Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "rootObject");
     test->transforms[0] = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
 
@@ -194,6 +199,14 @@ int main()
             model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
             model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
             model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+
+            if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
+                glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
+                model->shader->setInt("testTexture", runtimeTestTextureUnit);
+            }
+
             model->Draw(projection, view);
         }
 
@@ -248,6 +261,9 @@ GLFWwindow* setupOpenGL(){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return nullptr;
     }
+
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &runtimeTestTextureUnit);
+    runtimeTestTextureUnit = std::max(0, runtimeTestTextureUnit - 1);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -1155,6 +1171,11 @@ void drawSceneTree(){
             SceneTreeNode* parentNode = nodeToDelete->parentNode;
             std::string instanceName = nodeToDelete->NodeModel->names[nodeToDelete->instanceCount];
 
+            if (runtimeTextureTargetNode == nodeToDelete)
+            {
+                runtimeTextureTargetNode = nullptr;
+            }
+
             selectedNode = nullptr;
             removeInstanceFromSceneTreeByName(rootNode, nodeToDelete->NodeModel, instanceName);
 
@@ -1165,6 +1186,19 @@ void drawSceneTree(){
             }
 
             sceneModels.erase(std::remove(sceneModels.begin(), sceneModels.end(), nodeToDelete->NodeModel), sceneModels.end());
+        }
+
+        if (ImGui::Button("set test Image in shader")){
+            if (runtimeTestTextureID == 0)
+            {
+                runtimeTestTextureID = selectedNode->NodeModel->TextureFromFile("resources/textures/awesomeface.png", "", false);
+            }
+
+            runtimeTextureTargetNode = selectedNode;
+            selectedNode->NodeModel->shader->use();
+            glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
+            glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
+            selectedNode->NodeModel->shader->setInt("testTexture", runtimeTestTextureUnit);
         }
     }
 

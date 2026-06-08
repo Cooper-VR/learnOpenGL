@@ -35,6 +35,8 @@ uniform float rimPower;
 uniform float rimMin;
 uniform float rimMax;
 
+uniform sampler2D testTexture;
+
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 
 void main()
@@ -45,6 +47,9 @@ void main()
     vec3 result = CalcDirLight(dirLight, norm, viewDir);
 
     FragColor = vec4(result, 1.0);
+
+
+
     //FragColor = vec4(normView, 1.0);
 } 
 
