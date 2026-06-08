@@ -48,6 +48,8 @@ vector<float> fragmentUniformFloats;
 vector<glm::vec3> vertexUniformVec3s;
 vector<glm::vec3> fragmentUniformVec3s;
 
+char selectedName[256] = "";
+
 void saveScene()
 {
     // save the scene to a file
@@ -691,10 +693,19 @@ void drawSceneTree(){
 
     drawSceneTreeHierarchical(sceneRootNode, selectedNode);
 
+    if (selectedNode == sceneRootNode)
+    {
+        selectedNode = nullptr;
+    }
+
     if (selectedNode)
     {
         ImGui::Separator();
-        ImGui::Text("Selected Model: %s", selectedNode->name.c_str());
+        std::snprintf(selectedName, sizeof(selectedName), "%s", selectedNode->name.c_str());
+        if (ImGui::InputText("Name", selectedName, IM_ARRAYSIZE(selectedName)))
+        {
+            selectedNode->name = selectedName;
+        }
         ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->transform.position), 0.001f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->transform.rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->transform.scale), 0.1f, 0.1f, 10.0f);
