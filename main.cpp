@@ -30,6 +30,7 @@ int main()
     sceneRootNode->name = "sceneRoot";
     sceneRootNode->transform = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
     sceneRootNode->hashID = 0;
+    sceneRootNode->childrenInstances = {};
     insertSceneTreeNode(sceneRootNode);
 
     string path = "resources/models/testCube.fbx";

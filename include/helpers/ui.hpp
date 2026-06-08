@@ -640,8 +640,11 @@ void ShowFileBrowser()
     }
 
     if (ImGui::Button("Spawn Model?")){
-        Transform transform{camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
-        createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/missingShader_vertex.glsl", "resources/shaders/missingShader_fragment.glsl", selectedFile, transform, selectedNode);      
+        if (selectedNode != sceneRootNode)
+        {
+            Transform transform{camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+            createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/missingShader_vertex.glsl", "resources/shaders/missingShader_fragment.glsl", selectedFile, transform, selectedNode);
+        }
     }
 
     if (ImGui::Button("reload shaders")){

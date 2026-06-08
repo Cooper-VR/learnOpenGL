@@ -23,18 +23,12 @@ class Model{
     public:
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, bool gammaCorrection = false);
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection = false);
-        int addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, string name = "empty");
-        void removeInstance(size_t ID);
         void Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix);
         void reloadShader();
         unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
 
         Shader *shader;
-        vector<size_t> Hash_ID;
-        unsigned int instanceCount = 0;
         vector<string> names;
-        vector<Transform> transforms;
-        vector<glm::mat4> modelMatrix;
         string directory;
         string vertexShaderPath;
         string fragmentShaderPath;
