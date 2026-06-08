@@ -5,184 +5,122 @@
 #include <utility>
 #include <model/model.hpp>
 
+//we could restructure this so that instead of a binary tree like structure we have a dictionary
+//we would use the hashID of the model as a key, the scene tree node would just need a vector of children and a parent, 
+//that could be just a hash or pointer
 
+//ok so lets work out the dictionary approachh
+//so we need an array of n elements or bins
+//then each element in the array would be a vector of scene tree nodes
 
 struct SceneTreeNode{
     Model* NodeModel;
-    unsigned int instanceCount;
-    SceneTreeNode* leftChildInstance;
-    SceneTreeNode* rightChildInstance;
+
 
     vector<SceneTreeNode*> childrenInstances;
     SceneTreeNode* parentNode;
+    string name;
+    Transform transform;
+    int hashID;
 
 } typedef SceneTreeNode;
+
+
+vector<SceneTreeNode *> hashTable[HASH_TABLE_SIZE];
+SceneTreeNode *rootNode;
+SceneTreeNode *sceneRootNode;
+SceneTreeNode *selectedNode = nullptr;
+SceneTreeNode *previousSelectedNode = nullptr;
+
 
 SceneTreeNode *runtimeTextureTargetNode = nullptr;
 unsigned int runtimeTestTextureID = 0;
 int runtimeTestTextureUnit = 15;
 
-static inline size_t getSceneTreeNodeHash(SceneTreeNode* node){
-    if(node == nullptr || node->NodeModel == nullptr || node->instanceCount >= node->NodeModel->Hash_ID.size()){
-        return 0;
-    }
+void insertSceneTreeNode(SceneTreeNode *node){
+    int slot = node->hashID;
 
-    return node->NodeModel->Hash_ID[node->instanceCount];
+    hashTable[slot].push_back(node);
 }
 
-static inline void setSceneTreeChildParent(SceneTreeNode* child, SceneTreeNode* parent){
-    if(child != nullptr){
-        child->parentNode = parent;
-    }
+void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Transform transform, string name){
+    node->NodeModel = model;
+    node->parentNode = parent;
+    node->transform = transform;
+    node->name = name;
+
+    cout << "Setting up scene tree node." << endl;
+
+    parent->childrenInstances.push_back(node);
+
+    cout << "Added scene tree node." << endl;
+
+    //get a hash for the node
+    std::hash<std::string> str_hash;
+    std::hash<float> float_hash;
+
+    size_t h = str_hash(node->name);
+    h ^= float_hash(transform.position.x) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.position.y) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.position.z) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.rotation.x) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.rotation.y) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.rotation.z) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.scale.x) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.scale.y) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(transform.scale.z) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= float_hash(hashTable[h%HASH_TABLE_SIZE].size()) + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+    h %= HASH_TABLE_SIZE;
+
+    node->hashID = h;
+
+
 }
 
-static inline SceneTreeNode* removeSceneTreeNodeByHash(SceneTreeNode* node, size_t ID){
-    if(node == nullptr || node->NodeModel == nullptr){
-        return nullptr;
-    }
-
-    size_t currentHash = getSceneTreeNodeHash(node);
-    if(ID < currentHash){
-        node->leftChildInstance = removeSceneTreeNodeByHash(node->leftChildInstance, ID);
-        setSceneTreeChildParent(node->leftChildInstance, node);
-        return node;
-    }
-
-    if(ID > currentHash){
-        node->rightChildInstance = removeSceneTreeNodeByHash(node->rightChildInstance, ID);
-        setSceneTreeChildParent(node->rightChildInstance, node);
-        return node;
-    }
-
-    if(node->leftChildInstance == nullptr){
-        SceneTreeNode* replacement = node->rightChildInstance;
-        setSceneTreeChildParent(replacement, node->parentNode);
-        delete node;
-        return replacement;
-    }
-
-    if(node->rightChildInstance == nullptr){
-        SceneTreeNode* replacement = node->leftChildInstance;
-        setSceneTreeChildParent(replacement, node->parentNode);
-        delete node;
-        return replacement;
-    }
-
-    SceneTreeNode* successorParent = node;
-    SceneTreeNode* successor = node->rightChildInstance;
-    while(successor->leftChildInstance != nullptr){
-        successorParent = successor;
-        successor = successor->leftChildInstance;
-    }
-
-    node->NodeModel = successor->NodeModel;
-    node->instanceCount = successor->instanceCount;
-
-    SceneTreeNode* successorReplacement = successor->rightChildInstance;
-    setSceneTreeChildParent(successorReplacement, successorParent);
-
-    if(successorParent->leftChildInstance == successor){
-        successorParent->leftChildInstance = successorReplacement;
-    }else{
-        successorParent->rightChildInstance = successorReplacement;
-    }
-
-    delete successor;
-    return node;
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
+    SceneTreeNode *newNode = new SceneTreeNode();
+    Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
+    setTreeNode(test, newNode, parent, transform, modelName);
+    insertSceneTreeNode(newNode);
 }
 
-static inline void syncSceneTreeInstanceIndices(SceneTreeNode* node, unsigned int removedIndex){
+void drawSceneNode(SceneTreeNode* node, glm::mat4 projection, glm::mat4 view){
     if(node == nullptr || node->NodeModel == nullptr){
         return;
     }
 
-    if(node->instanceCount > removedIndex){
-        node->instanceCount--;
-    }
+    // Draw the model
 
-    syncSceneTreeInstanceIndices(node->leftChildInstance, removedIndex);
-    syncSceneTreeInstanceIndices(node->rightChildInstance, removedIndex);
+    glm::mat4 modelMatrix(1.0f);
+    modelMatrix = glm::translate(modelMatrix, node->transform.position);
+    modelMatrix = glm::scale(modelMatrix, node->transform.scale);
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    node->NodeModel->Draw(projection, view, modelMatrix);
 }
 
-SceneTreeNode* insertInstanceToSceneTree(SceneTreeNode* root, Model* model, unsigned int instanceIndex){
-    if(root->NodeModel == nullptr){
-        root->instanceCount = instanceIndex;
-        root->NodeModel = model;
-        return root;
-    }else{
-        if(model->Hash_ID[instanceIndex] < root->NodeModel->Hash_ID[0]){
-            if(root->leftChildInstance == nullptr){
-                SceneTreeNode* newNode = new SceneTreeNode();
-                newNode->NodeModel = model;
-                newNode->instanceCount = instanceIndex;
-                newNode->leftChildInstance = nullptr;
-                newNode->rightChildInstance = nullptr;
-                root->leftChildInstance = newNode;
-                return newNode;
-            }else{
-                return insertInstanceToSceneTree(root->leftChildInstance, model, instanceIndex);
-            }
-        }else{
-            if(root->rightChildInstance == nullptr){
-                SceneTreeNode* newNode = new SceneTreeNode();
-                newNode->NodeModel = model;
-                newNode->instanceCount = instanceIndex;
-                newNode->leftChildInstance = nullptr;
-                newNode->rightChildInstance = nullptr;
-                root->rightChildInstance = newNode;
-                return newNode;
-            }else{
-                return insertInstanceToSceneTree(root->rightChildInstance, model, instanceIndex);
-            }
-        }
-    }
-}
-
-void removeInstanceFromSceneTree(SceneTreeNode* root, Model* model, size_t ID){
-    if(root == nullptr){
+void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
+    if(nodeToDelete == nullptr){
         return;
     }
 
-    SceneTreeNode* updatedRoot = removeSceneTreeNodeByHash(root, ID);
-    if(updatedRoot == nullptr){
-        root->NodeModel = nullptr;
-        root->instanceCount = 0;
-        root->leftChildInstance = nullptr;
-        root->rightChildInstance = nullptr;
-        root->childrenInstances.clear();
-        root->parentNode = nullptr;
-        return;
+    // Remove the node from its parent's children
+    if(nodeToDelete->parentNode != nullptr){
+        auto &siblings = nodeToDelete->parentNode->childrenInstances;
+        siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
     }
 
-    if(updatedRoot != root){
-        root->NodeModel = updatedRoot->NodeModel;
-        root->instanceCount = updatedRoot->instanceCount;
-        root->leftChildInstance = updatedRoot->leftChildInstance;
-        root->rightChildInstance = updatedRoot->rightChildInstance;
-        root->childrenInstances = updatedRoot->childrenInstances;
-        root->parentNode = updatedRoot->parentNode;
-        setSceneTreeChildParent(root->leftChildInstance, root);
-        setSceneTreeChildParent(root->rightChildInstance, root);
-        delete updatedRoot;
-    }
+    // Remove the node from the hash table
+    int slot = nodeToDelete->hashID;
+    auto &nodes = hashTable[slot];
+    nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
+
+    // Delete the node
+    delete nodeToDelete;
+
 }
 
-void removeInstanceFromSceneTreeByName(SceneTreeNode* root, Model* model, string name){
-    for(int i = 0; i < model->instanceCount; i++){
-        if(model->names[i] == name){
-            cout << "removing instance with name: " << name << endl;
-            unsigned int removedIndex = i;
-            size_t instanceHash = model->Hash_ID[i];
-            removeInstanceFromSceneTree(root, model, instanceHash);
-            model->removeInstance(instanceHash);
-            syncSceneTreeInstanceIndices(root, removedIndex);
-            cout << "instance removed from scene tree" << endl;
-            return;
-        }
-    }
-}
-
-Model* getInstacesInSceneTree(SceneTreeNode& root, Model* model, unsigned int instanceIndex){return nullptr;}
-
-Model* getInstacesInSceneTreeByName(SceneTreeNode& root, const std::string& name){return nullptr;}
 #endif

@@ -26,25 +26,22 @@ int main()
 
     setUpImGui(window);
 
-    string path = "resources/models/testCube.fbx";
+    sceneRootNode = new SceneTreeNode();
+    sceneRootNode->name = "sceneRoot";
+    sceneRootNode->transform = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
+    sceneRootNode->hashID = 0;
+    insertSceneTreeNode(sceneRootNode);
 
-    rootNode = new SceneTreeNode();
-    rootNode->NodeModel = nullptr;
-    rootNode->instanceCount = 0;
-    rootNode->leftChildInstance = nullptr;
-    rootNode->rightChildInstance = nullptr;
-    rootNode->parentNode = nullptr;
-    
+    string path = "resources/models/testCube.fbx";
     string fragment = "resources/shaders/litObject_fragment.glsl";
     string vertex = "resources/shaders/litObject_vertex.glsl";
+
+    rootNode = new SceneTreeNode();
     Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "rootObject");
-    test->transforms[0] = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+    setTreeNode(test, rootNode, sceneRootNode, Transform{glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)}, "rootObject");
+    insertSceneTreeNode(rootNode);
 
-    sceneRootNode = insertInstanceToSceneTree(rootNode, test, 0);
-    
-    sceneModels.push_back(test);
 
-    //loadScene();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -76,6 +73,7 @@ int main()
             mousePressLeft = false;
         }
 
+
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -83,49 +81,57 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-        for (int i = 0; i < sceneModels.size(); i++)
+        for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
-            Model *model = sceneModels[i];
-            numberOfVertices += model->numberOfVertices;
-            numberOfBatches += model->numberOfBatches;
-            model->numberOfVertices = 0;
-            model->numberOfBatches = 0;
-            model->shader->use();
-            model->shader->setVec3("viewPos", camera.Position);
-            //set view pos for shader editor part too
-            for (int j = 0; j < vertexUniforms.size(); j++)
+            for (int j = 0; j < hashTable[i].size(); j++)
             {
-                if (vertexUniforms[j] == "viewPos")
+                Model *model = hashTable[i][j]->NodeModel;
+                if (model == nullptr)
+                    continue;
+                numberOfVertices += model->numberOfVertices;
+                numberOfBatches += model->numberOfBatches;
+                model->numberOfVertices = 0;
+                model->numberOfBatches = 0;
+
+                model->shader->use();
+                model->shader->setVec3("viewPos", camera.Position);
+                // set view pos for shader editor part too
+                for (int j = 0; j < vertexUniforms.size(); j++)
                 {
-                    vertexUniformVec3s[j] = camera.Position;
-                    model->shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                    if (vertexUniforms[j] == "viewPos")
+                    {
+                        vertexUniformVec3s[j] = camera.Position;
+                        model->shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                    }
                 }
-            }
-            for (int j = 0; j < fragmentUniforms.size(); j++)
-            {
-                if (fragmentUniforms[j] == "viewPos")
+                for (int j = 0; j < fragmentUniforms.size(); j++)
                 {
-                    fragmentUniformVec3s[j] = camera.Position;
-                    model->shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                    if (fragmentUniforms[j] == "viewPos")
+                    {
+                        fragmentUniformVec3s[j] = camera.Position;
+                        model->shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                    }
                 }
+
+                model->shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
+                model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+                model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+                model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+
+                if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
+                {
+                    glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
+                    glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
+                    model->shader->setInt("testTexture", runtimeTestTextureUnit);
+                }
+
+                drawSceneNode(hashTable[i][j], projection, view);
             }
-
-            model->shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
-            model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-            model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-            model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
-
-            if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
-            {
-                glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
-                glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
-                model->shader->setInt("testTexture", runtimeTestTextureUnit);
-            }
-
-            model->Draw(projection, view);
         }
 
         drawAllUI();
+
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -135,9 +141,12 @@ int main()
 
     cout << "closing application" << endl;
 
-    for (unsigned int i = 0; i < sceneModels.size(); i++)
+    for (unsigned int i = 0; i < HASH_TABLE_SIZE; i++)
     {
-        delete sceneModels[i];
+        for (unsigned int j = 0; j < hashTable[i].size(); j++)
+        {
+            delete hashTable[i][j];
+        }
     }
 
     saveData();

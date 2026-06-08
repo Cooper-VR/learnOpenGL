@@ -77,6 +77,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
+    
     if (!ImGui::GetIO().WantCaptureMouse)
     {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
@@ -84,6 +85,11 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
             camera.PanCamera(-xoffset * PanSensitivity, yoffset * PanSensitivity, deltaTime);
         }
     }
+
+    /*if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        camera.PanCamera(-xoffset * PanSensitivity, yoffset * PanSensitivity, deltaTime);
+    }*/
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS)
     {

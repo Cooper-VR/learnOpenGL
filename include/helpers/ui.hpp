@@ -31,10 +31,6 @@ char newStringVal[256] = "";
 static fs::path currentPath = fs::current_path();
 static std::string selectedFile = "";
 
-vector<Model *> sceneModels;
-SceneTreeNode *rootNode;
-SceneTreeNode *sceneRootNode;
-
 //for shader editing
 bool alreadyCreated = false;
 vector<string> vertexUniforms;
@@ -66,10 +62,12 @@ void saveScene()
         vector<float> uniformFloats;
         vector<glm::vec3> uniformVec3s;
 
+        /*
         sceneFile << sceneModels.size() << endl;
         for (int i = 1; i < sceneModels.size(); i++)
         {
-            Model *model = sceneModels[i];
+            SceneTreeNode *node = sceneModels[i];
+            Model *model = node->NodeModel;
             sceneFile << model->directory << endl;
             sceneFile << model->instanceCount << endl;
             sceneFile << model->vertexShaderPath << endl;
@@ -232,6 +230,7 @@ void saveScene()
             
         }
 
+        */
         sceneFile.close();
     }
 }
@@ -243,6 +242,7 @@ void loadScene()
 
     if (sceneFile.is_open())
     {
+        /*
         unsigned int numModels;
         sceneFile >> numModels;
         for (int i = 1; i < numModels; i++)
@@ -387,10 +387,10 @@ void loadScene()
 
             model->Hash_ID[0] = hashID;
 
-            sceneModels.push_back(model);
+            //sceneModels.push_back(model);
 
             SceneTreeNode *sceneNode;
-            sceneNode = insertInstanceToSceneTree(rootNode, model, 0);
+            //sceneNode = insertInstanceToSceneTree(rootNode, model, 0);
             sceneRootNode->childrenInstances.push_back(sceneNode);
             sceneNode->parentNode = sceneRootNode;
 
@@ -429,11 +429,11 @@ void loadScene()
                 int index = model->addInstance(position, rotation, scale, name);
 
                 SceneTreeNode *sceneNode;
-                sceneNode = insertInstanceToSceneTree(rootNode, model, j);
+                //sceneNode = insertInstanceToSceneTree(rootNode, model, j);
                 sceneRootNode->childrenInstances.push_back(sceneNode);
                 sceneNode->parentNode = sceneRootNode;
             }
-        }
+        }*/
     }
 }
 
@@ -572,6 +572,15 @@ void drawMainUI(){
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
 
+
+    for (int i = 0; i < 1024; i++)
+    {
+        for(int j = 0; j < hashTable[i].size(); j++)
+        {
+            ImGui::Text("Model %d: %s", hashTable[i][j]->hashID, hashTable[i][j]->name.c_str());
+        }
+    }
+
     if (ImGui::Button("Save Data"))
     {
         saveData();
@@ -589,6 +598,7 @@ void drawMainUI(){
     {
         loadScene();
     }
+    ImGui::End();
 }
 
 void ShowFileBrowser()
@@ -628,41 +638,17 @@ void ShowFileBrowser()
     }
 
     if (ImGui::Button("Spawn Model?")){
-        bool alreadyLoaded = false;
-        SceneTreeNode *sceneNode;
-
-        //check if the selected file is already a loeaded model
-        for (Model* model : sceneModels) {
-            cout << "Checking loaded model: " << model->directory << endl;
-            if (model->directory == (currentPath / selectedFile).string()) {
-                alreadyLoaded = true;
-                int index = model->addInstance(camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f), selectedFile);
-                sceneNode = insertInstanceToSceneTree(rootNode, model, index);
-                sceneRootNode->childrenInstances.push_back(sceneNode);
-                sceneNode->parentNode = sceneRootNode;
-                break;
-            }
-        }
-
-        string fragment = "resources/shaders/missingShader_fragment.glsl";
-        string vertex = "resources/shaders/missingShader_vertex.glsl";
-        if (!alreadyLoaded){
-            Model *newModel = new Model((currentPath / selectedFile).string().c_str(), vertex.c_str(), fragment.c_str(), selectedFile);
-            newModel->transforms[0].position = camera.Position + camera.Front * 2.0f;
-            newModel->transforms[0].scale = glm::vec3(0.2f, 0.2f, 0.2f);
-            newModel->transforms[0].rotation = glm::vec3(-90.0f, 0.0f, 0.0f);
-
-            sceneNode = insertInstanceToSceneTree(rootNode, newModel, 0);
-            sceneRootNode->childrenInstances.push_back(sceneNode);
-            sceneModels.push_back(newModel);
-            sceneNode->parentNode = sceneRootNode;
-        }
-        
+        Transform transform{camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+        createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/missingShader_vertex.glsl", "resources/shaders/missingShader_fragment.glsl", selectedFile, transform, selectedNode);      
     }
 
     if (ImGui::Button("reload shaders")){
-        for (Model* model : sceneModels) {
-            model->reloadShader();
+        for (int i = 0; i < HASH_TABLE_SIZE; i++)
+        {
+            for (int j = 0; j < hashTable[i].size(); j++)
+            {
+                hashTable[i][j]->NodeModel->reloadShader();
+            }
         }
     }
     ImGui::End();
@@ -670,11 +656,13 @@ void ShowFileBrowser()
 
 void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode)
 {
-    if (!node || !node->NodeModel)
-        return;
+
+    //ok so first start from the root node
+    //if the dropdown is open, then we need to draw the children
+    //if any of those children are selected, we need to draw them as well
 
     // label for this node
-    std::string label = node->NodeModel->names[node->instanceCount];
+    std::string label = node->name;
 
     // is this node selected?
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
@@ -701,18 +689,16 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
 void drawSceneTree(){
     ImGui::Begin("Scene Tree");
 
-    static SceneTreeNode *selectedNode = nullptr;
-    static SceneTreeNode *previousSelectedNode = nullptr;
-    drawSceneTreeHierarchical(rootNode, selectedNode);
+    drawSceneTreeHierarchical(sceneRootNode, selectedNode);
 
     if (selectedNode)
     {
         ImGui::Separator();
-        ImGui::Text("Selected Model: %s", selectedNode->NodeModel->names[selectedNode->instanceCount].c_str());
-        ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].position), 0.001f);
-        ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].rotation), 1.0f);
-        ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->NodeModel->transforms[selectedNode->instanceCount].scale), 0.1f, 0.1f, 10.0f);
-        ImGui::Text("Hash ID: %zu", selectedNode->NodeModel->Hash_ID[selectedNode->instanceCount]);
+        ImGui::Text("Selected Model: %s", selectedNode->name.c_str());
+        ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->transform.position), 0.001f);
+        ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->transform.rotation), 1.0f);
+        ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->transform.scale), 0.1f, 0.1f, 10.0f);
+        ImGui::Text("Hash ID: %zu", selectedNode->hashID);
 
         char vertexShaderBuffer[512];
         char fragmentShaderBuffer[512];
@@ -942,23 +928,11 @@ void drawSceneTree(){
         {
             SceneTreeNode* nodeToDelete = selectedNode;
             SceneTreeNode* parentNode = nodeToDelete->parentNode;
-            std::string instanceName = nodeToDelete->NodeModel->names[nodeToDelete->instanceCount];
 
-            if (runtimeTextureTargetNode == nodeToDelete)
-            {
-                runtimeTextureTargetNode = nullptr;
-            }
+            removeNodeFromSceneTree(nodeToDelete);
 
             selectedNode = nullptr;
-            removeInstanceFromSceneTreeByName(rootNode, nodeToDelete->NodeModel, instanceName);
 
-            if (parentNode)
-            {
-                auto &siblings = parentNode->childrenInstances;
-                siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
-            }
-
-            sceneModels.erase(std::remove(sceneModels.begin(), sceneModels.end(), nodeToDelete->NodeModel), sceneModels.end());
         }
 
         if (ImGui::Button("set test Image in shader")){
@@ -983,9 +957,10 @@ void drawAllUI(){
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     drawMainUI();
+   
     drawSceneTree();
     ShowFileBrowser();
-    ImGui::End();
+    //drawSceneTreeHierarchical(sceneRootNode, selectedNode);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

@@ -41,7 +41,7 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
     }
 }
 
-void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix){
+void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
 
@@ -50,16 +50,11 @@ void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix){
             numberOfBatches++;
             numberOfVertices += meshes[i].vertices.size();
             shader->use();
-            modelMatrix[j] = glm::mat4(1.0f);
-            modelMatrix[j] = glm::translate(modelMatrix[j], transforms[j].position);
-            modelMatrix[j] = glm::scale(modelMatrix[j], transforms[j].scale);
-            modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(transforms[j].rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-            modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(transforms[j].rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-            modelMatrix[j] = glm::rotate(modelMatrix[j], glm::radians(transforms[j].rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
             shader->setMat4("projection", projection);
             shader->setMat4("view", viewMatrix);
-            shader->setMat4("model", modelMatrix[j]);
-            meshes[i].Draw(*shader, modelMatrix[j], projection, viewMatrix);
+            shader->setMat4("model", modelMatrix);
+            meshes[i].Draw(*shader, modelMatrix, projection, viewMatrix);
         }
     }
 }
@@ -79,6 +74,8 @@ int Model::addInstance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, 
     h ^= float_hash(position.y) + 0x9e3779b9 + (h << 6) + (h >> 2);
     h ^= float_hash(position.z) + 0x9e3779b9 + (h << 6) + (h >> 2);
     h ^= float_hash(instanceCount) + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+    h %= HASH_TABLE_SIZE;
 
     Hash_ID.push_back(h);
     instanceCount++;

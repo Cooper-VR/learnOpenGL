@@ -7,8 +7,6 @@ void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm
     unsigned int normalNr = 1;
     unsigned int heightNr = 1;
 
-
-    
     for(unsigned int i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
