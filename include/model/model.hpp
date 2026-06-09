@@ -35,10 +35,10 @@ class Model{
         vector<Texture> textures_loaded;
         int numberOfVertices = 0;
         int numberOfBatches = 0;
+        vector<Mesh> meshes;
     private:
         bool gammaCorrection;
-        vector<Mesh> meshes;
-
+        
         void loadModel(string const &path);
         void processNode(aiNode *node, const aiScene *scene);
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);

@@ -701,6 +701,7 @@ void drawSceneTree(){
         selectedNode = nullptr;
     }
 
+
     if (selectedNode)
     {
         ImGui::Separator();
@@ -713,6 +714,19 @@ void drawSceneTree(){
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->transform.rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->transform.scale), 0.1f, 0.1f, 10.0f);
         ImGui::Text("Hash ID: %zu", selectedNode->hashID);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+
+        ImGui::Text("Mesh Selection:");
+        static int selected = -1;
+        ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x*0.75, 160), ImGuiChildFlags_None, window_flags);
+        for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++){
+            char buf[32];
+            sprintf(buf, "Mesh %d", i);
+            if (ImGui::Selectable(buf, selected == i))
+                selected = i;
+        }
+        ImGui::EndChild();
 
         char vertexShaderBuffer[512];
         char fragmentShaderBuffer[512];
