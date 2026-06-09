@@ -5,14 +5,6 @@
 #include <utility>
 #include <model/model.hpp>
 
-//we could restructure this so that instead of a binary tree like structure we have a dictionary
-//we would use the hashID of the model as a key, the scene tree node would just need a vector of children and a parent, 
-//that could be just a hash or pointer
-
-//ok so lets work out the dictionary approachh
-//so we need an array of n elements or bins
-//then each element in the array would be a vector of scene tree nodes
-
 struct SceneTreeNode{
     Model* NodeModel;
 
@@ -49,11 +41,7 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
     node->transform = transform;
     node->name = name;
 
-    cout << "Setting up scene tree node." << endl;
-
     parent->childrenInstances.push_back(node);
-
-    cout << "Added scene tree node." << endl;
 
     //get a hash for the node
     std::hash<std::string> str_hash;
