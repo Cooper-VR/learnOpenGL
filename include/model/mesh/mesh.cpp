@@ -32,6 +32,8 @@ void Mesh::Draw(glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatri
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
         
         shader->setInt((name + number).c_str(), i);
+
+        textures[i].uniformName = (name + number);
     }
 
 

@@ -48,6 +48,9 @@ vector<float> fragmentUniformFloats;
 vector<glm::vec3> vertexUniformVec3s;
 vector<glm::vec3> fragmentUniformVec3s;
 
+vector<unsigned int> vertexUniformTextureIDs;
+vector<unsigned int> fragmentUniformTextureIDs;
+
 char selectedName[256] = "";
 
 void saveScene()
@@ -829,6 +832,8 @@ void drawSceneTree(){
                 fragmentUniformInts.clear();
                 fragmentUniformFloats.clear();
                 fragmentUniformVec3s.clear();
+                vertexUniformTextureIDs.clear();
+                fragmentUniformTextureIDs.clear();
 
                 previousSelected = selected;
                 previousSelectedNode = selectedNode;
@@ -937,7 +942,7 @@ void drawSceneTree(){
             int intCounter = 0;
             int floatCounter = 0;
             int vec3Counter = 0;
-
+            int textureIDCounter = 0;
             for (int i = 0; i < vertexUniforms.size(); i++)
             {
                 ImGui::Text("%s: ", vertexUniforms[i].c_str());
@@ -975,12 +980,29 @@ void drawSceneTree(){
                     }
                     intCounter++;
                 }
+                else if (vertexUniformTypes[i] == "sampler2D")
+                {
+                    if (!alreadyCreated)
+                        vertexUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].shader->getTextureID(vertexUniforms[i].c_str()));
+                    for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
+                    {
+                        if (selectedNode->NodeModel->meshes[selected].textures[j].id == vertexUniformTextureIDs[textureIDCounter])
+                        {
+                            ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
+                            break;
+                        }
+                    }
+                    textureIDCounter++;
+                }else{
+                    ImGui::Text("Unknown uniform type: %s", vertexUniformTypes[i].c_str());
+                }
             }
             ImGui::Text("Fragment Shader Uniforms:");
 
             floatCounter = 0;
             vec3Counter = 0;
             intCounter = 0;
+            textureIDCounter = 0;
 
 
             for (int i = 0; i < fragmentUniforms.size(); i++)
@@ -1018,6 +1040,21 @@ void drawSceneTree(){
                         selectedNode->NodeModel->meshes[selected].shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
                     }
                     intCounter++;
+                }
+                else if (fragmentUniformTypes[i] == "sampler2D")
+                {
+                    if (!alreadyCreated)
+                        fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].shader->getTextureID(fragmentUniforms[i].c_str()));
+                    // ok so we we have ids we can get info about the texture by matching the ID to the texture vector of the mesh
+                    for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
+                    {
+
+                        ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
+                        ImGui::Text("Texture ID: %d", selectedNode->NodeModel->meshes[selected].textures[j].id);
+                        ImGui::Text("Uniform Name: %s", selectedNode->NodeModel->meshes[selected].textures[j].uniformName.c_str());
+                        break;
+                    }
+                    textureIDCounter++;
                 }
             }
 

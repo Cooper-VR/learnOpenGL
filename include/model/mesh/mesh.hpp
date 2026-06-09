@@ -27,7 +27,10 @@ struct Texture{
     unsigned int id;
     string type;
     string path;
+    string uniformName;
 };
+
+
 
 class Mesh{
     public:
