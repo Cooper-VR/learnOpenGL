@@ -921,7 +921,7 @@ void drawSceneTree()
 
                     if (!alreadyCreated)
                         vertexUniformFloats.push_back(selectedNode->NodeModel->meshes[selected].shader->getFloat(vertexUniforms[i].c_str()));
-                    if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1.0f))
+                    if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1000.0f))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
@@ -932,7 +932,7 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         vertexUniformVec3s.push_back(selectedNode->NodeModel->meshes[selected].shader->getVec3(vertexUniforms[i].c_str()));
-                    if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                    if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1000.0f))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
@@ -943,7 +943,7 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         vertexUniformInts.push_back(selectedNode->NodeModel->meshes[selected].shader->getInt(vertexUniforms[i].c_str()));
-                    if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 100))
+                    if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 1000))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
@@ -1011,7 +1011,7 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         fragmentUniformFloats.push_back(selectedNode->NodeModel->meshes[selected].shader->getFloat(fragmentUniforms[i].c_str()));
-                    if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1.0f))
+                    if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1000.0f))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
@@ -1022,7 +1022,7 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         fragmentUniformVec3s.push_back(selectedNode->NodeModel->meshes[selected].shader->getVec3(fragmentUniforms[i].c_str()));
-                    if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                    if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1000.0f))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
@@ -1033,7 +1033,7 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         fragmentUniformInts.push_back(selectedNode->NodeModel->meshes[selected].shader->getInt(fragmentUniforms[i].c_str()));
-                    if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 100))
+                    if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 1000))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();
                         selectedNode->NodeModel->meshes[selected].shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);

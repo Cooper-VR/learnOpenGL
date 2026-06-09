@@ -70,6 +70,7 @@ int main()
 
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
 
 
         glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
