@@ -30,7 +30,7 @@ unsigned int runtimeTestTextureID = 0;
 int runtimeTestTextureUnit = 15;
 
 void insertSceneTreeNode(SceneTreeNode *node){
-    int slot = node->hashID;
+    int slot = node->hashID % HASH_TABLE_SIZE;
 
     hashTable[slot].push_back(node);
 }
@@ -58,8 +58,6 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
     h ^= float_hash(transform.scale.y) + 0x9e3779b9 + (h << 6) + (h >> 2);
     h ^= float_hash(transform.scale.z) + 0x9e3779b9 + (h << 6) + (h >> 2);
     h ^= float_hash(hashTable[h%HASH_TABLE_SIZE].size()) + 0x9e3779b9 + (h << 6) + (h >> 2);
-
-    h %= HASH_TABLE_SIZE;
 
     node->hashID = h;
 
@@ -117,7 +115,7 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     }
 
     // Remove the node from the hash table
-    int slot = nodeToDelete->hashID;
+    int slot = nodeToDelete->hashID % HASH_TABLE_SIZE;
     auto &nodes = hashTable[slot];
     nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
 
@@ -126,4 +124,16 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
 
 }
 
+
+// we are gonna need a getNodeByHash function
+SceneTreeNode* getNodeByHash(size_t hashID) {
+    int slot = hashID % HASH_TABLE_SIZE;
+    auto &nodes = hashTable[slot];
+    for (auto &node : nodes) {
+        if (node->hashID == hashID) {
+            return node;
+        }
+    }
+    return nullptr;
+}
 #endif

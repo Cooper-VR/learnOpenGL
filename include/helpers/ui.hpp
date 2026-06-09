@@ -1,6 +1,7 @@
 #ifndef ui_hpp
 #define ui_hpp
 
+#include <sys/stat.h>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -31,7 +32,7 @@ char newStringVal[256] = "";
 static fs::path currentPath = fs::current_path();
 static std::string selectedFile = "";
 
-//for shader editing
+// for shader editing
 bool alreadyCreated = false;
 vector<string> vertexUniforms;
 vector<string> fragmentUniforms;
@@ -51,6 +52,9 @@ vector<glm::vec3> fragmentUniformVec3s;
 vector<unsigned int> vertexUniformTextureIDs;
 vector<unsigned int> fragmentUniformTextureIDs;
 
+vector<string> textureNames;
+vector<int> selectedTextureIDs;
+
 char selectedName[256] = "";
 
 void saveScene()
@@ -60,182 +64,195 @@ void saveScene()
     sceneFile.open("localData/scene.sn");
     if (sceneFile.is_open())
     {
+        //first print the root node stuff
 
-        vector<string> uniformNames;
-        vector<string> uniformTypes;
-        vector<int> uniformInts;
-        vector<float> uniformFloats;
-        vector<glm::vec3> uniformVec3s;
+        SceneTreeNode* root = sceneRootNode;
 
-        /*
-        sceneFile << sceneModels.size() << endl;
-        for (int i = 1; i < sceneModels.size(); i++)
-        {
-            SceneTreeNode *node = sceneModels[i];
-            Model *model = node->NodeModel;
-            sceneFile << model->directory << endl;
-            sceneFile << model->instanceCount << endl;
-            sceneFile << model->vertexShaderPath << endl;
-            sceneFile << model->fragmentShaderPath << endl;
-
-            //we need to save the shader properties
-            //so parse the shader files, get the properties name, type and value. then save them
-            ifstream vertexShaderFile;
-            vertexShaderFile.open(model->vertexShaderPath);
-            if (vertexShaderFile.is_open())
+        for (int i = 0; i < HASH_TABLE_SIZE; i++){
+            for (int j = 0; j < hashTable[i].size(); j++)
             {
-                for (string line; getline(vertexShaderFile, line);)
+                if (sceneRootNode != hashTable[i][j])
                 {
-                    if (line.find("uniform") != string::npos)
+                    sceneFile << hashTable[i][j]->name << endl;
+                    sceneFile << hashTable[i][j]->hashID << endl;
+                    sceneFile << hashTable[i][j]->NodeModel->directory << endl;
+                    sceneFile << hashTable[i][j]->transform.position.x << ' ' << hashTable[i][j]->transform.position.y << ' ' << hashTable[i][j]->transform.position.z << endl;
+                    sceneFile << hashTable[i][j]->transform.rotation.x << ' ' << hashTable[i][j]->transform.rotation.y << ' ' << hashTable[i][j]->transform.rotation.z << endl;
+                    sceneFile << hashTable[i][j]->transform.scale.x << ' ' << hashTable[i][j]->transform.scale.y << ' ' << hashTable[i][j]->transform.scale.z << endl;
+                    sceneFile << hashTable[i][j]->childrenInstances.size() << endl;
+                    for (int k = 0; k < hashTable[i][j]->childrenInstances.size(); k++)
                     {
-                        bool foundFirstSpace = false;
-                        bool foundSecondSpace = false;
-
-                        string type;
-                        string name;
-                        for (int i = 0; i < line.size(); i++)
-                        {
-                            if (!foundFirstSpace && line[i] == ' ')
-                            {
-                                foundFirstSpace = true;
-                            }
-                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
-                            {
-                                foundSecondSpace = true;
-                            }
-
-                            if (line[i] == ' ' || line[i] == ';')
-                                continue;
-
-                            if (foundFirstSpace && !foundSecondSpace)
-                            {
-                                type += line[i];
-                            }
-                            else if (foundSecondSpace)
-                            {
-                                name += line[i];
-                            }
-                        }
-
-                        sceneFile << name << endl;
-                        sceneFile << type << endl;
-
-                        if (type == "int")
-                        {
-                            int value;
-                            value = model->shader->getInt(name.c_str());
-                            uniformInts.push_back(value);
-                            sceneFile << value << endl;
-                        }
-                        else if (type == "float")
-                        {
-                            float value;
-                            value = model->shader->getFloat(name.c_str());
-                            uniformFloats.push_back(value);
-                            sceneFile << value << endl;
-                        }
-                        else if (type == "vec3")
-                        {
-                            glm::vec3 value;
-                            value = model->shader->getVec3(name.c_str());
-                            uniformVec3s.push_back(value);
-                            sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
-                        }
+                        sceneFile << hashTable[i][j]->childrenInstances[k]->hashID << endl;
                     }
-                }
-            }
-            sceneFile << "EOV" << endl; // End of vertex shader uniforms
-            ifstream fragmentShaderFile;
-            fragmentShaderFile.open(model->fragmentShaderPath);
-            if (fragmentShaderFile.is_open())
-            {
-                for (string line; getline(fragmentShaderFile, line);)
-                {
-                    if (line.find("uniform") != string::npos)
+                    sceneFile << hashTable[i][j]->NodeModel->meshes.size() << endl;
+                    for (int k = 0; k < hashTable[i][j]->NodeModel->meshes.size(); k++)
                     {
-                        bool foundFirstSpace = false;
-                        bool foundSecondSpace = false;
+                        sceneFile << hashTable[i][j]->NodeModel->meshes[k].fragmentShaderPath << endl;
+                        sceneFile << hashTable[i][j]->NodeModel->meshes[k].vertexShaderPath << endl;
 
-                        string type;
-                        string name;
-                        for (int i = 0; i < line.size(); i++)
+                        ifstream vertexShaderFile;
+                        vertexShaderFile.open(hashTable[i][j]->NodeModel->meshes[k].vertexShaderPath);
+                        if (vertexShaderFile.is_open())
                         {
-                            if (!foundFirstSpace && line[i] == ' ')
+                            for (string line; getline(vertexShaderFile, line);)
                             {
-                                foundFirstSpace = true;
-                            }
-                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
-                            {
-                                foundSecondSpace = true;
-                            }
+                                if (line.find("uniform") != string::npos)
+                                {
+                                    bool foundFirstSpace = false;
+                                    bool foundSecondSpace = false;
 
-                            if (line[i] == ' ' || line[i] == ';')
-                                continue;
+                                    string type;
+                                    string name;
+                                    for (int i = 0; i < line.size(); i++)
+                                    {
+                                        if (!foundFirstSpace && line[i] == ' ')
+                                        {
+                                            foundFirstSpace = true;
+                                        }
+                                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                                        {
+                                            foundSecondSpace = true;
+                                        }
 
-                            if (foundFirstSpace && !foundSecondSpace)
-                            {
-                                type += line[i];
-                            }
-                            else if (foundSecondSpace)
-                            {
-                                name += line[i];
+                                        if (line[i] == ' ' || line[i] == ';')
+                                            continue;
+
+                                        if (foundFirstSpace && !foundSecondSpace)
+                                        {
+                                            type += line[i];
+                                        }
+                                        else if (foundSecondSpace)
+                                        {
+                                            name += line[i];
+                                        }
+                                    }
+
+
+                                    if (type == "int")
+                                    {
+                                        int value;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getInt(name.c_str());
+                                        sceneFile << "int" << endl;
+                                        sceneFile << name << endl;
+                                        sceneFile << value << endl;
+                                    }
+                                    else if (type == "float")
+                                    {
+                                        float value;
+                                        sceneFile << "float" << endl;
+                                        sceneFile << name << endl;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getFloat(name.c_str());
+
+                                        sceneFile << value << endl;
+                                    }
+                                    else if (type == "vec3")
+                                    {
+                                        glm::vec3 value;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getVec3(name.c_str());
+                                        sceneFile << "vec3" << endl;
+                                        sceneFile << name << endl;
+                                        sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
+                                    }else if (type == "sampler2D"){
+                                        for (int l = 0; l < hashTable[i][j]->NodeModel->meshes[k].textures.size(); l++)
+                                        {
+                                            if (hashTable[i][j]->NodeModel->meshes[k].textures[l].uniformName == name)
+                                            {
+                                                sceneFile << "sampler2D" << endl;
+                                                sceneFile << name << endl;
+                                                sceneFile << "p:" << hashTable[i][j]->NodeModel->meshes[k].textures[l].path << endl;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
+                        sceneFile << "EOV" << endl; // End of vertex shader uniforms
+                        ifstream fragmentShaderFile;
+                        fragmentShaderFile.open(hashTable[i][j]->NodeModel->meshes[k].fragmentShaderPath);
+                        if (fragmentShaderFile.is_open())
+                        {
+                            for (string line; getline(fragmentShaderFile, line);)
+                            {
+                                if (line.find("uniform") != string::npos)
+                                {
+                                    bool foundFirstSpace = false;
+                                    bool foundSecondSpace = false;
 
-                        sceneFile << name << endl;
-                        sceneFile << type << endl;
+                                    string type;
+                                    string name;
+                                    for (int i = 0; i < line.size(); i++)
+                                    {
+                                        if (!foundFirstSpace && line[i] == ' ')
+                                        {
+                                            foundFirstSpace = true;
+                                        }
+                                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                                        {
+                                            foundSecondSpace = true;
+                                        }
 
-                        if (type == "int")
-                        {
-                            int value;
-                            value = model->shader->getInt(name.c_str());
-                            uniformInts.push_back(value);
-                            sceneFile << value << endl;
+                                        if (line[i] == ' ' || line[i] == ';')
+                                            continue;
+
+                                        if (foundFirstSpace && !foundSecondSpace)
+                                        {
+                                            type += line[i];
+                                        }
+                                        else if (foundSecondSpace)
+                                        {
+                                            name += line[i];
+                                        }
+                                    }
+
+                                    if (type == "int")
+                                    {
+                                        int value;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getInt(name.c_str());
+                                        sceneFile << "int" << endl;
+                                        sceneFile << name << endl;
+                                        sceneFile << value << endl;
+                                    }
+                                    else if (type == "float")
+                                    {
+                                        float value;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getFloat(name.c_str());
+                                        sceneFile << "float" << endl;
+                                        sceneFile << name << endl;
+                                        sceneFile << value << endl;
+                                    }
+                                    else if (type == "vec3")
+                                    {
+                                        glm::vec3 value;
+                                        value = hashTable[i][j]->NodeModel->meshes[k].shader->getVec3(name.c_str());
+                                        sceneFile << "vec3" << endl;
+                                        sceneFile << name << endl;
+                                        sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
+                                    }else if (type == "sampler2D"){
+                                        for (int l = 0; l < hashTable[i][j]->NodeModel->meshes[k].textures.size(); l++)
+                                        {
+                                            if (hashTable[i][j]->NodeModel->meshes[k].textures[l].uniformName == name)
+                                            {
+                                                sceneFile << "sampler2D" << endl;
+                                                sceneFile << name << endl;
+                                                sceneFile << "p:" << hashTable[i][j]->NodeModel->meshes[k].textures[l].path << endl;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        else if (type == "float")
-                        {
-                            float value;
-                            value = model->shader->getFloat(name.c_str());
-                            uniformFloats.push_back(value);
-                            sceneFile << value << endl;
-                        }
-                        else if (type == "vec3")
-                        {
-                            glm::vec3 value;
-                            value = model->shader->getVec3(name.c_str());
-                            uniformVec3s.push_back(value);
-                            sceneFile << value.x << ' ' << value.y << ' ' << value.z << endl;
-                        }
+                        sceneFile << "EOF" << endl; // End of fragment shader uniforms
+
                     }
+                    sceneFile << "EON" << endl;
                 }
+                
+                
             }
-            sceneFile << "EOF" << endl; // End of fragment shader uniforms
-
-            for (unsigned int j = 0; j < model->instanceCount; j++)
-            {
-                sceneFile << model->names[j] << endl;
-                sceneFile << model->Hash_ID[j] << endl;
-
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    sceneFile << model->transforms[j].position[k] << ' ';
-                }
-                sceneFile << endl;
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    sceneFile << model->transforms[j].rotation[k] << ' ';
-                }
-                sceneFile << endl;
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    sceneFile << model->transforms[j].scale[k] << ' ';
-                }
-                sceneFile << endl;
-            }
-            
         }
 
-        */
+        sceneFile << "EOS" << endl;
+       
         sceneFile.close();
     }
 }
@@ -247,198 +264,61 @@ void loadScene()
 
     if (sceneFile.is_open())
     {
-        /*
-        unsigned int numModels;
-        sceneFile >> numModels;
-        for (int i = 1; i < numModels; i++)
+        //if line == "EON" we are done
+        string line;
+        while (getline(sceneFile, line))
         {
-            string path;
-            sceneFile >> path;
-            unsigned int instanceCount;
-            sceneFile >> instanceCount;
-            string vertexShaderPath;
-            sceneFile >> vertexShaderPath;
-            string fragmentShaderPath;
-            sceneFile >> fragmentShaderPath;
-
-            //we need to load the shader properties
-            //so parse the shader files, get the properties name, type and value. then load
-            bool foundEOV = false;
-
-            vector<string> names;
-            vector<string> types;
-
-            vector<int> ints;
-            vector<float> floats;
-            vector<glm::vec3> vec3s;
-
-            while (true)
-            {
+            if (line == "EOS") //emd of scene we read it all
+                break;
+            else{
                 string name;
-                sceneFile >> name;
-                if (name == "EOV")
-                {
-                    break; // End of vertex shader uniforms
-                }
-
-                string type;
-                sceneFile >> type;
-
-                names.push_back(name);
-                types.push_back(type);
-
-                if (type == "int")
-                {
-                    int intValue;
-                    sceneFile >> intValue;
-                    ints.push_back(intValue);
-                }
-                else if (type == "float")
-                {
-                    float floatValue;
-                    sceneFile >> floatValue;
-                    floats.push_back(floatValue);
-                }
-                else if (type == "vec3")
-                {
-                    glm::vec3 vec3Value;
-                    sceneFile >> vec3Value.x >> vec3Value.y >> vec3Value.z;
-                    vec3s.push_back(vec3Value);
-                }
-            }
-
-            while (true)
-            {
-                string name;
-                sceneFile >> name;
-                if (name == "EOF")
-                {
-                    break; // End of fragment shader uniforms
-                }
-
-                string type;
-                sceneFile >> type;
-
-                names.push_back(name);
-                types.push_back(type);
-
-                if (type == "int")
-                {
-                    int intValue;
-                    sceneFile >> intValue;
-                    ints.push_back(intValue);
-                }
-                else if (type == "float")
-                {
-                    float floatValue;
-                    sceneFile >> floatValue;
-                    floats.push_back(floatValue);
-                }
-                else if (type == "vec3")
-                {
-                    glm::vec3 vec3Value;
-                    sceneFile >> vec3Value.x >> vec3Value.y >> vec3Value.z;
-                    vec3s.push_back(vec3Value);
-                }
-            }
-
-
-            string name;
-            sceneFile >> name;
-
-            size_t hashID;
-            sceneFile >> hashID;
-
-            glm::vec3 position;
-            glm::vec3 rotation;
-            glm::vec3 scale;
-
-            for (unsigned int k = 0; k < 3; k++)
-            {
-                sceneFile >> position[k];
-            }
-            for (unsigned int k = 0; k < 3; k++)
-            {
-                sceneFile >> rotation[k];
-            }
-            for (unsigned int k = 0; k < 3; k++)
-            {
-                sceneFile >> scale[k];
-            }
-
-            Model *model = new Model(path.c_str(), vertexShaderPath.c_str(), fragmentShaderPath.c_str(), name, position, rotation, scale);
-            
-            int intCount = 0;
-            int floatCount = 0;
-            int vec3Count = 0;
-
-            model->shader->use();
-
-            for(int i = 0; i < names.size(); i++)
-            {
-                if (types[i] == "int")
-                {
-                    model->shader->setInt(names[i].c_str(), ints[intCount++]);
-                }
-                else if (types[i] == "float")
-                {
-                    model->shader->setFloat(names[i].c_str(), floats[floatCount++]);
-                }
-                else if (types[i] == "vec3")
-                {
-                    model->shader->setVec3(names[i].c_str(), vec3s[vec3Count++]);
-                }
-            }
-
-            model->Hash_ID[0] = hashID;
-
-            //sceneModels.push_back(model);
-
-            SceneTreeNode *sceneNode;
-            //sceneNode = insertInstanceToSceneTree(rootNode, model, 0);
-            sceneRootNode->childrenInstances.push_back(sceneNode);
-            sceneNode->parentNode = sceneRootNode;
-
-            cout << "loaded model with path: " << path << endl;
-
-
-            for (unsigned int j = 1; j < instanceCount; j++)
-            {
-                string name;
-                sceneFile >> name;
-
-                size_t hashID;
-                sceneFile >> hashID;
-
+                name == line;
+                int hashID;
+                string path;
                 glm::vec3 position;
                 glm::vec3 rotation;
                 glm::vec3 scale;
-
-                for (unsigned int k = 0; k < 3; k++)
+                vector<int> childrenHashes;
+                sceneFile >> name;
+                sceneFile >> hashID;
+                sceneFile >> path;
+                sceneFile >> position.x >> position.y >> position.z;
+                sceneFile >> rotation.x >> rotation.y >> rotation.z;
+                sceneFile >> scale.x >> scale.y >> scale.z;
+                int numChildren;
+                sceneFile >> numChildren;
+                for (int i = 0; i < numChildren; i++)
                 {
-                    sceneFile >> position[k];
+                    int childHash;
+                    sceneFile >> childHash;
+                    childrenHashes.push_back(childHash);
                 }
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    sceneFile >> rotation[k];
-                }
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    sceneFile >> scale[k];
-                }
-                
-                model->names[i] = name;
-                model->Hash_ID[i] = hashID;
-                model->transforms[i] = Transform{position, rotation, scale};
 
-                int index = model->addInstance(position, rotation, scale, name);
+                int numMeshes;
+                sceneFile >> numMeshes;
+                for (int i = 0; i < numMeshes; i++)
+                {
+                    string fragmentShaderPath;
+                    sceneFile >> fragmentShaderPath;
+                    string vertexShaderPath;
+                    sceneFile >> vertexShaderPath;
 
-                SceneTreeNode *sceneNode;
-                //sceneNode = insertInstanceToSceneTree(rootNode, model, j);
-                sceneRootNode->childrenInstances.push_back(sceneNode);
-                sceneNode->parentNode = sceneRootNode;
+                    string line;
+                    while (getline(sceneFile, line))
+                    {
+                        if (line == "EOV")
+                            break;
+                    }
+                    while (getline(sceneFile, line))
+                    {
+                        if (line == "EOF")
+                            break;
+                    }
+                }
+
+                sceneFile >> line; //this is EON, aka, end of node
             }
-        }*/
+        }
     }
 }
 
@@ -467,8 +347,10 @@ void saveData()
             saveFile << dirLightSpecularColor[i] << ' ';
         saveFile << endl;
 
-        if(SCR_HEIGHT == 1) SCR_HEIGHT = 720;
-        if(SCR_WIDTH == 1) SCR_WIDTH = 1280;
+        if (SCR_HEIGHT == 1)
+            SCR_HEIGHT = 720;
+        if (SCR_WIDTH == 1)
+            SCR_WIDTH = 1280;
         saveFile << SCR_HEIGHT << endl;
         saveFile << SCR_WIDTH << endl;
 
@@ -477,10 +359,10 @@ void saveData()
 
         for (int i = 0; i < 3; i++)
             saveFile << dirLightDirection[i] << ' ';
-        
+
         for (int i = 0; i < 3; i++)
             saveFile << camera.Position[i] << ' ';
-        
+
         for (int i = 0; i < 4; i++)
             saveFile << camera.Orientation[i] << ' ';
         for (int i = 0; i < 3; i++)
@@ -521,12 +403,12 @@ void loadData()
 
         for (int i = 0; i < 3; i++)
             saveFile >> dirLightDirection[i];
-        
+
         for (int i = 0; i < 3; i++)
             saveFile >> camera.Position[i];
         for (int i = 0; i < 4; i++)
             saveFile >> camera.Orientation[i];
-        for (int i = 0; i < 3; i++) 
+        for (int i = 0; i < 3; i++)
             saveFile >> camera.Front[i];
         for (int i = 0; i < 3; i++)
             saveFile >> camera.Up[i];
@@ -554,12 +436,11 @@ void resetData()
     dirLightDirection[1] = -1.0f;
     dirLightDirection[2] = -0.3f;
 
-
-
     currentPath = fs::current_path();
 }
 
-void drawMainUI(){
+void drawMainUI()
+{
     ImGui::Begin("OpenGL UI");
     ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
 
@@ -628,7 +509,8 @@ void ShowFileBrowser()
     ImGui::Begin("File Browser");
 
     // Back button
-    if (ImGui::Button("⬅ Up") && currentPath.has_parent_path()) {
+    if (ImGui::Button("⬅ Up") && currentPath.has_parent_path())
+    {
         currentPath = currentPath.parent_path();
     }
 
@@ -638,28 +520,35 @@ void ShowFileBrowser()
     std::string filename;
 
     // Iterate through directory
-    for (auto& entry : fs::directory_iterator(currentPath)) {
-        const auto& path = entry.path();
+    for (auto &entry : fs::directory_iterator(currentPath))
+    {
+        const auto &path = entry.path();
         filename = path.filename().string();
 
-        if (entry.is_directory()) {
+        if (entry.is_directory())
+        {
             // Folders: click to enter
-            if (ImGui::Selectable((filename + "/").c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
-                if (ImGui::IsMouseDoubleClicked(0)) {
+            if (ImGui::Selectable((filename + "/").c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            {
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
                     currentPath = path;
                 }
             }
-        } else {
+        }
+        else
+        {
             // Files: click to select
-            if (ImGui::Selectable(filename.c_str(), selectedFile == filename)) {
+            if (ImGui::Selectable(filename.c_str(), selectedFile == filename))
+            {
                 selectedFile = filename;
                 cout << "Selected file path: " << currentPath << '\\' << filename << endl;
             }
         }
-        
     }
 
-    if (ImGui::Button("Spawn Model?")){
+    if (ImGui::Button("Spawn Model?"))
+    {
         if (selectedNode != sceneRootNode)
         {
             Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
@@ -667,7 +556,8 @@ void ShowFileBrowser()
         }
     }
 
-    if (ImGui::Button("reload shaders")){
+    if (ImGui::Button("reload shaders"))
+    {
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
             for (int j = 0; j < hashTable[i].size(); j++)
@@ -685,12 +575,12 @@ void ShowFileBrowser()
 float doubleClickTime = 0.90f;
 bool clicked = false;
 
-void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode)
+void drawSceneTreeHierarchical(SceneTreeNode *node, SceneTreeNode *&selectedNode)
 {
 
-    //ok so first start from the root node
-    //if the dropdown is open, then we need to draw the children
-    //if any of those children are selected, we need to draw them as well
+    // ok so first start from the root node
+    // if the dropdown is open, then we need to draw the children
+    // if any of those children are selected, we need to draw them as well
 
     // label for this node
     std::string label = node->name;
@@ -701,7 +591,7 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
                                (node->childrenInstances.empty() ? ImGuiTreeNodeFlags_Leaf : 0) |
                                ((selectedNode == node) ? ImGuiTreeNodeFlags_Selected : 0);
 
-    bool open = ImGui::TreeNodeEx((void*)node, flags, "%s", label.c_str());
+    bool open = ImGui::TreeNodeEx((void *)node, flags, "%s", label.c_str());
 
     // handle selection
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
@@ -734,19 +624,18 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
         clicked = false;
     }
 
-
-
     // draw children recursively
     if (open)
     {
-        for (SceneTreeNode* child : node->childrenInstances)
+        for (SceneTreeNode *child : node->childrenInstances)
             drawSceneTreeHierarchical(child, selectedNode);
 
         ImGui::TreePop();
     }
 }
 
-void drawSceneTree(){
+void drawSceneTree()
+{
     ImGui::Begin("Scene Tree");
 
     drawSceneTreeHierarchical(sceneRootNode, selectedNode);
@@ -755,7 +644,6 @@ void drawSceneTree(){
     {
         selectedNode = nullptr;
     }
-
 
     if (selectedNode)
     {
@@ -777,7 +665,6 @@ void drawSceneTree(){
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
 
-    
         static int selected = -1;
         static int previousSelected = -1;
         if (ImGui::CollapsingHeader("Mesh Selection:", ImGuiTreeNodeFlags_None))
@@ -787,7 +674,7 @@ void drawSceneTree(){
                 verticalSize = 160;
             else
                 verticalSize = selectedNode->NodeModel->meshes.size() * 15;
-            
+
             ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.75, verticalSize), ImGuiChildFlags_None, window_flags);
             for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++)
             {
@@ -817,7 +704,6 @@ void drawSceneTree(){
                 selectedNode->NodeModel->meshes[selected].fragmentShaderPath = fragmentShaderBuffer;
             }
 
-
             if (selected != previousSelected || selectedNode != previousSelectedNode)
             {
                 alreadyCreated = false;
@@ -834,6 +720,25 @@ void drawSceneTree(){
                 fragmentUniformVec3s.clear();
                 vertexUniformTextureIDs.clear();
                 fragmentUniformTextureIDs.clear();
+
+                selectedTextureIDs.clear();
+
+                string path("resources/textures");
+                struct stat sb;
+                for (const auto &entry : fs::directory_iterator(path))
+                {
+
+                    // Converting the path to const char * in the
+                    // subsequent lines
+                    std::filesystem::path outfilename = entry.path();
+                    std::string outfilename_str = outfilename.string();
+                    const char *path = outfilename_str.c_str();
+
+                    // Testing whether the path points to a
+                    // non-directory or not If it does, displays path
+                    if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR))
+                        textureNames.push_back(outfilename.filename().string());
+                }
 
                 previousSelected = selected;
                 previousSelectedNode = selectedNode;
@@ -939,6 +844,12 @@ void drawSceneTree(){
 
             ImGui::Text("Vertex Shader Uniforms:");
 
+            if (ImGui::BeginPopupContextItem("my popup"))
+            {
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                ImGui::EndPopup();
+            }
+
             int intCounter = 0;
             int floatCounter = 0;
             int vec3Counter = 0;
@@ -982,18 +893,48 @@ void drawSceneTree(){
                 }
                 else if (vertexUniformTypes[i] == "sampler2D")
                 {
-                    if (!alreadyCreated)
-                        vertexUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].shader->getTextureID(vertexUniforms[i].c_str()));
+
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
+                        if (!alreadyCreated)
+                            fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].textures[j].id);
+
                         if (selectedNode->NodeModel->meshes[selected].textures[j].id == vertexUniformTextureIDs[textureIDCounter])
                         {
+                            ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
+
+                            ImVec2 uv_min(0.0f, 0.0f);
+                            ImVec2 uv_max(1.0f, 1.0f);
+
+                            ImGui::PushStyleVar(
+                                ImGuiStyleVar_ImageBorderSize,
+                                max(1.0f, ImGui::GetStyle().ImageBorderSize));
+
+                            ImGui::ImageWithBg(
+                                imguiTex,
+                                ImVec2(128, 128),
+                                uv_min,
+                                uv_max,
+                                ImVec4(0, 0, 0, 1));
+
+                            ImGui::PopStyleVar();
+
+                            ImGui::SameLine();
+                            ImGui::PushID(i);
+                            if (ImGui::Button("Select Texture"))
+                            {
+                                // Handle texture selection
+                            }
+                            ImGui::PopID();
+
                             ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
                             break;
                         }
                     }
                     textureIDCounter++;
-                }else{
+                }
+                else
+                {
                     ImGui::Text("Unknown uniform type: %s", vertexUniformTypes[i].c_str());
                 }
             }
@@ -1003,7 +944,6 @@ void drawSceneTree(){
             vec3Counter = 0;
             intCounter = 0;
             textureIDCounter = 0;
-
 
             for (int i = 0; i < fragmentUniforms.size(); i++)
             {
@@ -1043,15 +983,70 @@ void drawSceneTree(){
                 }
                 else if (fragmentUniformTypes[i] == "sampler2D")
                 {
-                    if (!alreadyCreated)
-                        fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].shader->getTextureID(fragmentUniforms[i].c_str()));
+                        
                     // ok so we we have ids we can get info about the texture by matching the ID to the texture vector of the mesh
+
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
+                        if (!alreadyCreated)
+                            fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].textures[j].id);
+
+                        ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
+
+                        ImVec2 uv_min(0.0f, 0.0f);
+                        ImVec2 uv_max(1.0f, 1.0f);
+
+                        ImGui::PushStyleVar(
+                            ImGuiStyleVar_ImageBorderSize,
+                            max(1.0f, ImGui::GetStyle().ImageBorderSize));
+
+                        ImGui::ImageWithBg(
+                            imguiTex,
+                            ImVec2(128, 128),
+                            uv_min,
+                            uv_max,
+                            ImVec4(0, 0, 0, 1));
+
+                        ImGui::PopStyleVar();
+
+                        ImGui::SameLine();
+
+                        ImGui::PushID(i);
+                        // Simple selection popup (if you want to show the current selection inside the Button itself,
+                        // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
+                        if (ImGui::Button("Select.."))
+                            ImGui::OpenPopup("texture_select_popup");
+                        ImGui::SameLine();
+                        //ImGui::TextUnformatted(selectedTextureIDs[j] == -1 ? "<None>" : textureNames[selectedTextureIDs[j]].c_str());
+                        if (ImGui::BeginPopup("texture_select_popup"))
+                        {
+                            ImGui::SeparatorText("textures");
+                            for (int k = 0; k < textureNames.size(); k++)
+                            {
+                                //selectedTextureIDs[k] = k;
+                                if (ImGui::Selectable(textureNames[k].c_str()))
+                                {
+                                    cout << "Selected texture: " << textureNames[k] << endl;
+
+                                    /*
+                                    if (runtimeTestTextureID == 0)
+                                    {
+                                        runtimeTestTextureID = selectedNode->NodeModel->TextureFromFile("resources/textures/awesomeface.png", "", false);
+                                    }
+
+                                    runtimeTextureTargetNode = selectedNode;
+                                    selectedNode->NodeModel->meshes[selected].shader->use();
+                                    glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
+                                    glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
+                                    selectedNode->NodeModel->meshes[selected].shader->setInt("texture_diffuse1", runtimeTestTextureUnit);
+                                */
+                                }
+                            }
+                            ImGui::EndPopup();
+                        }
+                        ImGui::PopID();
 
                         ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
-                        ImGui::Text("Texture ID: %d", selectedNode->NodeModel->meshes[selected].textures[j].id);
-                        ImGui::Text("Uniform Name: %s", selectedNode->NodeModel->meshes[selected].textures[j].uniformName.c_str());
                         break;
                     }
                     textureIDCounter++;
@@ -1062,7 +1057,6 @@ void drawSceneTree(){
             {
                 alreadyCreated = true;
             }
-
         }
         ImGui::Separator();
 
@@ -1130,28 +1124,28 @@ void drawSceneTree(){
 
         if (ImGui::Button("Delete"))
         {
-            SceneTreeNode* nodeToDelete = selectedNode;
-            SceneTreeNode* parentNode = nodeToDelete->parentNode;
+            SceneTreeNode *nodeToDelete = selectedNode;
+            SceneTreeNode *parentNode = nodeToDelete->parentNode;
 
             removeNodeFromSceneTree(nodeToDelete);
 
             selectedNode = nullptr;
-
         }
     }
 
     ImGui::End();
 }
 
-void drawAllUI(){
+void drawAllUI()
+{
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     drawMainUI();
-   
+
     drawSceneTree();
     ShowFileBrowser();
-    //drawSceneTreeHierarchical(sceneRootNode, selectedNode);
+    // drawSceneTreeHierarchical(sceneRootNode, selectedNode);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
