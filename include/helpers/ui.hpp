@@ -559,6 +559,32 @@ void resetData()
 void drawMainUI(){
     ImGui::Begin("OpenGL UI");
     ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
+
+    static float values[90] = {};
+    static int values_offset = 0;
+    static double refresh_time = 0.0;
+
+    while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
+    {
+        static float phase = 0.0f;
+        values[values_offset] = cosf(phase);
+        values_offset = (values_offset + 1) % 90;
+        phase += 0.10f * values_offset;
+        refresh_time += 1.0f / 60.0f;
+    }
+
+    // Plots can display overlay texts
+    // (in this example, we will display an average value)
+    {
+        float average = 0.0f;
+        for (int n = 0; n < 90; n++)
+            average += values[n];
+        average /= 90.0f;
+        char overlay[32];
+        sprintf(overlay, "avg %f", average);
+        ImGui::PlotLines("frametime", values, 90, values_offset, overlay, -1.0f, 1.0f, ImVec2(0, 60.0f));
+    }
+
     ImGui::Text("Number of Vertices: %d", numberOfVertices);
     ImGui::Text("Number of Batches: %d", numberOfBatches);
 
@@ -573,15 +599,6 @@ void drawMainUI(){
     ImGui::ColorEdit3("DirLightDiffuseColor", dirLightDiffuseColor);
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
-
-
-    for (int i = 0; i < 1024; i++)
-    {
-        for(int j = 0; j < hashTable[i].size(); j++)
-        {
-            ImGui::Text("Model %d: %s", hashTable[i][j]->hashID, hashTable[i][j]->name.c_str());
-        }
-    }
 
     if (ImGui::Button("Save Data"))
     {
@@ -717,234 +734,250 @@ void drawSceneTree(){
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
 
-        ImGui::Text("Mesh Selection:");
+    
         static int selected = -1;
-        ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x*0.75, 160), ImGuiChildFlags_None, window_flags);
-        for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++){
-            char buf[32];
-            sprintf(buf, "Mesh %d", i);
-            if (ImGui::Selectable(buf, selected == i))
-                selected = i;
-        }
-        ImGui::EndChild();
-
-        char vertexShaderBuffer[512];
-        char fragmentShaderBuffer[512];
-
-        std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", selectedNode->NodeModel->vertexShaderPath.c_str());
-        std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", selectedNode->NodeModel->fragmentShaderPath.c_str());
-
-        if (ImGui::InputText("Vertex Shader", vertexShaderBuffer, IM_ARRAYSIZE(vertexShaderBuffer)))
+        if (ImGui::CollapsingHeader("Mesh Selection:", ImGuiTreeNodeFlags_None))
         {
-            selectedNode->NodeModel->vertexShaderPath = vertexShaderBuffer;
-        }
-
-        if (ImGui::InputText("Fragment Shader", fragmentShaderBuffer, IM_ARRAYSIZE(fragmentShaderBuffer)))
-        {
-            selectedNode->NodeModel->fragmentShaderPath = fragmentShaderBuffer;
-        }
-
-        //lets try to parse the shaders so we can set values easier
-        ifstream vertexShaderFile;
-        ifstream fragmentShaderFile;
-        vertexShaderFile.open(selectedNode->NodeModel->vertexShaderPath);
-        fragmentShaderFile.open(selectedNode->NodeModel->fragmentShaderPath);
-
-        if (selectedNode != previousSelectedNode)
-        {
-            alreadyCreated = false;
-            vertexUniforms.clear();
-            vertexUniformTypes.clear();
-            vertexUniformInts.clear();
-            vertexUniformFloats.clear();
-            vertexUniformVec3s.clear();
-
-            fragmentUniforms.clear();
-            fragmentUniformTypes.clear();
-            fragmentUniformInts.clear();
-            fragmentUniformFloats.clear();
-            fragmentUniformVec3s.clear();
-
-            previousSelectedNode = selectedNode;
-        }
-
-        if (!alreadyCreated)
-        {
-            for (string line; getline(vertexShaderFile, line);)
-            {
-                if (line.find("uniform") != string::npos)
-                {
-                    // get data type and name
-                    bool foundFirstSpace = false;
-                    bool foundSecondSpace = false;
-
-                    string type;
-                    string name;
-                    for (int i = 0; i < line.size(); i++)
-                    {
-                        if (!foundFirstSpace && line[i] == ' ')
-                        {
-                            foundFirstSpace = true;
-                            // while this is false we found "uniform" so we can start looking for the type
-                        }
-                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
-                        {
-                            foundSecondSpace = true;
-                            // this is the type of the uniform
-                        }
-
-                        if (line[i] == ' ' || line[i] == ';')
-                            continue;
-
-                        if (foundFirstSpace && !foundSecondSpace)
-                        {
-                            type += line[i];
-                        }
-                        else if (foundSecondSpace)
-                        {
-                            name += line[i];
-                        }
-                    }
-
-                    vertexUniforms.push_back(name);
-                    vertexUniformTypes.push_back(type);
-                }
-            }
-            for (string line; getline(fragmentShaderFile, line);)
-            {
-                if (line.find("uniform") != string::npos)
-                {
-                    // get data type and name
-                    // get data type and name
-                    bool foundFirstSpace = false;
-                    bool foundSecondSpace = false;
-
-                    string type;
-                    string name;
-                    for (int i = 0; i < line.size(); i++)
-                    {
-                        if (!foundFirstSpace && line[i] == ' ')
-                        {
-                            foundFirstSpace = true;
-                            // while this is false we found "uniform" so we can start looking for the type
-                        }
-                        else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
-                        {
-                            foundSecondSpace = true;
-                            // this is the type of the uniform
-                        }
-
-                        if (line[i] == ' ' || line[i] == ';')
-                            continue;
-
-                        if (foundFirstSpace && !foundSecondSpace)
-                        {
-                            type += line[i];
-                        }
-                        else if (foundSecondSpace)
-                        {
-                            name += line[i];
-                        }
-                    }
-
-                    fragmentUniforms.push_back(name);
-                    fragmentUniformTypes.push_back(type);
-                }
-            }
+            int verticalSize = 0;
+            if (selectedNode->NodeModel->meshes.size() > 7)
+                verticalSize = 160;
+            else
+                verticalSize = selectedNode->NodeModel->meshes.size() * 15;
             
-            //alreadyCreated = true;
+            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.75, verticalSize), ImGuiChildFlags_None, window_flags);
+            for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++)
+            {
+                char buf[32];
+                sprintf(buf, "Mesh %d", i);
+                if (ImGui::Selectable(buf, selected == i))
+                    selected = i;
+            }
+            ImGui::EndChild();
         }
-        ImGui::Separator();
 
-        ImGui::Text("Set Shader properties:");
-        ImGui::Text("Vertex Shader Uniforms:");
-
-        int intCounter = 0;
-        int floatCounter = 0;
-        int vec3Counter = 0;
-
-        for (int i = 0; i < vertexUniforms.size(); i++)
+        if (ImGui::CollapsingHeader("Set Shader properties:", ImGuiTreeNodeFlags_None))
         {
-            ImGui::Text("%s: ", vertexUniforms[i].c_str());
-            if (vertexUniformTypes[i] == "float")
-            {
+            char vertexShaderBuffer[512];
+            char fragmentShaderBuffer[512];
 
-                if (!alreadyCreated) vertexUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(vertexUniforms[i].c_str()));
-                if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1.0f))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
-                }
-                floatCounter++;
-            }
-            else if (vertexUniformTypes[i] == "vec3")
+            std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", selectedNode->NodeModel->vertexShaderPath.c_str());
+            std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", selectedNode->NodeModel->fragmentShaderPath.c_str());
+
+            if (ImGui::InputText("Vertex Shader", vertexShaderBuffer, IM_ARRAYSIZE(vertexShaderBuffer)))
             {
-                if (!alreadyCreated) vertexUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(vertexUniforms[i].c_str()));
-                if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
-                }
-                vec3Counter++;
+                selectedNode->NodeModel->vertexShaderPath = vertexShaderBuffer;
             }
-            else if (vertexUniformTypes[i] == "int")
+
+            if (ImGui::InputText("Fragment Shader", fragmentShaderBuffer, IM_ARRAYSIZE(fragmentShaderBuffer)))
             {
-                if (!alreadyCreated) vertexUniformInts.push_back(selectedNode->NodeModel->shader->getInt(vertexUniforms[i].c_str()));
-                if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 100))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
-                }
-                intCounter++;
+                selectedNode->NodeModel->fragmentShaderPath = fragmentShaderBuffer;
             }
-            
+
+            // lets try to parse the shaders so we can set values easier
+            ifstream vertexShaderFile;
+            ifstream fragmentShaderFile;
+            vertexShaderFile.open(selectedNode->NodeModel->vertexShaderPath);
+            fragmentShaderFile.open(selectedNode->NodeModel->fragmentShaderPath);
+
+            if (selectedNode != previousSelectedNode)
+            {
+                alreadyCreated = false;
+                vertexUniforms.clear();
+                vertexUniformTypes.clear();
+                vertexUniformInts.clear();
+                vertexUniformFloats.clear();
+                vertexUniformVec3s.clear();
+
+                fragmentUniforms.clear();
+                fragmentUniformTypes.clear();
+                fragmentUniformInts.clear();
+                fragmentUniformFloats.clear();
+                fragmentUniformVec3s.clear();
+
+                previousSelectedNode = selectedNode;
+            }
+
+            if (!alreadyCreated)
+            {
+                for (string line; getline(vertexShaderFile, line);)
+                {
+                    if (line.find("uniform") != string::npos)
+                    {
+                        // get data type and name
+                        bool foundFirstSpace = false;
+                        bool foundSecondSpace = false;
+
+                        string type;
+                        string name;
+                        for (int i = 0; i < line.size(); i++)
+                        {
+                            if (!foundFirstSpace && line[i] == ' ')
+                            {
+                                foundFirstSpace = true;
+                                // while this is false we found "uniform" so we can start looking for the type
+                            }
+                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                            {
+                                foundSecondSpace = true;
+                                // this is the type of the uniform
+                            }
+
+                            if (line[i] == ' ' || line[i] == ';')
+                                continue;
+
+                            if (foundFirstSpace && !foundSecondSpace)
+                            {
+                                type += line[i];
+                            }
+                            else if (foundSecondSpace)
+                            {
+                                name += line[i];
+                            }
+                        }
+
+                        vertexUniforms.push_back(name);
+                        vertexUniformTypes.push_back(type);
+                    }
+                }
+                for (string line; getline(fragmentShaderFile, line);)
+                {
+                    if (line.find("uniform") != string::npos)
+                    {
+                        // get data type and name
+                        // get data type and name
+                        bool foundFirstSpace = false;
+                        bool foundSecondSpace = false;
+
+                        string type;
+                        string name;
+                        for (int i = 0; i < line.size(); i++)
+                        {
+                            if (!foundFirstSpace && line[i] == ' ')
+                            {
+                                foundFirstSpace = true;
+                                // while this is false we found "uniform" so we can start looking for the type
+                            }
+                            else if (foundFirstSpace && !foundSecondSpace && line[i] == ' ')
+                            {
+                                foundSecondSpace = true;
+                                // this is the type of the uniform
+                            }
+
+                            if (line[i] == ' ' || line[i] == ';')
+                                continue;
+
+                            if (foundFirstSpace && !foundSecondSpace)
+                            {
+                                type += line[i];
+                            }
+                            else if (foundSecondSpace)
+                            {
+                                name += line[i];
+                            }
+                        }
+
+                        fragmentUniforms.push_back(name);
+                        fragmentUniformTypes.push_back(type);
+                    }
+                }
+
+                // alreadyCreated = true;
+            }
+            ImGui::Separator();
+
+            ImGui::Text("Vertex Shader Uniforms:");
+
+            int intCounter = 0;
+            int floatCounter = 0;
+            int vec3Counter = 0;
+
+            for (int i = 0; i < vertexUniforms.size(); i++)
+            {
+                ImGui::Text("%s: ", vertexUniforms[i].c_str());
+                if (vertexUniformTypes[i] == "float")
+                {
+
+                    if (!alreadyCreated)
+                        vertexUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(vertexUniforms[i].c_str()));
+                    if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1.0f))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
+                    }
+                    floatCounter++;
+                }
+                else if (vertexUniformTypes[i] == "vec3")
+                {
+                    if (!alreadyCreated)
+                        vertexUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(vertexUniforms[i].c_str()));
+                    if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
+                    }
+                    vec3Counter++;
+                }
+                else if (vertexUniformTypes[i] == "int")
+                {
+                    if (!alreadyCreated)
+                        vertexUniformInts.push_back(selectedNode->NodeModel->shader->getInt(vertexUniforms[i].c_str()));
+                    if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 100))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
+                    }
+                    intCounter++;
+                }
+            }
+            ImGui::Text("Fragment Shader Uniforms:");
+
+            floatCounter = 0;
+            vec3Counter = 0;
+            intCounter = 0;
+
+            for (int i = 0; i < fragmentUniforms.size(); i++)
+            {
+                ImGui::Text("%s: ", fragmentUniforms[i].c_str());
+                if (fragmentUniformTypes[i] == "float")
+                {
+                    if (!alreadyCreated)
+                        fragmentUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(fragmentUniforms[i].c_str()));
+                    if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1.0f))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
+                    }
+                    floatCounter++;
+                }
+                else if (fragmentUniformTypes[i] == "vec3")
+                {
+                    if (!alreadyCreated)
+                        fragmentUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(fragmentUniforms[i].c_str()));
+                    if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
+                    }
+                    vec3Counter++;
+                }
+                else if (fragmentUniformTypes[i] == "int")
+                {
+                    if (!alreadyCreated)
+                        fragmentUniformInts.push_back(selectedNode->NodeModel->shader->getInt(fragmentUniforms[i].c_str()));
+                    if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 100))
+                    {
+                        selectedNode->NodeModel->shader->use();
+                        selectedNode->NodeModel->shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
+                    }
+                    intCounter++;
+                }
+            }
+
+            if (!alreadyCreated)
+            {
+                alreadyCreated = true;
+            }
         }
-        ImGui::Text("Fragment Shader Uniforms:");
-
-        floatCounter = 0;
-        vec3Counter = 0;
-        intCounter = 0;
-
-        for (int i = 0; i < fragmentUniforms.size(); i++)
-        {
-            ImGui::Text("%s: ", fragmentUniforms[i].c_str());
-            if (fragmentUniformTypes[i] == "float")
-            {
-                if (!alreadyCreated) fragmentUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(fragmentUniforms[i].c_str()));
-                if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1.0f))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
-                }
-                floatCounter++;
-            }
-            else if (fragmentUniformTypes[i] == "vec3")
-            {
-                if (!alreadyCreated) fragmentUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(fragmentUniforms[i].c_str()));
-                if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
-                }
-                vec3Counter++;
-            }
-            else if (fragmentUniformTypes[i] == "int")
-            {
-                if (!alreadyCreated) fragmentUniformInts.push_back(selectedNode->NodeModel->shader->getInt(fragmentUniforms[i].c_str()));
-                if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 100))
-                {
-                    selectedNode->NodeModel->shader->use();
-                    selectedNode->NodeModel->shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
-                }
-                intCounter++;
-            }
-        }
-
-        if (!alreadyCreated)
-        {
-            alreadyCreated = true;
-        }
-
         ImGui::Separator();
 
         if (ImGui::Button("Reload Selected Shader"))
