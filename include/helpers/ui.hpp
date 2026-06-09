@@ -767,6 +767,11 @@ void drawSceneTree(){
         ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->transform.position), 0.001f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->transform.rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->transform.scale), 0.1f, 0.1f, 10.0f);
+        if (ImGui::Button("Reset Transform"))
+        {
+            Transform transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+            selectedNode->transform = transform;
+        }
         ImGui::Text("Hash ID: %zu", selectedNode->hashID);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
@@ -1018,6 +1023,60 @@ void drawSceneTree(){
             }
         }
         ImGui::Separator();
+
+        if (ImGui::Button("copy shader properties to all meshes"))
+        {
+            for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++)
+            {
+                int intCounter = 0;
+                int floatCounter = 0;
+                int vec3Counter = 0;
+
+                for (int j = 0; j < vertexUniforms.size(); j++)
+                {
+                    selectedNode->NodeModel->meshes[i].shader->use();
+                    if (vertexUniformTypes[j] == "float")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setFloat(vertexUniforms[j].c_str(), vertexUniformFloats[floatCounter]);
+                        floatCounter++;
+                    }
+                    else if (vertexUniformTypes[j] == "vec3")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
+                        vec3Counter++;
+                    }
+                    else if (vertexUniformTypes[j] == "int")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setInt(vertexUniforms[j].c_str(), vertexUniformInts[intCounter]);
+                        intCounter++;
+                    }
+                }
+
+                intCounter = 0;
+                floatCounter = 0;
+                vec3Counter = 0;
+
+                for (int j = 0; j < fragmentUniforms.size(); j++)
+                {
+                    selectedNode->NodeModel->meshes[i].shader->use();
+                    if (fragmentUniformTypes[j] == "float")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setFloat(fragmentUniforms[j].c_str(), fragmentUniformFloats[floatCounter]);
+                        floatCounter++;
+                    }
+                    else if (fragmentUniformTypes[j] == "vec3")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
+                        vec3Counter++;
+                    }
+                    else if (fragmentUniformTypes[j] == "int")
+                    {
+                        selectedNode->NodeModel->meshes[i].shader->setInt(fragmentUniforms[j].c_str(), fragmentUniformInts[intCounter]);
+                        intCounter++;
+                    }
+                }
+            }
+        }
 
         if (ImGui::Button("Reload Selected Shader"))
         {
