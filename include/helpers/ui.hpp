@@ -291,7 +291,6 @@ void loadScene()
                 sceneFile >> position.x >> position.y >> position.z;
                 sceneFile >> rotation.x >> rotation.y >> rotation.z;
                 sceneFile >> scale.x >> scale.y >> scale.z;
-                cout << "Processing node: " << name << endl;
                 int numChildren;
                 sceneFile >> numChildren;
                 for (int i = 0; i < numChildren; i++)
@@ -300,13 +299,11 @@ void loadScene()
                     sceneFile >> childHash;
                     childrenHashes.push_back(childHash);
                 }
-                cout << "Children Done: " << childrenHashes.size() << endl;
 
                 int numMeshes;
                 sceneFile >> numMeshes;
                 vector<string> fragmentShaderPaths;
                 vector<string> vertexShaderPaths;
-                cout << "Number of meshes: " << numMeshes << endl;
                 for (int i = 0; i < numMeshes; i++)
                 {
                     string fragmentShaderPath;
@@ -323,7 +320,6 @@ void loadScene()
                         if (line == "EOV")
                             break;
                     }
-                    cout << "Vertex Shader: " << vertexShaderPaths.back() << endl;
                     while (getline(sceneFile, line))
                     {
                         if (line == "EOF")
@@ -334,11 +330,9 @@ void loadScene()
 
                 createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes);
 
-                cout << "Node Done: " << name << endl;
                 getline(sceneFile, line); //this is EON, aka, end of node
             }
         }
-        cout << "Scene Loaded" << endl;
 
         //we need to link the children object based on the children hashs
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
@@ -352,29 +346,13 @@ void loadScene()
                 }
                 for (int k = 0; k < node->childrenHash.size(); k++)
                 {
-                    cout << "Processing child: " << node->childrenHash[k] << endl;
                     SceneTreeNode* child = getNodeByHash(node->childrenHash[k]);
                     child->parentNode = node;
                     
-                    cout << "Child found: " << child->name << endl;
                     if (child != nullptr)
                     {
                         node->childrenInstances.push_back(child);
                     }
-                }
-            }
-        }
-
-        //lets do a check cause i dont think its working quite right
-        for (int i = 0; i < HASH_TABLE_SIZE; i++)
-        {
-            for (int j = 0; j < hashTable[i].size(); j++)
-            {
-                SceneTreeNode* node = hashTable[i][j];
-                cout << "Checking node: " << node->name << endl;
-                for (int k = 0; k < node->childrenInstances.size(); k++)
-                {
-                    cout << "Child instance: " << node->childrenInstances[k]->name << endl;
                 }
             }
         }
