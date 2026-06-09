@@ -92,36 +92,39 @@ int main()
                 model->numberOfVertices = 0;
                 model->numberOfBatches = 0;
 
-                model->shader->use();
-                model->shader->setVec3("viewPos", camera.Position);
-                // set view pos for shader editor part too
-                for (int j = 0; j < vertexUniforms.size(); j++)
+                for (int k = 0; k < model->meshes.size(); k++)
                 {
-                    if (vertexUniforms[j] == "viewPos")
+                    model->meshes[k].shader->use();
+                    model->meshes[k].shader->setVec3("viewPos", camera.Position);
+                    // set view pos for shader editor part too
+                    for (int j = 0; j < vertexUniforms.size(); j++)
                     {
-                        vertexUniformVec3s[j] = camera.Position;
-                        model->shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                        if (vertexUniforms[j] == "viewPos")
+                        {
+                            vertexUniformVec3s[j] = camera.Position;
+                            model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                        }
                     }
-                }
-                for (int j = 0; j < fragmentUniforms.size(); j++)
-                {
-                    if (fragmentUniforms[j] == "viewPos")
+                    for (int j = 0; j < fragmentUniforms.size(); j++)
                     {
-                        fragmentUniformVec3s[j] = camera.Position;
-                        model->shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                        if (fragmentUniforms[j] == "viewPos")
+                        {
+                            fragmentUniformVec3s[j] = camera.Position;
+                            model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                        }
                     }
-                }
 
-                model->shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
-                model->shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-                model->shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-                model->shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+                    model->meshes[k].shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
+                    model->meshes[k].shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+                    model->meshes[k].shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+                    model->meshes[k].shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
 
-                if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
-                {
-                    glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
-                    glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
-                    model->shader->setInt("testTexture", runtimeTestTextureUnit);
+                    if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
+                    {
+                        glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
+                        glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
+                        model->meshes[k].shader->setInt("testTexture", runtimeTestTextureUnit);
+                    }
                 }
 
                 drawSceneNode(hashTable[i][j], projection, view);

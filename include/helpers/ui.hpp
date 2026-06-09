@@ -659,8 +659,8 @@ void ShowFileBrowser()
     if (ImGui::Button("Spawn Model?")){
         if (selectedNode != sceneRootNode)
         {
-            Transform transform{camera.Position + camera.Front * 2.0f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
-            createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/missingShader_vertex.glsl", "resources/shaders/missingShader_fragment.glsl", selectedFile, transform, selectedNode);
+            Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+            createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/objectLighting_vertex.glsl", "resources/shaders/objectLighting_fragment.glsl", selectedFile, transform, selectedNode);
         }
     }
 
@@ -669,7 +669,10 @@ void ShowFileBrowser()
         {
             for (int j = 0; j < hashTable[i].size(); j++)
             {
-                hashTable[i][j]->NodeModel->reloadShader();
+                for (int selected = 0; selected < hashTable[i][j]->NodeModel->meshes.size(); selected++)
+                {
+                    hashTable[i][j]->NodeModel->meshes[selected].reloadShaders();
+                }
             }
         }
     }
@@ -770,6 +773,7 @@ void drawSceneTree(){
 
     
         static int selected = -1;
+        static int previousSelected = -1;
         if (ImGui::CollapsingHeader("Mesh Selection:", ImGuiTreeNodeFlags_None))
         {
             int verticalSize = 0;
@@ -789,31 +793,31 @@ void drawSceneTree(){
             ImGui::EndChild();
         }
 
-        if (ImGui::CollapsingHeader("Set Shader properties:", ImGuiTreeNodeFlags_None))
+        if (ImGui::CollapsingHeader("Set Shader properties:", ImGuiTreeNodeFlags_None) && selected != -1)
         {
             char vertexShaderBuffer[512];
             char fragmentShaderBuffer[512];
 
-            std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", selectedNode->NodeModel->vertexShaderPath.c_str());
-            std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", selectedNode->NodeModel->fragmentShaderPath.c_str());
+            std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", selectedNode->NodeModel->meshes[selected].vertexShaderPath.c_str());
+            std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", selectedNode->NodeModel->meshes[selected].fragmentShaderPath.c_str());
 
             if (ImGui::InputText("Vertex Shader", vertexShaderBuffer, IM_ARRAYSIZE(vertexShaderBuffer)))
             {
-                selectedNode->NodeModel->vertexShaderPath = vertexShaderBuffer;
+                selectedNode->NodeModel->meshes[selected].vertexShaderPath = vertexShaderBuffer;
             }
 
             if (ImGui::InputText("Fragment Shader", fragmentShaderBuffer, IM_ARRAYSIZE(fragmentShaderBuffer)))
             {
-                selectedNode->NodeModel->fragmentShaderPath = fragmentShaderBuffer;
+                selectedNode->NodeModel->meshes[selected].fragmentShaderPath = fragmentShaderBuffer;
             }
 
             // lets try to parse the shaders so we can set values easier
             ifstream vertexShaderFile;
             ifstream fragmentShaderFile;
-            vertexShaderFile.open(selectedNode->NodeModel->vertexShaderPath);
-            fragmentShaderFile.open(selectedNode->NodeModel->fragmentShaderPath);
+            vertexShaderFile.open(selectedNode->NodeModel->meshes[selected].vertexShaderPath);
+            fragmentShaderFile.open(selectedNode->NodeModel->meshes[selected].fragmentShaderPath);
 
-            if (selectedNode != previousSelectedNode)
+            if (selected != previousSelected)
             {
                 alreadyCreated = false;
                 vertexUniforms.clear();
@@ -828,7 +832,7 @@ void drawSceneTree(){
                 fragmentUniformFloats.clear();
                 fragmentUniformVec3s.clear();
 
-                previousSelectedNode = selectedNode;
+                previousSelected = selected;
             }
 
             if (!alreadyCreated)
@@ -927,38 +931,39 @@ void drawSceneTree(){
 
             for (int i = 0; i < vertexUniforms.size(); i++)
             {
+
                 ImGui::Text("%s: ", vertexUniforms[i].c_str());
                 if (vertexUniformTypes[i] == "float")
                 {
 
                     if (!alreadyCreated)
-                        vertexUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(vertexUniforms[i].c_str()));
+                        vertexUniformFloats.push_back(selectedNode->NodeModel->meshes[selected].shader->getFloat(vertexUniforms[i].c_str()));
                     if (ImGui::SliderFloat(vertexUniforms[i].c_str(), &vertexUniformFloats[floatCounter], 0.0f, 1.0f))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setFloat(vertexUniforms[i].c_str(), vertexUniformFloats[floatCounter]);
                     }
                     floatCounter++;
                 }
                 else if (vertexUniformTypes[i] == "vec3")
                 {
                     if (!alreadyCreated)
-                        vertexUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(vertexUniforms[i].c_str()));
+                        vertexUniformVec3s.push_back(selectedNode->NodeModel->meshes[selected].shader->getVec3(vertexUniforms[i].c_str()));
                     if (ImGui::SliderFloat3(vertexUniforms[i].c_str(), &vertexUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setVec3(vertexUniforms[i].c_str(), vertexUniformVec3s[vec3Counter][0], vertexUniformVec3s[vec3Counter][1], vertexUniformVec3s[vec3Counter][2]);
                     }
                     vec3Counter++;
                 }
                 else if (vertexUniformTypes[i] == "int")
                 {
                     if (!alreadyCreated)
-                        vertexUniformInts.push_back(selectedNode->NodeModel->shader->getInt(vertexUniforms[i].c_str()));
+                        vertexUniformInts.push_back(selectedNode->NodeModel->meshes[selected].shader->getInt(vertexUniforms[i].c_str()));
                     if (ImGui::SliderInt(vertexUniforms[i].c_str(), &vertexUniformInts[intCounter], 0, 100))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setInt(vertexUniforms[i].c_str(), vertexUniformInts[intCounter]);
                     }
                     intCounter++;
                 }
@@ -975,33 +980,33 @@ void drawSceneTree(){
                 if (fragmentUniformTypes[i] == "float")
                 {
                     if (!alreadyCreated)
-                        fragmentUniformFloats.push_back(selectedNode->NodeModel->shader->getFloat(fragmentUniforms[i].c_str()));
+                        fragmentUniformFloats.push_back(selectedNode->NodeModel->meshes[selected].shader->getFloat(fragmentUniforms[i].c_str()));
                     if (ImGui::SliderFloat(fragmentUniforms[i].c_str(), &fragmentUniformFloats[floatCounter], 0.0f, 1.0f))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setFloat(fragmentUniforms[i].c_str(), fragmentUniformFloats[floatCounter]);
                     }
                     floatCounter++;
                 }
                 else if (fragmentUniformTypes[i] == "vec3")
                 {
                     if (!alreadyCreated)
-                        fragmentUniformVec3s.push_back(selectedNode->NodeModel->shader->getVec3(fragmentUniforms[i].c_str()));
+                        fragmentUniformVec3s.push_back(selectedNode->NodeModel->meshes[selected].shader->getVec3(fragmentUniforms[i].c_str()));
                     if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 1.0f))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setVec3(fragmentUniforms[i].c_str(), fragmentUniformVec3s[vec3Counter][0], fragmentUniformVec3s[vec3Counter][1], fragmentUniformVec3s[vec3Counter][2]);
                     }
                     vec3Counter++;
                 }
                 else if (fragmentUniformTypes[i] == "int")
                 {
                     if (!alreadyCreated)
-                        fragmentUniformInts.push_back(selectedNode->NodeModel->shader->getInt(fragmentUniforms[i].c_str()));
+                        fragmentUniformInts.push_back(selectedNode->NodeModel->meshes[selected].shader->getInt(fragmentUniforms[i].c_str()));
                     if (ImGui::SliderInt(fragmentUniforms[i].c_str(), &fragmentUniformInts[intCounter], 0, 100))
                     {
-                        selectedNode->NodeModel->shader->use();
-                        selectedNode->NodeModel->shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
+                        selectedNode->NodeModel->meshes[selected].shader->use();
+                        selectedNode->NodeModel->meshes[selected].shader->setInt(fragmentUniforms[i].c_str(), fragmentUniformInts[intCounter]);
                     }
                     intCounter++;
                 }
@@ -1016,7 +1021,7 @@ void drawSceneTree(){
 
         if (ImGui::Button("Reload Selected Shader"))
         {
-            selectedNode->NodeModel->reloadShader();
+            selectedNode->NodeModel->meshes[selected].reloadShaders();
         }
 
         if (ImGui::Button("Delete"))
@@ -1029,7 +1034,7 @@ void drawSceneTree(){
             selectedNode = nullptr;
 
         }
-
+/*
         if (ImGui::Button("set test Image in shader")){
             if (runtimeTestTextureID == 0)
             {
@@ -1041,7 +1046,7 @@ void drawSceneTree(){
             glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
             glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
             selectedNode->NodeModel->shader->setInt("testTexture", runtimeTestTextureUnit);
-        }
+        }*/
     }
 
     ImGui::End();

@@ -4,10 +4,9 @@
 Model::Model(const char *path, const char *vertexShader, const char *fragShader, string name, bool gammaCorrection)
 {
     this->gammaCorrection = gammaCorrection;
-    shader = new Shader(vertexShader, fragShader);
-    vertexShaderPath = vertexShader;
-    fragmentShaderPath = fragShader;
-    loadModel(path);
+    //shader = new Shader(vertexShader, fragShader);
+
+    loadModel(path, vertexShader, fragShader);
 
     std::filesystem::path relativePath(path);
     std::filesystem::path absolutePath = std::filesystem::absolute(relativePath);
@@ -18,10 +17,9 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 Model::Model(const char *path, const char *vertexShader, const char *fragShader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection)
 {
     this->gammaCorrection = gammaCorrection;
-    shader = new Shader(vertexShader, fragShader);
-    vertexShaderPath = vertexShader;
-    fragmentShaderPath = fragShader;
-    loadModel(path);
+    //shader = new Shader(vertexShader, fragShader);
+
+    loadModel(path, vertexShader, fragShader);
 
     std::filesystem::path relativePath(path);
     std::filesystem::path absolutePath = std::filesystem::absolute(relativePath);
@@ -34,16 +32,12 @@ void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatr
     {
         numberOfBatches++;
         numberOfVertices += meshes[i].vertices.size();
-        shader->use();
 
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", viewMatrix);
-        shader->setMat4("model", modelMatrix);
-        meshes[i].Draw(*shader, modelMatrix, projection, viewMatrix);
+        meshes[i].Draw(modelMatrix, projection, viewMatrix);
     }
 }
 
-void Model::loadModel(string const &path) {
+void Model::loadModel(string const &path, string vertexShaderPath, string fragmentShaderPath) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     // check for errors
@@ -56,26 +50,29 @@ void Model::loadModel(string const &path) {
     this->directory = path.substr(0, path.find_last_of('/'));
 
     // process ASSIMP's root node recursively
-    processNode(scene->mRootNode, scene);
+    processNode(scene->mRootNode, scene, vertexShaderPath, fragmentShaderPath);
 }
 
-void Model::processNode(aiNode *node, const aiScene *scene)
+void Model::processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++){
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(processMesh(mesh, scene));
+        meshes.push_back(processMesh(mesh, scene, vertexShaderPath, fragmentShaderPath));
     }
     for(unsigned int i = 0; i < node->mNumChildren; i++){
-        processNode(node->mChildren[i], scene);
+        processNode(node->mChildren[i], scene, vertexShaderPath, fragmentShaderPath);
     }
 }
 
-void Model::reloadShader() {
-    delete shader;
-    shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+void Model::reloadShader(string vertexShaderPath, string fragmentShaderPath) {
+
+    for (unsigned int i = 0; i < meshes.size(); i++)
+    {
+        meshes[i].reloadShaders(vertexShaderPath, fragmentShaderPath);
+    }
 }
 
-Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene){
+Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath){
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
@@ -143,7 +140,9 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene){
     vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-    return Mesh(vertices, indices, textures);
+    Shader *shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+
+    return Mesh(vertices, indices, textures, shader, vertexShaderPath, fragmentShaderPath);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName){

@@ -34,8 +34,13 @@ class Mesh{
         vector<Vertex> vertices;
         vector<unsigned int> indices;
         vector<Texture> textures;
-        Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) : vertices(vertices), indices(indices), textures(textures) {setupMesh();};
-        void Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix);
+        Shader *shader;
+        string vertexShaderPath;
+        string fragmentShaderPath;
+        Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, Shader *shader, string vertexShaderPath, string fragmentShaderPath) : vertices(vertices), indices(indices), textures(textures), shader(shader), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {setupMesh();};
+        void Draw(glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix);
+        void reloadShaders(string vertexShaderPath, string fragmentShaderPath);
+        void reloadShaders();
     private:
         unsigned int VAO, VBO, EBO;
         void setupMesh();

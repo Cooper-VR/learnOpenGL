@@ -1,7 +1,13 @@
 #include "mesh.hpp"
 
-void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix)
+void Mesh::Draw(glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix)
 {
+    shader->use();
+
+    shader->setMat4("projection", projection);
+    shader->setMat4("view", viewMatrix);
+    shader->setMat4("model", modelMatrix);
+
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
@@ -23,7 +29,7 @@ void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm
             number = to_string(heightNr++);
 
         // now set the sampler to the correct texture unit
-        glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+        glUniform1i(glGetUniformLocation(shader->ID, (name + number).c_str()), i);
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
@@ -32,6 +38,17 @@ void Mesh::Draw(Shader &shader, glm::mat4 modelMatrix, glm::mat4 projection, glm
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void Mesh::reloadShaders(string vertexShaderPath, string fragmentShaderPath)
+{
+    delete shader;
+    shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+}
+
+void Mesh::reloadShaders()
+{
+    reloadShaders(vertexShaderPath, fragmentShaderPath);
 }
 
 void Mesh::setupMesh()
