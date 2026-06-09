@@ -22,6 +22,7 @@ vector<SceneTreeNode *> hashTable[HASH_TABLE_SIZE];
 SceneTreeNode *rootNode;
 SceneTreeNode *sceneRootNode;
 SceneTreeNode *selectedNode = nullptr;
+SceneTreeNode *previousSelectedNode = nullptr;
 
 
 SceneTreeNode *runtimeTextureTargetNode = nullptr;

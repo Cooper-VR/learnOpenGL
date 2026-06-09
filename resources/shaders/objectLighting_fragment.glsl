@@ -3,13 +3,14 @@ out vec4 FragColor;
 
 #define NR_POINT_LIGHTS 4
 
-struct Material {
-    sampler2D texture_diffuse1;
-    sampler2D texture_diffuse2;
-    sampler2D texture_specular1;
-    sampler2D texture_specular2;
-    float shininess;
-}; 
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_diffuse2;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_specular2;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_normal2;
+
+float shininess;
 
 struct DirLight {
     vec3 direction;
@@ -17,7 +18,6 @@ struct DirLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-
 };
 
 in vec3 FragPos;  
@@ -27,15 +27,12 @@ in vec3 NormalView;
 in vec2 TexCoords;
   
 uniform vec3 viewPos;
-uniform Material material;
 uniform DirLight dirLight;
 uniform vec3 rimColor;
 uniform float rimStrength;
 uniform float rimPower;
 uniform float rimMin;
 uniform float rimMax;
-
-uniform sampler2D testTexture;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 
@@ -61,12 +58,12 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     diff = round(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     spec = round(spec);
 
-    vec3 ambient = light.ambient * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.texture_specular1, TexCoords));
+    vec3 ambient = light.ambient * vec3(texture(texture_diffuse1, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(texture_diffuse1, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(texture_specular1, TexCoords));
 
     vec3 normView = normalize(NormalView);
     vec3 viewDirView = normalize(-FragPosView);

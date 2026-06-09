@@ -97,20 +97,33 @@ int main()
                     model->meshes[k].shader->use();
                     model->meshes[k].shader->setVec3("viewPos", camera.Position);
                     // set view pos for shader editor part too
+                    int vertexVec3Counter = 0;
                     for (int j = 0; j < vertexUniforms.size(); j++)
                     {
                         if (vertexUniforms[j] == "viewPos")
                         {
-                            vertexUniformVec3s[j] = camera.Position;
-                            model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[j]);
+                            vertexUniformVec3s[vertexVec3Counter] = camera.Position;
+                            model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vertexVec3Counter]);
+                        }
+
+                        if (vertexUniformTypes[j] == "vec3")
+                        {
+                            vertexVec3Counter++;
                         }
                     }
+
+                    int fragmentVec3Counter = 0;
                     for (int j = 0; j < fragmentUniforms.size(); j++)
                     {
                         if (fragmentUniforms[j] == "viewPos")
                         {
-                            fragmentUniformVec3s[j] = camera.Position;
-                            model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[j]);
+                            fragmentUniformVec3s[fragmentVec3Counter] = camera.Position;
+                            model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[fragmentVec3Counter]);
+                        }
+
+                        if (fragmentUniformTypes[j] == "vec3")
+                        {
+                            fragmentVec3Counter++;
                         }
                     }
 

@@ -708,13 +708,11 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
         if (clicked && doubleClickTime > 0)
         {
             // double clicked a node
-            cout << "Double clicked node: " << selectedNode->name << endl;
 
             glm::vec3 position = selectedNode->transform.position;
             glm::vec3 position2 = camera.Position + camera.Front * 2.0f;
 
             glm::vec3 difference = position2 - position;
-            cout << "Difference: " << difference.x << ", " << difference.y << ", " << difference.z << endl;
 
             camera.Position -= difference;
         }
@@ -816,13 +814,8 @@ void drawSceneTree(){
                 selectedNode->NodeModel->meshes[selected].fragmentShaderPath = fragmentShaderBuffer;
             }
 
-            // lets try to parse the shaders so we can set values easier
-            ifstream vertexShaderFile;
-            ifstream fragmentShaderFile;
-            vertexShaderFile.open(selectedNode->NodeModel->meshes[selected].vertexShaderPath);
-            fragmentShaderFile.open(selectedNode->NodeModel->meshes[selected].fragmentShaderPath);
 
-            if (selected != previousSelected)
+            if (selected != previousSelected || selectedNode != previousSelectedNode)
             {
                 alreadyCreated = false;
                 vertexUniforms.clear();
@@ -838,10 +831,17 @@ void drawSceneTree(){
                 fragmentUniformVec3s.clear();
 
                 previousSelected = selected;
+                previousSelectedNode = selectedNode;
             }
 
             if (!alreadyCreated)
             {
+                // lets try to parse the shaders so we can set values easier
+                ifstream vertexShaderFile;
+                ifstream fragmentShaderFile;
+                vertexShaderFile.open(selectedNode->NodeModel->meshes[selected].vertexShaderPath);
+                fragmentShaderFile.open(selectedNode->NodeModel->meshes[selected].fragmentShaderPath);
+
                 for (string line; getline(vertexShaderFile, line);)
                 {
                     if (line.find("uniform") != string::npos)
@@ -882,11 +882,13 @@ void drawSceneTree(){
                         vertexUniformTypes.push_back(type);
                     }
                 }
+
+                fragmentUniforms.clear();
+                fragmentUniformTypes.clear();
                 for (string line; getline(fragmentShaderFile, line);)
                 {
                     if (line.find("uniform") != string::npos)
                     {
-                        // get data type and name
                         // get data type and name
                         bool foundFirstSpace = false;
                         bool foundSecondSpace = false;
@@ -924,8 +926,10 @@ void drawSceneTree(){
                     }
                 }
 
-                // alreadyCreated = true;
+                vertexShaderFile.close();
+                fragmentShaderFile.close();
             }
+
             ImGui::Separator();
 
             ImGui::Text("Vertex Shader Uniforms:");
@@ -936,7 +940,6 @@ void drawSceneTree(){
 
             for (int i = 0; i < vertexUniforms.size(); i++)
             {
-
                 ImGui::Text("%s: ", vertexUniforms[i].c_str());
                 if (vertexUniformTypes[i] == "float")
                 {
@@ -978,6 +981,7 @@ void drawSceneTree(){
             floatCounter = 0;
             vec3Counter = 0;
             intCounter = 0;
+
 
             for (int i = 0; i < fragmentUniforms.size(); i++)
             {
@@ -1021,6 +1025,7 @@ void drawSceneTree(){
             {
                 alreadyCreated = true;
             }
+
         }
         ImGui::Separator();
 
@@ -1080,7 +1085,10 @@ void drawSceneTree(){
 
         if (ImGui::Button("Reload Selected Shader"))
         {
-            selectedNode->NodeModel->meshes[selected].reloadShaders();
+            for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++)
+            {
+                selectedNode->NodeModel->meshes[i].reloadShaders();
+            }
         }
 
         if (ImGui::Button("Delete"))
@@ -1093,19 +1101,6 @@ void drawSceneTree(){
             selectedNode = nullptr;
 
         }
-/*
-        if (ImGui::Button("set test Image in shader")){
-            if (runtimeTestTextureID == 0)
-            {
-                runtimeTestTextureID = selectedNode->NodeModel->TextureFromFile("resources/textures/awesomeface.png", "", false);;
-            }
-
-            runtimeTextureTargetNode = selectedNode;
-            selectedNode->NodeModel->shader->use();
-            glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
-            glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
-            selectedNode->NodeModel->shader->setInt("testTexture", runtimeTestTextureUnit);
-        }*/
     }
 
     ImGui::End();
