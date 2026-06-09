@@ -272,7 +272,7 @@ void loadScene()
                 break;
             else{
                 string name;
-                name == line;
+                name = line;
                 int hashID;
                 string path;
                 glm::vec3 position;
@@ -316,7 +316,7 @@ void loadScene()
                     }
                 }
 
-                sceneFile >> line; //this is EON, aka, end of node
+                getline(sceneFile, line); //this is EON, aka, end of node
             }
         }
     }

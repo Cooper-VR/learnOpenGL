@@ -13,7 +13,8 @@ struct SceneTreeNode{
     SceneTreeNode* parentNode;
     string name;
     Transform transform;
-    int hashID;
+    unsigned int hashID;
+    vector<unsigned int> childrenHash;
 
 } typedef SceneTreeNode;
 
@@ -30,7 +31,8 @@ unsigned int runtimeTestTextureID = 0;
 int runtimeTestTextureUnit = 15;
 
 void insertSceneTreeNode(SceneTreeNode *node){
-    int slot = node->hashID % HASH_TABLE_SIZE;
+    
+    unsigned int slot = node->hashID % HASH_TABLE_SIZE;
 
     hashTable[slot].push_back(node);
 }
@@ -42,6 +44,7 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
     node->name = name;
 
     parent->childrenInstances.push_back(node);
+
 
     //get a hash for the node
     std::hash<std::string> str_hash;
@@ -60,8 +63,19 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
     h ^= float_hash(hashTable[h%HASH_TABLE_SIZE].size()) + 0x9e3779b9 + (h << 6) + (h >> 2);
 
     node->hashID = h;
+    parent->childrenHash.push_back(node->hashID);
 
 
+}
+
+
+void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash){
+    node->NodeModel = model;
+
+    node->transform = transform;
+    node->name = name;
+    node->hashID = hashID;
+    node->childrenHash = childrenHash;
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
@@ -77,6 +91,21 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
     setTreeNode(test, newNode, parent, transform, modelName);
     insertSceneTreeNode(newNode);
 }
+
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash) {
+    Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
+    SceneTreeNode *newNode = new SceneTreeNode();
+
+    if (modelName.empty()) {
+        delete test;
+        delete newNode;
+        return;
+    }
+
+    setTreeNode(test, newNode, transform, modelName, hashID, childrenHash);
+    insertSceneTreeNode(newNode);
+}
+
 
 void drawSceneNode(SceneTreeNode* node, glm::mat4 projection, glm::mat4 view){
     if(node == nullptr || node->NodeModel == nullptr){
@@ -112,10 +141,11 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     if(nodeToDelete->parentNode != nullptr){
         auto &siblings = nodeToDelete->parentNode->childrenInstances;
         siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeToDelete), siblings.end());
+        nodeToDelete->parentNode->childrenHash.erase(std::remove(nodeToDelete->parentNode->childrenHash.begin(), nodeToDelete->parentNode->childrenHash.end(), nodeToDelete->hashID), nodeToDelete->parentNode->childrenHash.end());
     }
 
     // Remove the node from the hash table
-    int slot = nodeToDelete->hashID % HASH_TABLE_SIZE;
+    unsigned int slot = nodeToDelete->hashID % HASH_TABLE_SIZE;
     auto &nodes = hashTable[slot];
     nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
 
@@ -127,7 +157,7 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
 
 // we are gonna need a getNodeByHash function
 SceneTreeNode* getNodeByHash(size_t hashID) {
-    int slot = hashID % HASH_TABLE_SIZE;
+    unsigned int slot = hashID % HASH_TABLE_SIZE;
     auto &nodes = hashTable[slot];
     for (auto &node : nodes) {
         if (node->hashID == hashID) {
