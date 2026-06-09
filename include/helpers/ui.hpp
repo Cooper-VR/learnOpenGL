@@ -676,6 +676,9 @@ void ShowFileBrowser()
     ImGui::End();
 }
 
+float doubleClickTime = 0.90f;
+bool clicked = false;
+
 void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode)
 {
 
@@ -696,7 +699,38 @@ void drawSceneTreeHierarchical(SceneTreeNode* node, SceneTreeNode*& selectedNode
 
     // handle selection
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+    {
         selectedNode = node;
+
+        if (clicked && doubleClickTime > 0)
+        {
+            // double clicked a node
+            cout << "Double clicked node: " << selectedNode->name << endl;
+
+            glm::vec3 position = selectedNode->transform.position;
+            glm::vec3 position2 = camera.Position + camera.Front * 2.0f;
+
+            glm::vec3 difference = position2 - position;
+            cout << "Difference: " << difference.x << ", " << difference.y << ", " << difference.z << endl;
+
+            camera.Position -= difference;
+        }
+
+        clicked = true;
+    }
+
+    if (clicked)
+    {
+        doubleClickTime -= deltaTime;
+    }
+
+    if (doubleClickTime <= 0)
+    {
+        doubleClickTime = 0.90f;
+        clicked = false;
+    }
+
+
 
     // draw children recursively
     if (open)

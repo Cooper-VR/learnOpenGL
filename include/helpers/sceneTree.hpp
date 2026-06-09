@@ -67,8 +67,15 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
-    SceneTreeNode *newNode = new SceneTreeNode();
     Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
+    SceneTreeNode *newNode = new SceneTreeNode();
+
+    if (modelName.empty()) {
+        delete test;
+        delete newNode;
+        return;
+    }
+
     setTreeNode(test, newNode, parent, transform, modelName);
     insertSceneTreeNode(newNode);
 }
