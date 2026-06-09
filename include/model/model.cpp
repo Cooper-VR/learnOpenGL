@@ -53,6 +53,9 @@ void Model::loadModel(string const &path, string vertexShaderPath, string fragme
     processNode(scene->mRootNode, scene, vertexShaderPath, fragmentShaderPath);
 }
 
+
+
+
 void Model::processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++){

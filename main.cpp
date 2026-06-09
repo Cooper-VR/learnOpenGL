@@ -37,11 +37,6 @@ int main()
     string fragment = "resources/shaders/litObject_fragment.glsl";
     string vertex = "resources/shaders/litObject_vertex.glsl";
 
-    rootNode = new SceneTreeNode();
-    Model* test = new Model(path.c_str(), vertex.c_str(), fragment.c_str(), "rootObject");
-    setTreeNode(test, rootNode, sceneRootNode, Transform{glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)}, "rootObject");
-    insertSceneTreeNode(rootNode);
-
     while (!glfwWindowShouldClose(window))
     {
         // Skip frame if minimized
