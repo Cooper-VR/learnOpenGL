@@ -282,15 +282,18 @@ void loadScene()
                 glm::vec3 scale;
 
                 Transform transform;
-                transform.position = position;
-                transform.rotation = rotation;
-                transform.scale = scale;
+
                 vector<unsigned int> childrenHashes;
                 sceneFile >> hashID;
                 sceneFile >> path;
                 sceneFile >> position.x >> position.y >> position.z;
                 sceneFile >> rotation.x >> rotation.y >> rotation.z;
                 sceneFile >> scale.x >> scale.y >> scale.z;
+                
+                transform.position = position;
+                transform.rotation = rotation;
+                transform.scale = scale;
+
                 int numChildren;
                 sceneFile >> numChildren;
                 for (int i = 0; i < numChildren; i++)

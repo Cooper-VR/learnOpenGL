@@ -54,9 +54,8 @@ void main()
 
 
 
-    FragColor = vec4(finalColor * lighting, 1.0)* clamp(1/depth, 0, 1);
+    FragColor = vec4(finalColor * lighting, 1.0)* clamp(1/depth, 0, 0.4);
 
-    //FragColor = vec4(vec3(depth), 1.0);
 }
 
 float LinearizeDepth(float depth) 
