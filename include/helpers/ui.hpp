@@ -541,6 +541,25 @@ void drawMainUI()
     {
         loadScene();
     }
+    if (ImGui::Button("reload shaders"))
+    {
+        delete shader;
+        delete screenShader;
+        shader = new Shader("resources/shaders/framebuffer_vertex.glsl", "resources/shaders/framebuffer_fragment.glsl");
+        screenShader = new Shader("resources/shaders/framebuffers_screen_vert.glsl", "resources/shaders/framebuffers_screen_frag.glsl");
+        for (int i = 0; i < HASH_TABLE_SIZE; i++)
+        {
+            for (int j = 0; j < hashTable[i].size(); j++)
+            {
+                if (hashTable[i][j] == sceneRootNode || hashTable[i][j]->NodeModel == nullptr)
+                    continue;
+                for (int selected = 0; selected < hashTable[i][j]->NodeModel->meshes.size(); selected++)
+                {
+                    hashTable[i][j]->NodeModel->meshes[selected].reloadShaders();
+                }
+            }
+        }
+    }
     ImGui::End();
 }
 
@@ -596,19 +615,7 @@ void ShowFileBrowser()
         }
     }
 
-    if (ImGui::Button("reload shaders"))
-    {
-        for (int i = 0; i < HASH_TABLE_SIZE; i++)
-        {
-            for (int j = 0; j < hashTable[i].size(); j++)
-            {
-                for (int selected = 0; selected < hashTable[i][j]->NodeModel->meshes.size(); selected++)
-                {
-                    hashTable[i][j]->NodeModel->meshes[selected].reloadShaders();
-                }
-            }
-        }
-    }
+    
     ImGui::End();
 }
 
