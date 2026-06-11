@@ -33,7 +33,17 @@ void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatr
         numberOfBatches++;
         numberOfVertices += meshes[i].vertices.size();
 
+        if (removeFromDepthBuffer)
+        {
+            glDepthMask(GL_FALSE);
+        }
+
         meshes[i].Draw(modelMatrix, projection, viewMatrix);
+        if (removeFromDepthBuffer)
+        {
+            glDepthMask(GL_TRUE);
+        }
+
     }
 }
 

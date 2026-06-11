@@ -34,6 +34,7 @@ class Model{
         int numberOfVertices = 0;
         int numberOfBatches = 0;
         vector<Mesh> meshes;
+        bool removeFromDepthBuffer = false;
     private:
         bool gammaCorrection;
 

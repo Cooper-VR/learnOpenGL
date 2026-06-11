@@ -59,6 +59,11 @@ char selectedName[256] = "";
 vector<string> shaderNames;
 string path("resources/shaders");
 
+float depthLinearizationNear = 0.1f;
+float depthLinearizationFar = 100.0f;
+float fogColor[3] = {0.5f, 0.5f, 0.5f};
+
+
 void saveScene()
 {
     // save the scene to a file
@@ -411,6 +416,10 @@ void saveData()
         for (int i = 0; i < 3; i++)
             saveFile << camera.Up[i] << ' ';
 
+        saveFile << depthLinearizationNear << endl;
+        saveFile << depthLinearizationFar << endl;
+        saveFile << fogColor[0] << ' ' << fogColor[1] << ' ' << fogColor[2] << ' ' << endl;
+
         saveFile.close();
     }
 }
@@ -453,6 +462,15 @@ void loadData()
             saveFile >> camera.Front[i];
         for (int i = 0; i < 3; i++)
             saveFile >> camera.Up[i];
+
+        saveFile >> depthLinearizationNear;
+        saveFile >> depthLinearizationFar;
+        saveFile >> fogColor[0] >> fogColor[1] >> fogColor[2];
+
+        screenShader->use();
+        screenShader->setVec3("fogColor", glm::vec3(fogColor[0], fogColor[1], fogColor[2]));
+        screenShader->setFloat("near", depthLinearizationNear);
+        screenShader->setFloat("far", depthLinearizationFar);
 
         saveFile.close();
     }
@@ -525,6 +543,19 @@ void drawMainUI()
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
 
+    
+    ImGui::DragFloat("Depth Linearization Near", &depthLinearizationNear, 0.0001f, 0.0f, 0.0f, "%.06f");
+    ImGui::SliderFloat("Depth Linearization Far", &depthLinearizationFar, 1.0f, 10000.0f);
+    ImGui::ColorEdit3("Fog Color", fogColor);
+    if (ImGui::Button("Apply Depth Linearization Values"))
+    {
+        screenShader->use();
+
+        screenShader->setVec3("fogColor", glm::vec3(fogColor[0], fogColor[1], fogColor[2]));
+        screenShader->setFloat("near", depthLinearizationNear);
+        screenShader->setFloat("far", depthLinearizationFar);
+    }
+
     if (ImGui::Button("Save Data"))
     {
         saveData();
@@ -544,10 +575,14 @@ void drawMainUI()
     }
     if (ImGui::Button("reload shaders"))
     {
-        delete shader;
+
         delete screenShader;
-        shader = new Shader("resources/shaders/framebuffer_vertex.glsl", "resources/shaders/framebuffer_fragment.glsl");
         screenShader = new Shader("resources/shaders/framebuffers_screen_vert.glsl", "resources/shaders/framebuffers_screen_frag.glsl");
+        screenShader->use();
+        screenShader->setInt("screenTexture", 0);
+        screenShader->setInt("depthTexture", 1);
+
+
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
             for (int j = 0; j < hashTable[i].size(); j++)
@@ -710,11 +745,16 @@ void drawSceneTree()
         ImGui::DragFloat3("Position", glm::value_ptr(selectedNode->transform.position), 0.001f);
         ImGui::DragFloat3("Rotation", glm::value_ptr(selectedNode->transform.rotation), 1.0f);
         ImGui::DragFloat3("Scale", glm::value_ptr(selectedNode->transform.scale), 0.1f, 0.1f, 10.0f);
+
+
+
         if (ImGui::Button("Reset Transform"))
         {
             Transform transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
             selectedNode->transform = transform;
         }
+        ImGui::Checkbox("Remove from Depth Buffer", &selectedNode->NodeModel->removeFromDepthBuffer);
+        
         ImGui::Text("Hash ID: %zu", selectedNode->hashID);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;

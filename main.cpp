@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 
 int main()
 {
-    loadData();
+
     GLFWwindow* window = setupOpenGL();
     if (window == nullptr)
     {
@@ -25,7 +25,7 @@ int main()
     }
 
     setUpImGui(window);
-
+    loadData();
     sceneRootNode = new SceneTreeNode();
     sceneRootNode->name = "sceneRoot";
     sceneRootNode->transform = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
@@ -69,13 +69,15 @@ int main()
         }
 
 
-        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        vector<SceneTreeNode*> nodesToDrawLast;
 
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
@@ -84,6 +86,11 @@ int main()
                 Model *model = hashTable[i][j]->NodeModel;
                 if (model == nullptr)
                     continue;
+                if (model->removeFromDepthBuffer)
+                {
+                    nodesToDrawLast.push_back(hashTable[i][j]);
+                    continue;
+                }
                 numberOfVertices += model->numberOfVertices;
                 numberOfBatches += model->numberOfBatches;
                 model->numberOfVertices = 0;
@@ -141,6 +148,12 @@ int main()
             }
         }
 
+        //draw nodes that should be removed from depth buffer last so that they are on top of everything else and not affected by depth testing
+        for (int i = 0; i < nodesToDrawLast.size(); i++)
+        {
+            drawSceneNode(nodesToDrawLast[i], projection, view);
+        }
+
         
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -150,8 +163,14 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         screenShader->use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthTexture);
+
         glBindVertexArray(quadVAO);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         drawAllUI();
