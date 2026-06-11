@@ -10,3 +10,5 @@ localData/saveData.sv
 libs/assimp/
 
 /resources/textures/textures
+resources/models/DgnObj_DLC_IbutsuEx_A_01.dae
+resources/models/collision.fbx

@@ -162,11 +162,15 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         if (!skip)
         {
             Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), this->directory, false);
-            texture.type = typeName;
-            texture.path = str.C_Str();
-            textures.push_back(texture);
-            textures_loaded.push_back(texture);
+            unsigned int id = TextureFromFile(str.C_Str(), this->directory, false);
+            if (id != 4294967295)
+            {
+                texture.id = id;
+                texture.type = typeName;
+                texture.path = str.C_Str();
+                textures.push_back(texture);
+                textures_loaded.push_back(texture);
+            }
         }
     }
 
@@ -212,6 +216,7 @@ unsigned int Model::TextureFromFile(const char *path, const string &directory, b
     {
         std::cout << "Texture failed to load at path: " << path << std::endl;
         stbi_image_free(data);
+        return 4294967295;
     }
 
     return textureID;
