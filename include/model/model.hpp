@@ -30,7 +30,6 @@ class Model{
         //Shader *shader;
         vector<string> names;
         string directory;
-        vector<Texture> textures_loaded;
         int numberOfVertices = 0;
         int numberOfBatches = 0;
         vector<Mesh> meshes;

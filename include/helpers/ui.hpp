@@ -49,12 +49,8 @@ vector<float> fragmentUniformFloats;
 vector<glm::vec3> vertexUniformVec3s;
 vector<glm::vec3> fragmentUniformVec3s;
 
-vector<unsigned int> vertexUniformTextureIDs;
-vector<unsigned int> fragmentUniformTextureIDs;
-vector<string> vertexUniformTextureNames;
-vector<string> fragmentUniformTextureNames;
-
 vector<string> textureNames;
+vector<string> texturePaths;
 vector<int> selectedVertexTextureIDs;
 vector<int> selectedFragmentTextureIDs;
 
@@ -895,13 +891,13 @@ void drawSceneTree()
                 fragmentUniformInts.clear();
                 fragmentUniformFloats.clear();
                 fragmentUniformVec3s.clear();
-                vertexUniformTextureIDs.clear();
-                fragmentUniformTextureIDs.clear();
-                vertexUniformTextureNames.clear();
-                fragmentUniformTextureNames.clear();
+
 
                 selectedVertexTextureIDs.clear();
                 selectedFragmentTextureIDs.clear();
+
+                textureNames.clear();
+                texturePaths.clear();
 
                 selected_vertex = -1;
                 selected_fragment = -1;
@@ -937,6 +933,7 @@ void drawSceneTree()
                     // non-directory or not If it does, displays path
                     if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR)){
                         textureNames.push_back(outfilename.filename().string());
+                        texturePaths.push_back(outfilename_str);
                         selectedFragmentTextureIDs.push_back(-1);
                         selectedVertexTextureIDs.push_back(-1);
                     }
@@ -1093,43 +1090,98 @@ void drawSceneTree()
                 else if (vertexUniformTypes[i] == "sampler2D")
                 {
 
+                                        Texture *currentTexture = nullptr;
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
-                        if (!alreadyCreated)
-                            fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].textures[j].id);
-
-                        if (selectedNode->NodeModel->meshes[selected].textures[j].id == vertexUniformTextureIDs[textureIDCounter])
+                        if (selectedNode->NodeModel->meshes[selected].textures[j].uniformName == fragmentUniforms[i])
                         {
-                            ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
-
-                            ImVec2 uv_min(0.0f, 0.0f);
-                            ImVec2 uv_max(1.0f, 1.0f);
-
-                            ImGui::PushStyleVar(
-                                ImGuiStyleVar_ImageBorderSize,
-                                max(1.0f, ImGui::GetStyle().ImageBorderSize));
-
-                            ImGui::ImageWithBg(
-                                imguiTex,
-                                ImVec2(128, 128),
-                                uv_min,
-                                uv_max,
-                                ImVec4(0, 0, 0, 1));
-
-                            ImGui::PopStyleVar();
-
-                            ImGui::SameLine();
-                            ImGui::PushID(i);
-                            if (ImGui::Button("Select Texture"))
-                            {
-                                // Handle texture selection
-                            }
-                            ImGui::PopID();
-
-                            ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
+                            currentTexture = &selectedNode->NodeModel->meshes[selected].textures[j];
                             break;
                         }
                     }
+
+                    if (currentTexture != nullptr)
+                    {
+
+                        ImTextureID imguiTex = (ImTextureID)(intptr_t)currentTexture->id;
+                        ImVec2 uv_min(0.0f, 0.0f);
+                        ImVec2 uv_max(1.0f, 1.0f);
+                        ImGui::PushStyleVar(
+                            ImGuiStyleVar_ImageBorderSize,
+                            max(1.0f, ImGui::GetStyle().ImageBorderSize));
+
+                        ImGui::ImageWithBg(
+                            imguiTex,
+                            ImVec2(128, 128),
+                            uv_min,
+                            uv_max,
+                            ImVec4(0, 0, 0, 1));
+
+                        ImGui::PopStyleVar();
+
+                        // ImGui::SameLine();
+                    }
+                    // Simple selection popup (if you want to show the current selection inside the Button itself,
+                    // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
+                    // static int selected_fragment = -1;
+                    ImGui::PushID(i);
+
+                    if (ImGui::Button(("Select Texture" + std::to_string(i)).c_str()))
+                        ImGui::OpenPopup(("texture_select_popup" + std::to_string(i)).c_str());
+                    ImGui::SameLine();
+                    // ImGui::Text("Fragment Shader");
+                    if (ImGui::BeginPopup(("texture_select_popup" + std::to_string(i)).c_str()))
+                    {
+
+                        ImGui::SeparatorText("textures");
+                        if (ImGui::Selectable("None"))
+                        {
+                            // Handle "None" selection
+                            // just remove from the textures array
+                            selectedNode->NodeModel->meshes[selected].textures.erase(std::remove_if(selectedNode->NodeModel->meshes[selected].textures.begin(), selectedNode->NodeModel->meshes[selected].textures.end(),
+                                                                                                    [&](const Texture &t)
+                                                                                                    { return t.uniformName == fragmentUniforms[i]; }),
+                                                                                     selectedNode->NodeModel->meshes[selected].textures.end());
+                        }
+                        for (int k = 0; k < textureNames.size(); k++)
+                            if (ImGui::Selectable(textureNames[k].c_str()))
+                            {
+                                selectedFragmentTextureIDs[k] = k; // this is where we set the shader to the selected one
+                                cout << "Selected texture: " << textureNames[k] << endl;
+                                // ight so what we need to do to load a texture is this,
+                                // we need to load the texture
+                                Texture texture;
+                                unsigned int id = selectedNode->NodeModel->TextureFromFile(texturePaths[k].c_str(), selectedNode->NodeModel->directory, false);
+                                // when we do that we need to set the parameters correctly with the uniform name too
+                                if (id != 4294967295)
+                                {
+                                    texture.id = id;
+                                    texture.type = fragmentUniforms[i];
+                                    texture.path = texturePaths[k].c_str();
+
+                                    if (currentTexture == nullptr)
+                                    {
+                                        selectedNode->NodeModel->meshes[selected].textures.push_back(texture);
+                                    }
+                                    else
+                                    {
+                                        // remove old texture and add the new one
+                                        selectedNode->NodeModel->meshes[selected].textures.erase(std::remove_if(selectedNode->NodeModel->meshes[selected].textures.begin(), selectedNode->NodeModel->meshes[selected].textures.end(),
+                                                                                                                [&](const Texture &t)
+                                                                                                                { return t.uniformName == fragmentUniforms[i]; }),
+                                                                                                 selectedNode->NodeModel->meshes[selected].textures.end());
+                                    }
+                                    selectedNode->NodeModel->meshes[selected].textures.push_back(texture);
+
+                                    selectedNode->NodeModel->meshes[selected].shader->use();
+                                    selectedNode->NodeModel->meshes[selected].shader->setInt(fragmentUniforms[i].c_str(), selectedNode->NodeModel->meshes[selected].textures.size() - 1);
+                                    alreadyCreated = false;
+                                }
+                                // then i think bind and set the int(sampler2D)
+                            }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
                     textureIDCounter++;
                 }
                 else
@@ -1182,61 +1234,96 @@ void drawSceneTree()
                 }
                 else if (fragmentUniformTypes[i] == "sampler2D")
                 {
+                    //for each sampler2D we need the image loaded if it has one
+                    //and the selection thing for all of them
+
+                    Texture *currentTexture = nullptr;
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
-
-
-                        if (!alreadyCreated){
-                            fragmentUniformTextureNames.push_back(selectedNode->NodeModel->meshes[selected].textures[j].uniformName);
-                            fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].textures[j].id);
-                        }
-
                         if (selectedNode->NodeModel->meshes[selected].textures[j].uniformName == fragmentUniforms[i])
                         {
-
-                            ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
-                            ImVec2 uv_min(0.0f, 0.0f);
-                            ImVec2 uv_max(1.0f, 1.0f);
-                            ImGui::PushStyleVar(
-                                ImGuiStyleVar_ImageBorderSize,
-                                max(1.0f, ImGui::GetStyle().ImageBorderSize));
-
-                            ImGui::ImageWithBg(
-                                imguiTex,
-                                ImVec2(128, 128),
-                                uv_min,
-                                uv_max,
-                                ImVec4(0, 0, 0, 1));
-
-                            ImGui::PopStyleVar();
-
+                            currentTexture = &selectedNode->NodeModel->meshes[selected].textures[j];
+                            break;
                         }
-                        // Simple selection popup (if you want to show the current selection inside the Button itself,
-                        // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
-                        //static int selected_fragment = -1;
-                        ImGui::PushID(i);
-
-                        if (ImGui::Button(("Select Texture" + std::to_string(i)).c_str()))
-                            ImGui::OpenPopup(("texture_select_popup" + std::to_string(i)).c_str());
-                        ImGui::SameLine();
-                        //ImGui::Text("Fragment Shader");
-                        if (ImGui::BeginPopup(("texture_select_popup" + std::to_string(i)).c_str()))
-                        {
-                            ImGui::SeparatorText("textures");
-                            for (int k = 0; k < textureNames.size(); k++)
-                                if (ImGui::Selectable(textureNames[k].c_str()))
-                                {
-                                    selectedFragmentTextureIDs[k] = k; // this is where we set the shader to the selected one
-                                    cout << "Selected texture: " << textureNames[k] << endl;
-                                    //selectedNode->NodeModel->meshes[selected].fragmentShaderPath = (path + '/' + textureNames[i]).c_str();
-                                    //selectedNode->NodeModel->meshes[selected].reloadShaders();
-                                }
-                            ImGui::EndPopup();
-                        }
-                        ImGui::PopID();
-
-                        
                     }
+
+                    if (currentTexture != nullptr)
+                    {
+
+                        ImTextureID imguiTex = (ImTextureID)(intptr_t)currentTexture->id;
+                        ImVec2 uv_min(0.0f, 0.0f);
+                        ImVec2 uv_max(1.0f, 1.0f);
+                        ImGui::PushStyleVar(
+                            ImGuiStyleVar_ImageBorderSize,
+                            max(1.0f, ImGui::GetStyle().ImageBorderSize));
+
+                        ImGui::ImageWithBg(
+                            imguiTex,
+                            ImVec2(128, 128),
+                            uv_min,
+                            uv_max,
+                            ImVec4(0, 0, 0, 1));
+
+                        ImGui::PopStyleVar();
+
+                        // ImGui::SameLine();
+                    }
+                    // Simple selection popup (if you want to show the current selection inside the Button itself,
+                    // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
+                    // static int selected_fragment = -1;
+                    ImGui::PushID(i);
+
+                    if (ImGui::Button(("Select Texture" + std::to_string(i)).c_str()))
+                        ImGui::OpenPopup(("texture_select_popup" + std::to_string(i)).c_str());
+                    ImGui::SameLine();
+                    // ImGui::Text("Fragment Shader");
+                    if (ImGui::BeginPopup(("texture_select_popup" + std::to_string(i)).c_str()))
+                    {
+
+                        ImGui::SeparatorText("textures");
+                        if (ImGui::Selectable("None"))
+                        {
+                            // Handle "None" selection
+                            // just remove from the textures array
+                            selectedNode->NodeModel->meshes[selected].textures.erase(std::remove_if(selectedNode->NodeModel->meshes[selected].textures.begin(), selectedNode->NodeModel->meshes[selected].textures.end(),
+                                                                                                    [&](const Texture &t)
+                                                                                                    { return t.uniformName == fragmentUniforms[i]; }),
+                                                                                     selectedNode->NodeModel->meshes[selected].textures.end());
+                        }
+                        for (int k = 0; k < textureNames.size(); k++)
+                            if (ImGui::Selectable(textureNames[k].c_str()))
+                            {
+                                selectedFragmentTextureIDs[k] = k; // this is where we set the shader to the selected one
+                                cout << "Selected texture: " << textureNames[k] << endl;
+                                // ight so what we need to do to load a texture is this,
+                                // we need to load the texture
+                                Texture texture;
+                                unsigned int id = selectedNode->NodeModel->TextureFromFile(texturePaths[k].c_str(), selectedNode->NodeModel->directory, false);
+                                // when we do that we need to set the parameters correctly with the uniform name too
+                                if (id != 4294967295)
+                                {
+                                    texture.id = id;
+                                    texture.type = fragmentUniforms[i];
+                                    texture.path = texturePaths[k].c_str();
+
+                                    if (currentTexture == nullptr){
+                                        selectedNode->NodeModel->meshes[selected].textures.push_back(texture);
+                                    }else{
+                                        //remove old texture and add the new one
+                                        selectedNode->NodeModel->meshes[selected].textures.erase(std::remove_if(selectedNode->NodeModel->meshes[selected].textures.begin(), selectedNode->NodeModel->meshes[selected].textures.end(),
+                                        [&](const Texture& t) { return t.uniformName == fragmentUniforms[i]; }), selectedNode->NodeModel->meshes[selected].textures.end());
+                                    }
+                                    selectedNode->NodeModel->meshes[selected].textures.push_back(texture);
+
+                                    selectedNode->NodeModel->meshes[selected].shader->use();
+                                    selectedNode->NodeModel->meshes[selected].shader->setInt(fragmentUniforms[i].c_str(), selectedNode->NodeModel->meshes[selected].textures.size() - 1);
+                                    alreadyCreated = false;
+                                }
+                                // then i think bind and set the int(sampler2D)
+                            }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
                     textureIDCounter++;
                 }
             }
