@@ -326,6 +326,11 @@ void loadScene()
                 sceneFile >> numMeshes;
                 vector<string> fragmentShaderPaths;
                 vector<string> vertexShaderPaths;
+
+                //we need to store the data for the shaders, then after we create the node and model, we can set the shader uniforms based on the data we read in
+                //so we need 2d array/vector(s) to store the uniform data for each mesh, and we need to know the type of each uniform so we can set it correctly after we create the model and shader
+
+
                 for (int i = 0; i < numMeshes; i++)
                 {
                     string fragmentShaderPath;
@@ -337,19 +342,24 @@ void loadScene()
                     vertexShaderPaths.push_back(vertexShaderPath);
 
                     string line;
+
                     while (getline(sceneFile, line))
                     {
                         if (line == "EOV")
                             break;
+                            
                     }
                     while (getline(sceneFile, line))
                     {
                         if (line == "EOF")
                             break;
+                          
                     }
                 }
 
                 createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes, removeFromDepthBuffer);
+
+                //loop throught the node and 
 
                 getline(sceneFile, line); //this is EON, aka, end of node
             }
