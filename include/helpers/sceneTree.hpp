@@ -69,13 +69,14 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
 }
 
 
-void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash){
+void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer){
     node->NodeModel = model;
 
     node->transform = transform;
     node->name = name;
     node->hashID = hashID;
     node->childrenHash = childrenHash;
+    node->NodeModel->removeFromDepthBuffer = removeFromDepthBuffer;
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
@@ -92,7 +93,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
     insertSceneTreeNode(newNode);
 }
 
-void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash) {
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer) {
     Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
     SceneTreeNode *newNode = new SceneTreeNode();
 
@@ -102,7 +103,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
         return;
     }
 
-    setTreeNode(test, newNode, transform, modelName, hashID, childrenHash);
+    setTreeNode(test, newNode, transform, modelName, hashID, childrenHash, removeFromDepthBuffer);
     insertSceneTreeNode(newNode);
 }
 

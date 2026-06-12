@@ -69,7 +69,7 @@ int main()
         }
 
 
-        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.001f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -174,7 +174,6 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         drawAllUI();
-
 
 
         glfwSwapBuffers(window);

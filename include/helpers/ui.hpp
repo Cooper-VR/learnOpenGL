@@ -87,6 +87,7 @@ void saveScene()
                     sceneFile << hashTable[i][j]->transform.rotation.x << ' ' << hashTable[i][j]->transform.rotation.y << ' ' << hashTable[i][j]->transform.rotation.z << endl;
                     sceneFile << hashTable[i][j]->transform.scale.x << ' ' << hashTable[i][j]->transform.scale.y << ' ' << hashTable[i][j]->transform.scale.z << endl;
                     sceneFile << hashTable[i][j]->childrenInstances.size() << endl;
+                    sceneFile << hashTable[i][j]->NodeModel->removeFromDepthBuffer << endl;
                     for (int k = 0; k < hashTable[i][j]->childrenInstances.size(); k++)
                     {
                         sceneFile << hashTable[i][j]->childrenInstances[k]->hashID << endl;
@@ -303,6 +304,8 @@ void loadScene()
 
                 int numChildren;
                 sceneFile >> numChildren;
+                bool removeFromDepthBuffer;
+                sceneFile >> removeFromDepthBuffer;
                 for (int i = 0; i < numChildren; i++)
                 {
                     unsigned int childHash;
@@ -337,7 +340,7 @@ void loadScene()
                     }
                 }
 
-                createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes);
+                createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes, removeFromDepthBuffer);
 
                 getline(sceneFile, line); //this is EON, aka, end of node
             }
@@ -495,6 +498,17 @@ void resetData()
     dirLightDirection[1] = -1.0f;
     dirLightDirection[2] = -0.3f;
 
+    PanSensitivity = 1.0f;
+    RotateSensitivity = 1.0f;
+    ForwardSensitivity = 1.0f;
+    cameraFOV = 45.0f;
+
+    depthLinearizationNear = 0.1f;
+    depthLinearizationFar = 100.0f;
+    fogColor[0] = 0.5f;
+    fogColor[1] = 0.5f;
+    fogColor[2] = 0.5f;
+
     currentPath = fs::current_path();
 }
 
@@ -544,8 +558,8 @@ void drawMainUI()
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
 
     
-    ImGui::DragFloat("Depth Linearization Near", &depthLinearizationNear, 0.0001f, 0.0f, 0.0f, "%.06f");
-    ImGui::SliderFloat("Depth Linearization Far", &depthLinearizationFar, 1.0f, 10000.0f);
+    ImGui::DragFloat("Depth Linearization Near", &depthLinearizationNear, 0.00001f, 0.0f, 0.0f, "%.06f");
+    ImGui::SliderFloat("Depth Linearization Far", &depthLinearizationFar, 1.0f, 20000.0f);
     ImGui::ColorEdit3("Fog Color", fogColor);
     if (ImGui::Button("Apply Depth Linearization Values"))
     {

@@ -19,17 +19,17 @@ void main()
     float depth = LinearizeDepth(texture(depthTexture, TexCoords).r);
 
     depth = clamp(depth, 0.0, 1.0);
-    //FragColor = vec4(vec3(depth), 1.0);
+    //depth = depth / far;
 
-    if (depth > 0.9999) 
-    {
-        depth = 0.0; //should remove skybox from being affected
-    }
-    depth = clamp(depth * 10, 0.0, 1.0);
 
-    //FragColor = vec4(vec3(depth), 1.0);
+    vec3 outColor;
+
+    if (depth == 1.0) depth = 0.0;
+
+    depth = clamp(depth*1.3, 0.0, 1.0);
+
     FragColor = vec4(mix(col, fogColor, depth), 1.0);
-    
+
 } 
 
 float LinearizeDepth(float depth) 

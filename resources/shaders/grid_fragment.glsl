@@ -74,18 +74,18 @@ vec4 grid(vec3 p, float scale)
     float alpha = 1.0 - min(line, 1.0);
 
     // Base grid lines = light gray
-    vec3 color = vec3(0.65);
+    vec3 color = vec3(1);
 
     // Colored axes (thin)
-    float axisThickness = 0.1;
+    float axisThickness = 0.001;
 
     // Red lines (constant Z = 0)
     if (abs(p.y) < axisThickness / scale) {
-        color = vec3(0.9, 0.25, 0.25);
+        color = vec3(1, 1, 1);
     }
     // Blue lines (constant X = 0)
     if (abs(p.z) < axisThickness / scale) {
-        color = vec3(0.9, 0.25, 0.25);
+        color = vec3(1, 1, 1);
     }
 
     return vec4(color, alpha);
