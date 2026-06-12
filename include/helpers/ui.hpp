@@ -51,9 +51,16 @@ vector<glm::vec3> fragmentUniformVec3s;
 
 vector<unsigned int> vertexUniformTextureIDs;
 vector<unsigned int> fragmentUniformTextureIDs;
+vector<string> vertexUniformTextureNames;
+vector<string> fragmentUniformTextureNames;
 
 vector<string> textureNames;
-vector<int> selectedTextureIDs;
+vector<int> selectedVertexTextureIDs;
+vector<int> selectedFragmentTextureIDs;
+
+char selectedTextureName[256] = "";
+vector<string> selectedTextureNames;
+string texturePath("resources/textures");
 
 char selectedName[256] = "";
 vector<string> shaderNames;
@@ -63,6 +70,8 @@ float depthLinearizationNear = 0.1f;
 float depthLinearizationFar = 100.0f;
 float fogColor[3] = {0.5f, 0.5f, 0.5f};
 
+static int selected = -1;
+static int previousSelected = -1;
 
 void saveScene()
 {
@@ -371,7 +380,7 @@ void loadScene()
     }
 }
 
-void saveData()
+void saveData(GLFWwindow* window)
 {
     ofstream saveFile;
     saveFile.open("localData/saveData.sv");
@@ -423,11 +432,18 @@ void saveData()
         saveFile << depthLinearizationFar << endl;
         saveFile << fogColor[0] << ' ' << fogColor[1] << ' ' << fogColor[2] << ' ' << endl;
 
+        saveFile << SCR_HEIGHT << endl;
+        saveFile << SCR_WIDTH << endl;
+        int windowPosX, windowPosY;
+        glfwGetWindowPos(window, &windowPosX, &windowPosY);
+        saveFile << windowPosX << ' ' << windowPosY << endl;
+
+
         saveFile.close();
     }
 }
 
-void loadData()
+void loadData(GLFWwindow* window)
 {
     ifstream saveFile;
     saveFile.open("localData/saveData.sv");
@@ -475,6 +491,13 @@ void loadData()
         screenShader->setFloat("near", depthLinearizationNear);
         screenShader->setFloat("far", depthLinearizationFar);
 
+        saveFile >> SCR_HEIGHT;
+        saveFile >> SCR_WIDTH;
+        int windowPosX, windowPosY;
+        saveFile >> windowPosX >> windowPosY;
+        glfwSetWindowPos(window, windowPosX, windowPosY);
+        glfwSetWindowSize(window, SCR_WIDTH, SCR_HEIGHT);
+
         saveFile.close();
     }
 }
@@ -512,7 +535,7 @@ void resetData()
     currentPath = fs::current_path();
 }
 
-void drawMainUI()
+void drawMainUI(GLFWwindow* window)
 {
     ImGui::Begin("OpenGL UI");
     ImGui::Text("FPS: %.1f", deltaTime != 0.0f ? (1.0f / deltaTime) : 0.0f);
@@ -572,7 +595,7 @@ void drawMainUI()
 
     if (ImGui::Button("Save Data"))
     {
-        saveData();
+        saveData(window);
     }
     if (ImGui::Button("reset save data"))
     {
@@ -773,8 +796,6 @@ void drawSceneTree()
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
 
-        static int selected = -1;
-        static int previousSelected = -1;
         if (ImGui::CollapsingHeader("Mesh Selection:", ImGuiTreeNodeFlags_None))
         {
             int verticalSize = 0;
@@ -783,7 +804,7 @@ void drawSceneTree()
             else
                 verticalSize = selectedNode->NodeModel->meshes.size() * 15;
 
-            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.75, verticalSize), ImGuiChildFlags_None, window_flags);
+            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.95, verticalSize), ImGuiChildFlags_None, window_flags);
             for (int i = 0; i < selectedNode->NodeModel->meshes.size(); i++)
             {
                 char buf[32];
@@ -796,6 +817,8 @@ void drawSceneTree()
 
         if (ImGui::CollapsingHeader("Set Shader properties:", ImGuiTreeNodeFlags_None) && selected != -1)
         {
+
+            ImGui::BeginChild("shaderChild", ImVec2(ImGui::GetContentRegionAvail().x * 0.95, 300), ImGuiChildFlags_None, window_flags);
             char vertexShaderBuffer[512];
             char fragmentShaderBuffer[512];
 
@@ -864,8 +887,11 @@ void drawSceneTree()
                 fragmentUniformVec3s.clear();
                 vertexUniformTextureIDs.clear();
                 fragmentUniformTextureIDs.clear();
+                vertexUniformTextureNames.clear();
+                fragmentUniformTextureNames.clear();
 
-                selectedTextureIDs.clear();
+                selectedVertexTextureIDs.clear();
+                selectedFragmentTextureIDs.clear();
 
                 selected_vertex = -1;
                 selected_fragment = -1;
@@ -884,10 +910,34 @@ void drawSceneTree()
                     // non-directory or not If it does, displays path
                     if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR))
                         shaderNames.push_back(outfilename.filename().string());
+
                 }
+
+
+                for (const auto &entry : fs::directory_iterator(texturePath))
+                {
+
+                    // Converting the path to const char * in the
+                    // subsequent lines
+                    std::filesystem::path outfilename = entry.path();
+                    std::string outfilename_str = outfilename.string();
+                    const char *path = outfilename_str.c_str();
+
+                    // Testing whether the path points to a
+                    // non-directory or not If it does, displays path
+                    if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR)){
+                        textureNames.push_back(outfilename.filename().string());
+                        selectedFragmentTextureIDs.push_back(-1);
+                        selectedVertexTextureIDs.push_back(-1);
+                    }
+                }
+
                 previousSelected = selected;
                 previousSelectedNode = selectedNode;
             }
+
+
+            
 
             if (!alreadyCreated)
             {
@@ -1122,71 +1172,60 @@ void drawSceneTree()
                 }
                 else if (fragmentUniformTypes[i] == "sampler2D")
                 {
-                        
-                    // ok so we we have ids we can get info about the texture by matching the ID to the texture vector of the mesh
-
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
-                        if (!alreadyCreated)
+
+
+                        if (!alreadyCreated){
+                            fragmentUniformTextureNames.push_back(selectedNode->NodeModel->meshes[selected].textures[j].uniformName);
                             fragmentUniformTextureIDs.push_back(selectedNode->NodeModel->meshes[selected].textures[j].id);
+                        }
 
-                        ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
+                        if (selectedNode->NodeModel->meshes[selected].textures[j].uniformName == fragmentUniforms[i])
+                        {
 
-                        ImVec2 uv_min(0.0f, 0.0f);
-                        ImVec2 uv_max(1.0f, 1.0f);
+                            ImTextureID imguiTex = (ImTextureID)(intptr_t)selectedNode->NodeModel->meshes[selected].textures[j].id;
+                            ImVec2 uv_min(0.0f, 0.0f);
+                            ImVec2 uv_max(1.0f, 1.0f);
+                            ImGui::PushStyleVar(
+                                ImGuiStyleVar_ImageBorderSize,
+                                max(1.0f, ImGui::GetStyle().ImageBorderSize));
 
-                        ImGui::PushStyleVar(
-                            ImGuiStyleVar_ImageBorderSize,
-                            max(1.0f, ImGui::GetStyle().ImageBorderSize));
+                            ImGui::ImageWithBg(
+                                imguiTex,
+                                ImVec2(128, 128),
+                                uv_min,
+                                uv_max,
+                                ImVec4(0, 0, 0, 1));
 
-                        ImGui::ImageWithBg(
-                            imguiTex,
-                            ImVec2(128, 128),
-                            uv_min,
-                            uv_max,
-                            ImVec4(0, 0, 0, 1));
+                            ImGui::PopStyleVar();
 
-                        ImGui::PopStyleVar();
-
-                        ImGui::SameLine();
-
-                        ImGui::PushID(i);
+                        }
                         // Simple selection popup (if you want to show the current selection inside the Button itself,
                         // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
-                        if (ImGui::Button("Select.."))
-                            ImGui::OpenPopup("texture_select_popup");
+                        //static int selected_fragment = -1;
+                        ImGui::PushID(i);
+
+                        if (ImGui::Button(("Select Texture" + std::to_string(i)).c_str()))
+                            ImGui::OpenPopup(("texture_select_popup" + std::to_string(i)).c_str());
                         ImGui::SameLine();
-                        //ImGui::TextUnformatted(selectedTextureIDs[j] == -1 ? "<None>" : textureNames[selectedTextureIDs[j]].c_str());
-                        if (ImGui::BeginPopup("texture_select_popup"))
+                        //ImGui::Text("Fragment Shader");
+                        if (ImGui::BeginPopup(("texture_select_popup" + std::to_string(i)).c_str()))
                         {
                             ImGui::SeparatorText("textures");
                             for (int k = 0; k < textureNames.size(); k++)
-                            {
-                                //selectedTextureIDs[k] = k;
                                 if (ImGui::Selectable(textureNames[k].c_str()))
                                 {
+                                    selectedFragmentTextureIDs[k] = k; // this is where we set the shader to the selected one
                                     cout << "Selected texture: " << textureNames[k] << endl;
-
-                                    /*
-                                    if (runtimeTestTextureID == 0)
-                                    {
-                                        runtimeTestTextureID = selectedNode->NodeModel->TextureFromFile("resources/textures/awesomeface.png", "", false);
-                                    }
-
-                                    runtimeTextureTargetNode = selectedNode;
-                                    selectedNode->NodeModel->meshes[selected].shader->use();
-                                    glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
-                                    glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
-                                    selectedNode->NodeModel->meshes[selected].shader->setInt("texture_diffuse1", runtimeTestTextureUnit);
-                                */
+                                    //selectedNode->NodeModel->meshes[selected].fragmentShaderPath = (path + '/' + textureNames[i]).c_str();
+                                    //selectedNode->NodeModel->meshes[selected].reloadShaders();
                                 }
-                            }
                             ImGui::EndPopup();
                         }
                         ImGui::PopID();
 
-                        ImGui::Text("Texture Path: %s", selectedNode->NodeModel->meshes[selected].textures[j].path.c_str());
-                        break;
+                        
                     }
                     textureIDCounter++;
                 }
@@ -1196,6 +1235,7 @@ void drawSceneTree()
             {
                 alreadyCreated = true;
             }
+            ImGui::EndChild();
         }
         ImGui::Separator();
 
@@ -1283,12 +1323,12 @@ void drawSceneTree()
     ImGui::End();
 }
 
-void drawAllUI()
+void drawAllUI(GLFWwindow* window)
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    drawMainUI();
+    drawMainUI(window);
 
     drawSceneTree();
     ShowFileBrowser();

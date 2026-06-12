@@ -25,7 +25,7 @@ int main()
     }
 
     setUpImGui(window);
-    loadData();
+    loadData(window);
     sceneRootNode = new SceneTreeNode();
     sceneRootNode->name = "sceneRoot";
     sceneRootNode->transform = Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
@@ -173,7 +173,7 @@ int main()
         glBindVertexArray(quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        drawAllUI();
+        drawAllUI(window);
 
 
         glfwSwapBuffers(window);
@@ -197,7 +197,7 @@ int main()
         }
     }
 
-    saveData();
+    saveData(window);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
