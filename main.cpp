@@ -16,7 +16,6 @@ namespace fs = std::filesystem;
 
 int main()
 {
-
     GLFWwindow* window = setupOpenGL();
     if (window == nullptr)
     {
@@ -69,7 +68,7 @@ int main()
         }
 
 
-        glm::mat4 projection = glm::perspective(glm::radians(cameraFOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.001f, 1000.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.001f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -137,14 +136,14 @@ int main()
                     model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                 }
 
-                drawSceneNode(hashTable[i][j], projection, view);
+                drawSceneNode(hashTable[i][j], camera, projection, view);
             }
         }
 
         //draw nodes that should be removed from depth buffer last so that they are on top of everything else and not affected by depth testing
         for (int i = 0; i < nodesToDrawLast.size(); i++)
         {
-            drawSceneNode(nodesToDrawLast[i], projection, view);
+            drawSceneNode(nodesToDrawLast[i], camera, projection, view);
         }
 
         

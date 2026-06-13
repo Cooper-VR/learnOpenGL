@@ -17,18 +17,21 @@ struct Transform{
     glm::vec3 position;
     glm::vec3 rotation;
     glm::vec3 scale;
+    glm::mat4 modelMatrix;
 };
+
 
 class Model{
     public:
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, bool gammaCorrection = false);
         Model (const char* path, const char* vertexShader, const char* fragShader, string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, bool gammaCorrection = false);
-        void Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix);
+        void Draw(Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix);
         void reloadShader(string vertexShaderPath, string fragmentShaderPath);
         unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
 
         //Shader *shader;
         vector<string> names;
+        Transform transform;
         string directory;
         int numberOfVertices = 0;
         int numberOfBatches = 0;

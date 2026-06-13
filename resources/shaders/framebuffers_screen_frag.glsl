@@ -6,6 +6,8 @@ in vec2 TexCoords;
 uniform sampler2D screenTexture;
 uniform sampler2D depthTexture;
 
+uniform bool noFog;
+
 float LinearizeDepth(float depth);
 
 uniform float near = 0.005; 
@@ -28,7 +30,10 @@ void main()
 
     depth = clamp(depth*1.3, 0.0, 1.0);
 
-    FragColor = vec4(mix(col, fogColor, depth), 1.0);
+    if (noFog)
+        FragColor = vec4(col, 1.0);
+    else
+        FragColor = vec4(mix(col, fogColor, depth), 1.0);
 
 } 
 

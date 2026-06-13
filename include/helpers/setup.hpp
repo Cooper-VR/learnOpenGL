@@ -14,10 +14,8 @@ float RotateSensitivity = 1.0f;
 float PanSensitivity = 1.0f;
 float ForwardSensitivity = 1.0f;
 
-float cameraFOV = 45.0f;
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 720;
-
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -121,7 +119,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
         {
-            camera.PanCamera(-xoffset * PanSensitivity, yoffset * PanSensitivity, deltaTime);
+            camera.PanCamera(-xoffset * PanSensitivity, yoffset * PanSensitivity, deltaTime, SCR_WIDTH, SCR_HEIGHT);
         }
     }
 
@@ -148,12 +146,12 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
         mousePressRight = false;
     }
 
-    camera.RotateCamera(xoffset * RotateSensitivity, yoffset * RotateSensitivity, false);
+    camera.RotateCamera(SCR_WIDTH, SCR_HEIGHT, xoffset * RotateSensitivity, yoffset * RotateSensitivity, false);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity);
+    camera.MoveCameraForward(static_cast<float>(yoffset) * ForwardSensitivity, SCR_WIDTH, SCR_HEIGHT);
 }
 
 GLFWwindow *setupOpenGL()

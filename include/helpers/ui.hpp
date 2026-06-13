@@ -70,6 +70,7 @@ static int floatCounter = 0;
 static int vec3Counter = 0;
 static int textureIDCounter = 0;
 
+bool noFog = false;
 float depthLinearizationNear = 0.1f;
 float depthLinearizationFar = 100.0f;
 float fogColor[3] = {0.5f, 0.5f, 0.5f};
@@ -427,7 +428,7 @@ void saveData(GLFWwindow* window)
         saveFile << SCR_WIDTH << endl;
 
         saveFile << currentPath << endl;
-        saveFile << cameraFOV << endl;
+        saveFile << camera.fov << endl;
 
         for (int i = 0; i < 3; i++)
             saveFile << dirLightDirection[i] << ' ';
@@ -482,7 +483,7 @@ void loadData(GLFWwindow* window)
         saveFile >> SCR_WIDTH;
 
         saveFile >> currentPath;
-        saveFile >> cameraFOV;
+        saveFile >> camera.fov;
 
         for (int i = 0; i < 3; i++)
             saveFile >> dirLightDirection[i];
@@ -565,7 +566,7 @@ void resetData()
     PanSensitivity = 1.0f;
     RotateSensitivity = 1.0f;
     ForwardSensitivity = 1.0f;
-    cameraFOV = 45.0f;
+    camera.fov = 45.0f;
 
     depthLinearizationNear = 0.1f;
     depthLinearizationFar = 100.0f;
@@ -612,7 +613,7 @@ void drawMainUI(GLFWwindow* window)
     ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("ForwardSensitivity", &ForwardSensitivity, 0.1f, 5.0f);
-    ImGui::SliderFloat("CameraFOV", &cameraFOV, 45.0f, 120.0f);
+    ImGui::SliderFloat("CameraFOV", &camera.fov, 45.0f, 120.0f);
 
     ImGui::ColorEdit3("SkyColor", skyColor);
     ImGui::DragFloat3("DirLightDirection", dirLightDirection, 0.1f);
@@ -621,7 +622,7 @@ void drawMainUI(GLFWwindow* window)
     ImGui::ColorEdit3("DirLightAmbientColor", dirLightAmbientColor);
     ImGui::ColorEdit3("DirLightSpecularColor", dirLightSpecularColor);
 
-    
+    ImGui::Checkbox("No Fog?", &noFog);
     ImGui::DragFloat("Depth Linearization Near", &depthLinearizationNear, 0.00001f, 0.0f, 0.0f, "%.06f");
     ImGui::SliderFloat("Depth Linearization Far", &depthLinearizationFar, 1.0f, 20000.0f);
     ImGui::ColorEdit3("Fog Color", fogColor);
@@ -632,6 +633,7 @@ void drawMainUI(GLFWwindow* window)
         screenShader->setVec3("fogColor", glm::vec3(fogColor[0], fogColor[1], fogColor[2]));
         screenShader->setFloat("near", depthLinearizationNear);
         screenShader->setFloat("far", depthLinearizationFar);
+        screenShader->setBool("noFog", noFog);
     }
 
     if (ImGui::Button("Save Data"))
@@ -674,6 +676,21 @@ void drawMainUI(GLFWwindow* window)
             }
         }
     }
+    
+    static int stressTestCount = 0;
+    ImGui::DragInt("Stress Test Count", &stressTestCount, 1.0f, 0, 1000);
+    if (ImGui::Button("Stress Test (Spawn 1000 Models)"))
+    {
+        for (int i = 0; i < stressTestCount; i++)
+        {
+            for (int j = 0; j < stressTestCount; j++)
+            {
+                Transform transform{glm::vec3(i * 2.0f, j * 2.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+                createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", "tester", transform, sceneRootNode);
+            }
+        }
+    }
+    
     ImGui::End();
 }
 

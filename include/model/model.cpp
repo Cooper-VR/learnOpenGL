@@ -27,9 +27,17 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
     directory = absolutePath.string();
 }
 
-void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
+void Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
+        meshes[i].boundingSphere.center = transform.position + meshes[i].boundingSphere.localCenter;
+        bool isOnFrustum = meshes[i].isOnFrustum(camera.camFrustum, meshes[i].boundingSphere);
+
+        if (!isOnFrustum)
+        {
+            return;
+        }
+        
         numberOfBatches++;
         numberOfVertices += meshes[i].vertices.size();
 
@@ -38,12 +46,11 @@ void Model::Draw(glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatr
             glDepthMask(GL_FALSE);
         }
 
-        meshes[i].Draw(modelMatrix, projection, viewMatrix);
+        meshes[i].Draw(camera, modelMatrix, projection, viewMatrix);
         if (removeFromDepthBuffer)
         {
             glDepthMask(GL_TRUE);
         }
-
     }
 }
 
@@ -87,46 +94,67 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
     vector<unsigned int> indices;
     vector<Texture> textures;
 
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+    glm::vec3 avgPosition;
+
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+    {
+        Vertex vertex;
+        glm::vec3 vector;
+
+        vector.x = mesh->mVertices[i].x;
+        vector.y = mesh->mVertices[i].y;
+        vector.z = mesh->mVertices[i].z;
+        vertex.Position = vector;
+
+        avgPosition += vertex.Position;
+
+        vector.x = mesh->mNormals[i].x;
+        vector.y = mesh->mNormals[i].y;
+        vector.z = mesh->mNormals[i].z;
+        vertex.Normal = vector;
+
+        // can get uv0, uv1, ...
+        if (mesh->mTextureCoords[0])
         {
-            Vertex vertex;
-            glm::vec3 vector;
+            glm::vec2 vec;
+            vec.x = mesh->mTextureCoords[0][i].x;
+            vec.y = mesh->mTextureCoords[0][i].y;
+            vertex.TexCoords = vec;
 
-            vector.x = mesh->mVertices[i].x;
-            vector.y = mesh->mVertices[i].y;
-            vector.z = mesh->mVertices[i].z;
-            vertex.Position = vector;
+            vector.x = mesh->mTangents[i].x;
+            vector.y = mesh->mTangents[i].y;
+            vector.z = mesh->mTangents[i].z;
+            vertex.Tangent = vector;
 
-            vector.x = mesh->mNormals[i].x;
-            vector.y = mesh->mNormals[i].y;
-            vector.z = mesh->mNormals[i].z;
-            vertex.Normal = vector;
-
-            // can get uv0, uv1, ...
-            if (mesh->mTextureCoords[0])
-            {
-                glm::vec2 vec;
-                vec.x = mesh->mTextureCoords[0][i].x;
-                vec.y = mesh->mTextureCoords[0][i].y;
-                vertex.TexCoords = vec;
-
-                vector.x = mesh->mTangents[i].x;
-                vector.y = mesh->mTangents[i].y;
-                vector.z = mesh->mTangents[i].z;
-                vertex.Tangent = vector;
-
-                vector.x = mesh->mBitangents[i].x;
-                vector.y = mesh->mBitangents[i].y;
-                vector.z = mesh->mBitangents[i].z;
-                vertex.Bitangent = vector;
-            }
-            else
-            {
-                vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-            }
-
-            vertices.push_back(vertex);
+            vector.x = mesh->mBitangents[i].x;
+            vector.y = mesh->mBitangents[i].y;
+            vector.z = mesh->mBitangents[i].z;
+            vertex.Bitangent = vector;
         }
+        else
+        {
+            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+        }
+
+        vertices.push_back(vertex);
+    }
+
+    avgPosition /= (float)mesh->mNumVertices;
+    glm::vec3 difference;
+    // get furthest vertex from avg position to get radius of bounding sphere
+    float furthestDistance = 0.f;
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+    {
+        difference = vertices[i].Position - avgPosition;
+        float distance = glm::length(difference);
+        if (distance > furthestDistance)
+            furthestDistance = distance;
+    }
+
+    Sphere boundingSphere;
+    boundingSphere.center = avgPosition;
+    boundingSphere.radius = furthestDistance;
+    boundingSphere.localCenter = avgPosition;
 
     //process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++){
@@ -152,7 +180,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
 
     Shader *shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
-    return Mesh(vertices, indices, textures, shader, vertexShaderPath, fragmentShaderPath);
+    return Mesh(vertices, indices, textures, shader, vertexShaderPath, fragmentShaderPath, boundingSphere);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName){

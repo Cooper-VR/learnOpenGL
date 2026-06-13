@@ -68,7 +68,6 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
 
 }
 
-
 void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer){
     node->NodeModel = model;
 
@@ -107,13 +106,17 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
     insertSceneTreeNode(newNode);
 }
 
-
-void drawSceneNode(SceneTreeNode* node, glm::mat4 projection, glm::mat4 view){
+void drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, glm::mat4 view){
     if(node == nullptr || node->NodeModel == nullptr){
         return;
     }
 
     // Draw the model
+
+    node->NodeModel->transform.position = node->transform.position;
+    node->NodeModel->transform.rotation = node->transform.rotation;
+    node->NodeModel->transform.scale = node->transform.scale;
+
 
     glm::mat4 modelMatrix(1.0f);
     modelMatrix = glm::translate(modelMatrix, node->transform.position);
@@ -122,7 +125,9 @@ void drawSceneNode(SceneTreeNode* node, glm::mat4 projection, glm::mat4 view){
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    node->NodeModel->Draw(projection, view, modelMatrix);
+    node->NodeModel->transform.modelMatrix = modelMatrix;
+
+    node->NodeModel->Draw(camera, projection, view, node->NodeModel->transform.modelMatrix);
 }
 
 void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){

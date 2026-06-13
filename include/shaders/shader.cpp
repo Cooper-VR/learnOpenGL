@@ -19,6 +19,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
     vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    
     try
     {
         vShaderFile.open(vertexPath);
