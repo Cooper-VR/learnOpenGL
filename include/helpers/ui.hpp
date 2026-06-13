@@ -34,6 +34,10 @@ static std::string selectedFile = "";
 
 // for shader editing
 bool alreadyCreated = false;
+
+string vertexShaderName;
+string fragmentShaderName;
+
 vector<string> vertexUniforms;
 vector<string> fragmentUniforms;
 
@@ -61,6 +65,10 @@ string texturePath("resources/textures");
 char selectedName[256] = "";
 vector<string> shaderNames;
 string path("resources/shaders");
+static int intCounter = 0;
+static int floatCounter = 0;
+static int vec3Counter = 0;
+static int textureIDCounter = 0;
 
 float depthLinearizationNear = 0.1f;
 float depthLinearizationFar = 100.0f;
@@ -508,6 +516,33 @@ void loadData(GLFWwindow* window)
     }
 }
 
+void drawShaderSelection(int *selectedShader, string shaderType)
+{
+    ImGui::PushID(shaderType.c_str());
+    if (ImGui::Button(("Select " + shaderType).c_str()))
+        ImGui::OpenPopup((shaderType + "_select_popup").c_str());
+    ImGui::SameLine();
+    ImGui::Text(shaderType.c_str());
+    if (ImGui::BeginPopup((shaderType + "_select_popup").c_str()))
+    {
+        ImGui::SeparatorText(("Select " + shaderType).c_str());
+        for (int i = 0; i < shaderNames.size(); i++)
+            if (ImGui::Selectable(shaderNames[i].c_str()))
+            {
+                *selectedShader = i; // this is where we set the shader to the selected one
+                if (shaderType == "Vertex Shader")
+                    selectedNode->NodeModel->meshes[selected].vertexShaderPath = (path + '/' + shaderNames[i]).c_str();
+                else if (shaderType == "Fragment Shader")
+                {
+                    selectedNode->NodeModel->meshes[selected].fragmentShaderPath = (path + '/' + shaderNames[i]).c_str();
+                }
+                selectedNode->NodeModel->meshes[selected].reloadShaders();
+            }
+        ImGui::EndPopup();
+    }
+    ImGui::PopID();
+}
+
 void resetData()
 {
     skyColor[0] = 0.4f;
@@ -828,54 +863,16 @@ void drawSceneTree()
             char vertexShaderBuffer[512];
             char fragmentShaderBuffer[512];
 
-            string vertexShaderName;
-            string fragmentShaderName;
-
             vertexShaderName = selectedNode->NodeModel->meshes[selected].vertexShaderPath.substr(selectedNode->NodeModel->meshes[selected].vertexShaderPath.find_last_of("/\\") + 1);
             fragmentShaderName = selectedNode->NodeModel->meshes[selected].fragmentShaderPath.substr(selectedNode->NodeModel->meshes[selected].fragmentShaderPath.find_last_of("/\\") + 1);
 
             std::snprintf(vertexShaderBuffer, sizeof(vertexShaderBuffer), "%s", vertexShaderName.c_str());
             std::snprintf(fragmentShaderBuffer, sizeof(fragmentShaderBuffer), "%s", fragmentShaderName.c_str());
 
-            
-
             static int selected_vertex = -1;
-            ImGui::PushID("vertex_shader");
-            if (ImGui::Button(vertexShaderName.c_str()))
-                ImGui::OpenPopup("vertex_select_popup");
-            ImGui::SameLine();
-            ImGui::Text("Vertex Shader");
-            if (ImGui::BeginPopup("vertex_select_popup"))
-            {
-                ImGui::SeparatorText("Vertex Shaders");
-                for (int i = 0; i < shaderNames.size(); i++)
-                    if (ImGui::Selectable(shaderNames[i].c_str())){
-                        selected_vertex = i; //this is where we set the shader to the selected one
-                        selectedNode->NodeModel->meshes[selected].vertexShaderPath = (path + '/' + shaderNames[i]).c_str();
-                        selectedNode->NodeModel->meshes[selected].reloadShaders();
-                    }
-                ImGui::EndPopup();
-            }
-            ImGui::PopID();
-
             static int selected_fragment = -1;
-            ImGui::PushID("fragment_shader");
-            if (ImGui::Button(fragmentShaderName.c_str()))
-                ImGui::OpenPopup("fragment_select_popup");
-            ImGui::SameLine();
-            ImGui::Text("Fragment Shader");
-            if (ImGui::BeginPopup("fragment_select_popup"))
-            {
-                ImGui::SeparatorText("Fragment Shaders");
-                for (int i = 0; i < shaderNames.size(); i++)
-                    if (ImGui::Selectable(shaderNames[i].c_str())){
-                        selected_fragment = i; //this is where we set the shader to the selected one
-                        selectedNode->NodeModel->meshes[selected].fragmentShaderPath = (path + '/' + shaderNames[i]).c_str();
-                        selectedNode->NodeModel->meshes[selected].reloadShaders();
-                    }
-                ImGui::EndPopup();
-            }
-            ImGui::PopID();
+            drawShaderSelection(&selected_vertex, "Vertex Shader");
+            drawShaderSelection(&selected_fragment, "Fragment Shader");
 
             if (selected != previousSelected || selectedNode != previousSelectedNode)
             {
@@ -891,6 +888,8 @@ void drawSceneTree()
                 fragmentUniformInts.clear();
                 fragmentUniformFloats.clear();
                 fragmentUniformVec3s.clear();
+
+                shaderNames.clear();
 
 
                 selectedVertexTextureIDs.clear();
@@ -942,9 +941,6 @@ void drawSceneTree()
                 previousSelected = selected;
                 previousSelectedNode = selectedNode;
             }
-
-
-            
 
             if (!alreadyCreated)
             {
@@ -1043,13 +1039,12 @@ void drawSceneTree()
             }
 
             ImGui::Separator();
+            floatCounter = 0;
+            vec3Counter = 0;
+            intCounter = 0;
+            textureIDCounter = 0;
 
             ImGui::Text("Vertex Shader Uniforms:");
-
-            int intCounter = 0;
-            int floatCounter = 0;
-            int vec3Counter = 0;
-            int textureIDCounter = 0;
             for (int i = 0; i < vertexUniforms.size(); i++)
             {
                 ImGui::Text("%s: ", vertexUniforms[i].c_str());
@@ -1090,7 +1085,7 @@ void drawSceneTree()
                 else if (vertexUniformTypes[i] == "sampler2D")
                 {
 
-                                        Texture *currentTexture = nullptr;
+                    Texture *currentTexture = nullptr;
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
                     {
                         if (selectedNode->NodeModel->meshes[selected].textures[j].uniformName == fragmentUniforms[i])
@@ -1189,13 +1184,13 @@ void drawSceneTree()
                     ImGui::Text("Unknown uniform type: %s", vertexUniformTypes[i].c_str());
                 }
             }
-            ImGui::Text("Fragment Shader Uniforms:");
 
+            intCounter = 0;
             floatCounter = 0;
             vec3Counter = 0;
-            intCounter = 0;
             textureIDCounter = 0;
 
+            ImGui::Text("Fragment Shader Uniforms:");
             for (int i = 0; i < fragmentUniforms.size(); i++)
             {
                 ImGui::Text("%s: ", fragmentUniforms[i].c_str());
@@ -1429,7 +1424,6 @@ void drawAllUI(GLFWwindow* window)
 
     drawSceneTree();
     ShowFileBrowser();
-    // drawSceneTreeHierarchical(sceneRootNode, selectedNode);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
