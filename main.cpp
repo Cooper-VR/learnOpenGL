@@ -131,17 +131,10 @@ int main()
                         }
                     }
 
-                    model->meshes[k].shader->setVec3("dirLight.direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
-                    model->meshes[k].shader->setVec3("dirLight.ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-                    model->meshes[k].shader->setVec3("dirLight.diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-                    model->meshes[k].shader->setVec3("dirLight.specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
-
-                    if (runtimeTextureTargetNode && runtimeTextureTargetNode->NodeModel == model && runtimeTestTextureID != 0)
-                    {
-                        glActiveTexture(GL_TEXTURE0 + runtimeTestTextureUnit);
-                        glBindTexture(GL_TEXTURE_2D, runtimeTestTextureID);
-                        model->meshes[k].shader->setInt("testTexture", runtimeTestTextureUnit);
-                    }
+                    model->meshes[k].shader->setVec3("direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
+                    model->meshes[k].shader->setVec3("ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+                    model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+                    model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                 }
 
                 drawSceneNode(hashTable[i][j], projection, view);

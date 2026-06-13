@@ -18,7 +18,7 @@ in vec3 FragPosView;
 in vec3 NormalView;
 in vec2 TexCoords;
 
-uniform vec3 diffuseTint = vec3(1.0, 1.0, 1.0);
+uniform vec3 diffuseTint;
 uniform vec3 viewPos;
 uniform vec3 direction;
 
@@ -52,11 +52,11 @@ vec3 CalcDirLight(vec3 direction, vec3 normal, vec3 viewDir)
     vec3 lightDir = normalize(-direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
-
+    diff = round(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-
+    spec = round(spec);
 
     vec3 Tint = clamp(diffuseTint, 0, 1);
 
