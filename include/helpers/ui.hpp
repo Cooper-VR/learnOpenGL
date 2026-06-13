@@ -1229,8 +1229,8 @@ void drawSceneTree()
                 }
                 else if (fragmentUniformTypes[i] == "sampler2D")
                 {
-                    //for each sampler2D we need the image loaded if it has one
-                    //and the selection thing for all of them
+                    //right now we are just showing textures loaded in one folder
+                    //id like to list out all textures recursivly so i can just type a name a select it that way like unity
 
                     Texture *currentTexture = nullptr;
                     for (int j = 0; j < selectedNode->NodeModel->meshes[selected].textures.size(); j++)
