@@ -746,7 +746,7 @@ void ShowFileBrowser()
         }
         if (selectedNode != sceneRootNode)
         {
-            Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+            Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
             createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", selectedFile, transform, selectedNode);
         }
     }

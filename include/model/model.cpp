@@ -30,7 +30,25 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 void Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
-        meshes[i].boundingSphere.center = transform.position + meshes[i].boundingSphere.localCenter;
+        //need to move the meshes to the correct position and rotate and scale it based on the transform of the model, then we can check the culling
+
+        glm::mat4 centerCircleModel = glm::mat4(1.0f);
+
+        // Correct order: Scale → Rotate → Translate
+        centerCircleModel = glm::scale(centerCircleModel, transform.scale);
+        centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1));
+        centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.y), glm::vec3(0, 1, 0));
+        centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
+        centerCircleModel = glm::translate(centerCircleModel, transform.position);
+
+        // Now transform the local center
+        glm::vec4 worldCenter = centerCircleModel * glm::vec4(meshes[i].boundingSphere.localCenter, 1.0f);
+        meshes[i].boundingSphere.center = glm::vec3(worldCenter);
+
+        // Scale radius (use max component for safety)
+        float maxScale = std::max({transform.scale.x, transform.scale.y, transform.scale.z});
+        meshes[i].boundingSphere.radius = meshes[i].boundingSphere.originalRadius * maxScale; // Note: you should store original radius separately if you scale every frame
+
         bool isOnFrustum = meshes[i].isOnFrustum(camera.camFrustum, meshes[i].boundingSphere);
 
         if (!isOnFrustum)
@@ -155,6 +173,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
     boundingSphere.center = avgPosition;
     boundingSphere.radius = furthestDistance;
     boundingSphere.localCenter = avgPosition;
+    boundingSphere.originalRadius = furthestDistance;
 
     //process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++){
@@ -203,6 +222,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
 
     return textures;
 }
+
 
 unsigned int Model::TextureFromFile(const char *path, const string &directory, bool gamma){
     

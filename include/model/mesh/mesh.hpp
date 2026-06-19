@@ -35,6 +35,7 @@ struct Sphere
 {
 	glm::vec3 center{ 0.f, 0.f, 0.f };
 	float radius{ 0.f };
+    float originalRadius{ 0.f };
     glm::vec3 localCenter{ 0.f, 0.f, 0.f };
 };
 
