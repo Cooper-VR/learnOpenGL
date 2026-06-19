@@ -78,6 +78,13 @@ int main()
 
         vector<SceneTreeNode*> nodesToDrawLast;
 
+        //might need to make a quadtree to make this faster
+        //lets walk through the idea:
+        //so our quadtree will be a predefined size, ideally a power of 2 so it divided evenly,
+        //then we need to build out the tree, how should this be done in an effective way though?
+        //maybe only build it when an objects transform changes, so not every frame. would could make it faster too if we only update nearby cells
+        //the acual building might be hard, 
+
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
             for (int j = 0; j < hashTable[i].size(); j++)
@@ -90,53 +97,61 @@ int main()
                     nodesToDrawLast.push_back(hashTable[i][j]);
                     continue;
                 }
-                numberOfVertices += model->numberOfVertices;
-                numberOfBatches += model->numberOfBatches;
-                model->numberOfVertices = 0;
-                model->numberOfBatches = 0;
 
-                for (int k = 0; k < model->meshes.size(); k++)
+
+                bool drawResult = drawSceneNode(hashTable[i][j], camera, projection, view);
+
+                if (drawResult)
                 {
-                    model->meshes[k].shader->use();
-                    model->meshes[k].shader->setVec3("viewPos", camera.Position);
-                    // set view pos for shader editor part too
-                    int vertexVec3Counter = 0;
-                    for (int j = 0; j < vertexUniforms.size(); j++)
-                    {
-                        if (vertexUniforms[j] == "viewPos")
-                        {
-                            vertexUniformVec3s[vertexVec3Counter] = camera.Position;
-                            model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vertexVec3Counter]);
-                        }
-
-                        if (vertexUniformTypes[j] == "vec3")
-                        {
-                            vertexVec3Counter++;
-                        }
-                    }
-
-                    int fragmentVec3Counter = 0;
-                    for (int j = 0; j < fragmentUniforms.size(); j++)
-                    {
-                        if (fragmentUniforms[j] == "viewPos")
-                        {
-                            fragmentUniformVec3s[fragmentVec3Counter] = camera.Position;
-                            model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[fragmentVec3Counter]);
-                        }
-
-                        if (fragmentUniformTypes[j] == "vec3")
-                        {
-                            fragmentVec3Counter++;
-                        }
-                    }
-
-                    model->meshes[k].shader->setVec3("direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
-                    model->meshes[k].shader->setVec3("ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-                    model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-                    model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+                    numberOfVertices += model->numberOfVertices;
+                    numberOfBatches += model->numberOfBatches;
+                    model->numberOfVertices = 0;
+                    model->numberOfBatches = 0;
                 }
 
-                drawSceneNode(hashTable[i][j], camera, projection, view);
+                if (drawResult)
+                {
+                    for (int k = 0; k < model->meshes.size(); k++)
+                    {
+                        model->meshes[k].shader->use();
+                        model->meshes[k].shader->setVec3("viewPos", camera.Position);
+                        // set view pos for shader editor part too
+                        int vertexVec3Counter = 0;
+                        for (int j = 0; j < vertexUniforms.size(); j++)
+                        {
+                            if (vertexUniforms[j] == "viewPos")
+                            {
+                                vertexUniformVec3s[vertexVec3Counter] = camera.Position;
+                                model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vertexVec3Counter]);
+                            }
+
+                            if (vertexUniformTypes[j] == "vec3")
+                            {
+                                vertexVec3Counter++;
+                            }
+                        }
+
+                        int fragmentVec3Counter = 0;
+                        for (int j = 0; j < fragmentUniforms.size(); j++)
+                        {
+                            if (fragmentUniforms[j] == "viewPos")
+                            {
+                                fragmentUniformVec3s[fragmentVec3Counter] = camera.Position;
+                                model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[fragmentVec3Counter]);
+                            }
+
+                            if (fragmentUniformTypes[j] == "vec3")
+                            {
+                                fragmentVec3Counter++;
+                            }
+                        }
+
+                        model->meshes[k].shader->setVec3("direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
+                        model->meshes[k].shader->setVec3("ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+                        model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+                        model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
+                    }
+                }
             }
         }
 

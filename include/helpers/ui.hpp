@@ -1226,6 +1226,11 @@ void drawSceneTree()
                 {
                     if (!alreadyCreated)
                         fragmentUniformVec3s.push_back(selectedNode->NodeModel->meshes[selected].shader->getVec3(fragmentUniforms[i].c_str()));
+                    
+                    //lets not display the viewPos uniform since that is always set in the shader and it just clutters the UI
+                    if (fragmentUniforms[i] == "viewPos")
+                        continue;
+
                     if (ImGui::SliderFloat3(fragmentUniforms[i].c_str(), &fragmentUniformVec3s[vec3Counter][0], 0.0f, 5.0f))
                     {
                         selectedNode->NodeModel->meshes[selected].shader->use();

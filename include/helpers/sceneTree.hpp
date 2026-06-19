@@ -106,9 +106,9 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
     insertSceneTreeNode(newNode);
 }
 
-void drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, glm::mat4 view){
+bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, glm::mat4 view){
     if(node == nullptr || node->NodeModel == nullptr){
-        return;
+        return false;
     }
 
     // Draw the model
@@ -127,7 +127,8 @@ void drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, gl
 
     node->NodeModel->transform.modelMatrix = modelMatrix;
 
-    node->NodeModel->Draw(camera, projection, view, node->NodeModel->transform.modelMatrix);
+    bool drawResult = node->NodeModel->Draw(camera, projection, view, node->NodeModel->transform.modelMatrix);
+    return drawResult;
 }
 
 void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
@@ -159,7 +160,6 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     delete nodeToDelete;
 
 }
-
 
 // we are gonna need a getNodeByHash function
 SceneTreeNode* getNodeByHash(size_t hashID) {
