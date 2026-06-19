@@ -83,7 +83,15 @@ int main()
         //so our quadtree will be a predefined size, ideally a power of 2 so it divided evenly,
         //then we need to build out the tree, how should this be done in an effective way though?
         //maybe only build it when an objects transform changes, so not every frame. would could make it faster too if we only update nearby cells
-        //the acual building might be hard, 
+        //the acual building might be hard
+
+        //first check if there are any object in a cell, if there are more than 1, then split it into 4 smaller cells
+        //then we want to check each of those 4 cells and see how many objects are in them, if there are 1 or 0 then stop if not then split again
+        //now how do we detect if an mesh is in a cell, cause it can be in multiple cells too
+        
+        //we have spheres for the bounds models, we are llikly gonna have to change it away from by-mesh culling to model culling
+        //so realistically a octree cell is just 6 planes, so we can check the signed distanced between them to see if its inside of outside of a cell
+        
 
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
