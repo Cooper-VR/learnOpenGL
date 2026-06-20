@@ -195,6 +195,8 @@ int main()
         glfwPollEvents();
         numberOfVertices = 0;
         numberOfBatches = 0;
+
+        frameID++;
     }
 
     cout << "closing application" << endl;
@@ -211,6 +213,8 @@ int main()
             delete hashTable[i][j];
         }
     }
+
+    deleteOctree(octree);
 
     saveData(window);
 

@@ -677,8 +677,15 @@ void drawMainUI(GLFWwindow* window)
         }
     }
     
+
     if (ImGui::Button("Octree Create Test")){
-        generateOctree();
+        octree = generateOctree();
+    }
+    if (ImGui::Button("show octree leaves")){
+        printLeaves(octree);
+        
+        cout << "Total models in octree: " << octreeLeaves.size() << endl;
+
     }
 
     static int stressTestCount = 0;
@@ -690,7 +697,7 @@ void drawMainUI(GLFWwindow* window)
             for (int j = 0; j < stressTestCount; j++)
             {
                 Transform transform{glm::vec3(i * 2.0f, j * 2.0f, 0.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
-                createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", "tester", transform, sceneRootNode);
+                createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", ("tester" + std::to_string(i * stressTestCount + j)), transform, sceneRootNode);
             }
         }
     }

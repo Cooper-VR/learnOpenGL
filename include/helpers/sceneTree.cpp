@@ -1,4 +1,5 @@
 #include <helpers/sceneTree.hpp>
+#include <helpers/octree.hpp>
 
 vector<SceneTreeNode*> hashTable[HASH_TABLE_SIZE];
 

@@ -13,6 +13,7 @@ struct SceneTreeNode{
     Transform transform;
     unsigned int hashID;
     vector<unsigned int> childrenHash;
+    unsigned int frameID = 0;
 
 } typedef SceneTreeNode;
 

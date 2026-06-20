@@ -9,6 +9,8 @@
 #include "helpers/sceneTree.hpp"
 #include "helpers/octree.hpp"
 
+
+
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 float RotateSensitivity = 1.0f;
@@ -26,6 +28,8 @@ bool mousePressRight = false;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+unsigned int frameID = 0;
 
 using namespace std;
 
@@ -241,6 +245,19 @@ void setUpImGui(GLFWwindow *window)
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+void deleteOctree(OctreeNode* node)
+{
+    if (node == nullptr)
+        return;
+
+    for (int i = 0; i < 8; i++)
+    {
+        deleteOctree(node->children[i]);
+    }
+
+    delete node;
 }
 
 #endif
