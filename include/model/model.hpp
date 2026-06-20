@@ -28,6 +28,8 @@ class Model{
         bool Draw(Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix);
         void reloadShader(string vertexShaderPath, string fragmentShaderPath);
         unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
+        bool isOnOrForwardPlane(Plane &plane, Sphere &sphere);
+        bool isOnFrustum(Frustum &camFrustum, Sphere &sphere);
 
         //Shader *shader;
         vector<string> names;
@@ -37,6 +39,7 @@ class Model{
         int numberOfBatches = 0;
         vector<Mesh> meshes;
         bool removeFromDepthBuffer = false;
+        Sphere boundingSphere;
     private:
         bool gammaCorrection;
 

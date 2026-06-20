@@ -29,6 +29,7 @@ add_executable(learnOpenGL
     include/model/mesh/mesh.cpp
     include/model/model.cpp
     include/loaders/stb_image.cpp
+    include/helpers/octree.cpp
     ${IMGUI_SOURCES}
 )
 
