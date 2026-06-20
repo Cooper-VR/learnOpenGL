@@ -30,6 +30,7 @@ add_executable(learnOpenGL
     include/model/model.cpp
     include/loaders/stb_image.cpp
     include/helpers/octree.cpp
+    include/helpers/sceneTree.cpp
     ${IMGUI_SOURCES}
 )
 
@@ -40,6 +41,7 @@ target_include_directories(learnOpenGL PRIVATE
     include/imgui/backends
     libs/glfw/include
     libs/assimp/include
+    include/helpers
 )
 
 # --- Platform specific linking ---

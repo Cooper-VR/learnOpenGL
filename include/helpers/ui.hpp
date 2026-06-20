@@ -677,6 +677,10 @@ void drawMainUI(GLFWwindow* window)
         }
     }
     
+    if (ImGui::Button("Octree Create Test")){
+        generateOctree();
+    }
+
     static int stressTestCount = 0;
     ImGui::DragInt("Stress Test Count", &stressTestCount, 1.0f, 0, 1000);
     if (ImGui::Button("Stress Test (Spawn 1000 Models)"))

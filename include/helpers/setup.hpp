@@ -183,9 +183,6 @@ GLFWwindow *setupOpenGL()
         return nullptr;
     }
 
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &runtimeTestTextureUnit);
-    runtimeTestTextureUnit = std::max(0, runtimeTestTextureUnit - 1);
-
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_BLEND);
