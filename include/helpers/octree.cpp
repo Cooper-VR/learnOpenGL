@@ -26,32 +26,32 @@ OctreeNode* generateOctree(){
     {
         for (int j = 0; j < hashTable[i].size(); j++)
         {
-            Model *model = hashTable[i][j]->NodeModel;
-            if (model == nullptr)
+            SceneTreeNode *model = hashTable[i][j];
+            if (model == nullptr || model->NodeModel == nullptr)
                 continue;
 
-            glm::mat4 centerCircleModel = glm::mat4(1.0f);
+            glm::mat4 modelMatrix = glm::mat4(1.0f);
 
-            // Correct TRS order: Translate * Rotate * Scale
-            centerCircleModel = glm::translate(centerCircleModel, model->transform.position);
+            // Standard TRS order (Translate * Rotate * Scale)
+            modelMatrix = glm::translate(modelMatrix, model->transform.position);
 
-            centerCircleModel = glm::rotate(centerCircleModel, glm::radians(model->transform.rotation.z), glm::vec3(0, 0, 1));
-            centerCircleModel = glm::rotate(centerCircleModel, glm::radians(model->transform.rotation.y), glm::vec3(0, 1, 0));
-            centerCircleModel = glm::rotate(centerCircleModel, glm::radians(model->transform.rotation.x), glm::vec3(1, 0, 0));
+            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.z), glm::vec3(0, 0, 1));
+            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.y), glm::vec3(0, 1, 0));
+            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.x), glm::vec3(1, 0, 0));
 
-            centerCircleModel = glm::scale(centerCircleModel, model->transform.scale);
+            modelMatrix = glm::scale(modelMatrix, model->transform.scale);
 
             // Transform local center to world space
-            glm::vec4 worldCenter4 = centerCircleModel * glm::vec4(model->boundingSphere.localCenter, 1.0f);
-            model->boundingSphere.center = glm::vec3(worldCenter4);
+            glm::vec4 worldCenter4 = modelMatrix * glm::vec4(model->NodeModel->boundingSphere.localCenter, 1.0f);
+            model->NodeModel->boundingSphere.center = glm::vec3(worldCenter4);
 
             // Better radius scaling (handles non-uniform scale reasonably)
             float maxScale = std::max({model->transform.scale.x, model->transform.scale.y, model->transform.scale.z});
-            model->boundingSphere.radius = 1.0f * maxScale; // you should cache original radius
+            model->NodeModel->boundingSphere.radius = 1.0f * maxScale; // you should cache original radius
 
             //we need to make a frustum wich will be the octree cell
 
-            bool isOnFrustum = model->isOnFrustum(parent->octreeCellFrustum, model->boundingSphere);
+            bool isOnFrustum = model->NodeModel->isOnFrustum(parent->octreeCellFrustum, model->NodeModel->boundingSphere);
 
             if (isOnFrustum)
             {
@@ -143,6 +143,12 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
         bool isOnFrustum = stn->NodeModel->isOnFrustum(parent->octreeCellFrustum, stn->NodeModel->boundingSphere);
         if (isOnFrustum)
         {
+            auto *bs = &stn->NodeModel->boundingSphere;
+            cout << "   --> Model " << stn->name
+                 << " center: (" << bs->center.x << ", " << bs->center.y << ", " << bs->center.z
+                 << ") radius: " << bs->radius
+                 << "  Cell center: (" << parent->position.x << ", " << parent->position.y << ", " << parent->position.z << ")\n";
+            cout << "       Model scale: (" << stn->transform.scale.x << ", " << stn->transform.scale.y << ", " << stn->transform.scale.z << ")\n";
             numInCell++;
             nodesInCell.push_back(stn);
         }

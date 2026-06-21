@@ -27,7 +27,7 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
     directory = absolutePath.string();
 }
 
-bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
+bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix, Transform transform){
     glm::mat4 centerCircleModel = glm::mat4(1.0f);
 
     // Correct TRS order: Translate * Rotate * Scale

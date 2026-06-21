@@ -93,47 +93,27 @@ int main()
         //so realistically a octree cell is just 6 planes, so we can check the signed distanced between them to see if its inside of outside of a cell
     
 
-        for (int i = 0; i < octreeLeaves.size(); i++){
-            cout << "checking octree leaf " << i << endl;
-            for (int j = 0; j < octreeLeaves[i]->nodeInCell.size(); j++){
-                cout << "checking node " << octreeLeaves[i]->nodeInCell[j]->name << endl;
-                Model *model = octreeLeaves[i]->nodeInCell[j]->NodeModel;
-                if (model == nullptr)
-                    continue;
-                if (model == nullptr)
-                    continue;
-                if (octreeLeaves[i]->nodeInCell[j]->frameID == frameID)
-                    continue;
-                if (model->removeFromDepthBuffer)
-                {
-                    nodesToDrawLast.push_back(octreeLeaves[i]->nodeInCell[j]);
-                    continue;
-                }
 
-                octreeLeaves[i]->nodeInCell[j]->frameID = frameID;
-
-                cout << "model " << octreeLeaves[i]->nodeInCell[j]->name << " is in leaf " << i << endl;
-            }
-        }
 
         
-        for (int i = 0; i < HASH_TABLE_SIZE; i++)
+        for (int i = 0; i < octreeLeaves.size(); i++)
         {
-            for (int j = 0; j < hashTable[i].size(); j++)
+            for (int j = 0; j < octreeLeaves[i]->nodeInCell.size(); j++)
             {
-                Model *model = hashTable[i][j]->NodeModel;
+                SceneTreeNode *stn = octreeLeaves[i]->nodeInCell[j];
+                Model *model = stn->NodeModel;
                 if (model == nullptr)
                     continue;
-                if (hashTable[i][j]->frameID == frameID)
+                if (stn->frameID == frameID)
                     continue;
                 if (model->removeFromDepthBuffer)
                 {
-                    nodesToDrawLast.push_back(hashTable[i][j]);
+                    nodesToDrawLast.push_back(stn);
                     continue;
                 }
 
-                hashTable[i][j]->frameID = frameID;
-                /*bool drawResult = drawSceneNode(hashTable[i][j], camera, projection, view);
+                stn->frameID = frameID;
+                bool drawResult = drawSceneNode(stn, camera, projection, view);
 
                 if (drawResult)
                 {
@@ -185,7 +165,7 @@ int main()
                         model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
                         model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                     }
-                }*/
+                }
             }
         }
 

@@ -89,12 +89,6 @@ bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, gl
         return false;
     }
 
-    // Draw the model
-
-    node->NodeModel->transform.position = node->transform.position;
-    node->NodeModel->transform.rotation = node->transform.rotation;
-    node->NodeModel->transform.scale = node->transform.scale;
-
 
     glm::mat4 modelMatrix(1.0f);
     modelMatrix = glm::translate(modelMatrix, node->transform.position);
@@ -103,9 +97,7 @@ bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, gl
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    node->NodeModel->transform.modelMatrix = modelMatrix;
-
-    bool drawResult = node->NodeModel->Draw(camera, projection, view, node->NodeModel->transform.modelMatrix);
+    bool drawResult = node->NodeModel->Draw(camera, projection, view, modelMatrix, node->transform);
     return drawResult;
 }
 
