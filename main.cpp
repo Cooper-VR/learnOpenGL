@@ -91,8 +91,32 @@ int main()
         
         //we have spheres for the bounds models, we are llikly gonna have to change it away from by-mesh culling to model culling
         //so realistically a octree cell is just 6 planes, so we can check the signed distanced between them to see if its inside of outside of a cell
-        
+    
 
+        for (int i = 0; i < octreeLeaves.size(); i++){
+            cout << "checking octree leaf " << i << endl;
+            for (int j = 0; j < octreeLeaves[i]->nodeInCell.size(); j++){
+                cout << "checking node " << octreeLeaves[i]->nodeInCell[j]->name << endl;
+                Model *model = octreeLeaves[i]->nodeInCell[j]->NodeModel;
+                if (model == nullptr)
+                    continue;
+                if (model == nullptr)
+                    continue;
+                if (octreeLeaves[i]->nodeInCell[j]->frameID == frameID)
+                    continue;
+                if (model->removeFromDepthBuffer)
+                {
+                    nodesToDrawLast.push_back(octreeLeaves[i]->nodeInCell[j]);
+                    continue;
+                }
+
+                octreeLeaves[i]->nodeInCell[j]->frameID = frameID;
+
+                cout << "model " << octreeLeaves[i]->nodeInCell[j]->name << " is in leaf " << i << endl;
+            }
+        }
+
+        
         for (int i = 0; i < HASH_TABLE_SIZE; i++)
         {
             for (int j = 0; j < hashTable[i].size(); j++)
@@ -100,14 +124,16 @@ int main()
                 Model *model = hashTable[i][j]->NodeModel;
                 if (model == nullptr)
                     continue;
+                if (hashTable[i][j]->frameID == frameID)
+                    continue;
                 if (model->removeFromDepthBuffer)
                 {
                     nodesToDrawLast.push_back(hashTable[i][j]);
                     continue;
                 }
 
-
-                bool drawResult = drawSceneNode(hashTable[i][j], camera, projection, view);
+                hashTable[i][j]->frameID = frameID;
+                /*bool drawResult = drawSceneNode(hashTable[i][j], camera, projection, view);
 
                 if (drawResult)
                 {
@@ -159,9 +185,11 @@ int main()
                         model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
                         model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                     }
-                }
+                }*/
             }
         }
+
+        
 
         //draw nodes that should be removed from depth buffer last so that they are on top of everything else and not affected by depth testing
         for (int i = 0; i < nodesToDrawLast.size(); i++)

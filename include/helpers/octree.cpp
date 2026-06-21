@@ -1,6 +1,6 @@
 #include <helpers/octree.hpp>
 
-Frustum octreeCellFrustum;
+
 OctreeNode* octree = nullptr;
 vector<OctreeNode*> octreeLeaves;
 
@@ -10,12 +10,15 @@ OctreeNode* generateOctree(){
     parent->position = glm::vec3(0.f, 0.f, 0.f);
     parent->size = glm::vec3(2048.f, 2048.f, 2048.f);
 
+    Frustum octreeCellFrustum;
     octreeCellFrustum.topFace = Plane(parent->position + glm::vec3(0.f, parent->size.y / 2, 0.f), glm::vec3(0.f, -1.f, 0.f));
     octreeCellFrustum.bottomFace = Plane(parent->position + glm::vec3(0.f, -parent->size.y / 2, 0.f), glm::vec3(0.f, 1.f, 0.f));
     octreeCellFrustum.leftFace = Plane(parent->position + glm::vec3(-parent->size.x / 2, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
     octreeCellFrustum.rightFace = Plane(parent->position + glm::vec3(parent->size.x / 2, 0.f, 0.f), glm::vec3(-1.f, 0.f, 0.f));
     octreeCellFrustum.nearFace = Plane(parent->position + glm::vec3(0.f, 0.f, -parent->size.z / 2), glm::vec3(0.f, 0.f, 1.f));
     octreeCellFrustum.farFace = Plane(parent->position + glm::vec3(0.f, 0.f, parent->size.z / 2), glm::vec3(0.f, 0.f, -1.f));
+
+    parent->octreeCellFrustum = octreeCellFrustum;
 
     unsigned int numInCell = 0;
     vector<SceneTreeNode*> nodesInCell;
@@ -44,13 +47,11 @@ OctreeNode* generateOctree(){
 
             // Better radius scaling (handles non-uniform scale reasonably)
             float maxScale = std::max({model->transform.scale.x, model->transform.scale.y, model->transform.scale.z});
-            model->boundingSphere.radius = 0.1f * maxScale; // you should cache original radius
+            model->boundingSphere.radius = 1.0f * maxScale; // you should cache original radius
 
             //we need to make a frustum wich will be the octree cell
 
-
-
-            bool isOnFrustum = model->isOnFrustum(octreeCellFrustum, model->boundingSphere);
+            bool isOnFrustum = model->isOnFrustum(parent->octreeCellFrustum, model->boundingSphere);
 
             if (isOnFrustum)
             {
@@ -60,6 +61,15 @@ OctreeNode* generateOctree(){
             }
         }
     }
+    
+    cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
+    cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2 << endl;
+
+    cout << "Number of models in cell: " << numInCell << endl;
+    for (auto* n : nodesInCell)
+    {
+        cout << "Model in cell: " << n->name << endl;
+    }
 
     //ok now if there are more than 1 models in the cell we need to make 8 children and run this again 
     //but with the children as the parent, passing a list of models inside so that the list will get smaller as it gets deeper
@@ -67,6 +77,7 @@ OctreeNode* generateOctree(){
 
     if (numInCell <= 1){
         //we are at a leaf node, we can stop
+        cout << "Root is leaf node. Storing model in root." << endl;
         if (!nodesInCell.empty())
             parent->nodeInCell.push_back(nodesInCell[0]);
         return parent;
@@ -101,28 +112,23 @@ OctreeNode* generateOctree(){
         }
     }
 
-    cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
-    cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2 << endl;
-
-    cout << "Number of models in cell: " << numInCell << endl;
 
     return parent;
 }
 
-OctreeNode* generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, int depth)
+void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, int depth)
 {
-
-
-    // Build frustum ONCE per node
     Frustum octreeCellFrustum;
-    const auto& p = parent->position;
-    const auto& s = parent->size;
-    octreeCellFrustum.topFace    = Plane(p + glm::vec3(0,  s.y/2, 0), glm::vec3(0, -1, 0));
-    octreeCellFrustum.bottomFace = Plane(p + glm::vec3(0, -s.y/2, 0), glm::vec3(0,  1, 0));
-    octreeCellFrustum.leftFace   = Plane(p + glm::vec3(-s.x/2, 0, 0), glm::vec3( 1, 0, 0));
-    octreeCellFrustum.rightFace  = Plane(p + glm::vec3( s.x/2, 0, 0), glm::vec3(-1, 0, 0));
-    octreeCellFrustum.nearFace   = Plane(p + glm::vec3(0, 0, -s.z/2), glm::vec3(0, 0,  1));
-    octreeCellFrustum.farFace    = Plane(p + glm::vec3(0, 0,  s.z/2), glm::vec3(0, 0, -1));
+    octreeCellFrustum.topFace = Plane(parent->position + glm::vec3(0.f, parent->size.y / 2, 0.f), glm::vec3(0.f, -1.f, 0.f));
+    octreeCellFrustum.bottomFace = Plane(parent->position + glm::vec3(0.f, -parent->size.y / 2, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    octreeCellFrustum.leftFace = Plane(parent->position + glm::vec3(-parent->size.x / 2, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+    octreeCellFrustum.rightFace = Plane(parent->position + glm::vec3(parent->size.x / 2, 0.f, 0.f), glm::vec3(-1.f, 0.f, 0.f));
+    octreeCellFrustum.nearFace = Plane(parent->position + glm::vec3(0.f, 0.f, -parent->size.z / 2), glm::vec3(0.f, 0.f, 1.f));
+    octreeCellFrustum.farFace = Plane(parent->position + glm::vec3(0.f, 0.f, parent->size.z / 2), glm::vec3(0.f, 0.f, -1.f));
+
+    parent->octreeCellFrustum = octreeCellFrustum;
+
+    parent->depth = depth;
 
     unsigned int numInCell = 0;
     vector<SceneTreeNode*> nodesInCell;
@@ -134,7 +140,7 @@ OctreeNode* generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInPar
         if (stn == nullptr)
             continue;
 
-        bool isOnFrustum = stn->NodeModel && stn->NodeModel->isOnFrustum(octreeCellFrustum, stn->NodeModel->boundingSphere);
+        bool isOnFrustum = stn->NodeModel->isOnFrustum(parent->octreeCellFrustum, stn->NodeModel->boundingSphere);
         if (isOnFrustum)
         {
             numInCell++;
@@ -143,26 +149,50 @@ OctreeNode* generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInPar
     }
 
     // Debug print
-    
-    /*cout << "Depth: " << depth 
-         << " | Cell: [" << (p.x - s.x/2) << ", " << (p.y - s.y/2) << ", " << (p.z - s.z/2) 
-         << "] -> [" << (p.x + s.x/2) << ", " << (p.y + s.y/2) << ", " << (p.z + s.z/2) 
-         << "] | Models: " << numInCell << endl;
-*/
+
+    if (numInCell == 1) // max depth or only 1 model
+    {
+        cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
+        cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2;
+        cout << " Depth: " << depth << endl;
+        cout << "Parent node has " << nodesInParent.size() << " models, " << numInCell << " are in this cell." << endl;
+        cout << "Number of models in cell: " << numInCell << endl;
+        for (SceneTreeNode *stn : nodesInCell)
+        {
+            if (stn && stn->NodeModel)
+            {
+                cout << "    Model in cell: " << stn->name << ", HashID: " << stn->hashID << endl;
+            }
+        }
+        cout << endl;
+    }
+
     if (numInCell <= 1)
     {
         if (!nodesInCell.empty())
         {
             parent->nodeInCell.push_back(nodesInCell[0]);
+            octreeLeaves.push_back(parent);
         }
-        return parent;
+
+        return;
     }
+
+
 
     if (depth >= 8)  // max depth
     {
-        for (auto* n : nodesInCell)
+        
+        cout << "Max depth reached. Storing " << nodesInCell.size() << " models in leaf node." << endl;
+        cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
+        cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2;
+        cout << " Depth: " << depth << endl;
+        cout << endl;
+        for (auto* n : nodesInCell){
             parent->nodeInCell.push_back(n);
-        return parent;
+        }
+        octreeLeaves.push_back(parent);
+        return;
     }
 
     // Subdivide
@@ -184,31 +214,58 @@ OctreeNode* generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInPar
         generateOctree(child, nodesInCell, depth + 1);
     }
 
-    return parent;
+    return;
 }
 
-int printLeaves(OctreeNode* node){
-    if (node == nullptr)
-        return 0;
-
-    int modelCount = node->nodeInCell.size(); 
-    if (node->nodeInCell.size() > 0)
+int printLeaves(){
+    for (OctreeNode* leaf : octreeLeaves)
     {
-        octreeLeaves.push_back(node);
-        cout << "Leaf node at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << ", ";
-        cout << "Size: " << node->size.x << ", " << node->size.y << ", " << node->size.z << endl;
-        for (SceneTreeNode* stn : node->nodeInCell)
+        cout << "Leaf node at position: " << leaf->position.x << ", " << leaf->position.y << ", " << leaf->position.z;
+        cout << " with size: " << leaf->size.x << ", " << leaf->size.y << ", " << leaf->size.z;
+        cout << " contains " << leaf->nodeInCell.size() << " models." << endl;
+        for (SceneTreeNode* stn : leaf->nodeInCell)
         {
             if (stn && stn->NodeModel)
             {
-                cout << "  Model: " << stn->name << ", HashID: " << stn->hashID << endl;
+                cout << "    Model in leaf: " << stn->name << ", HashID: " << stn->hashID << endl;
             }
         }
     }
 
+    return octreeLeaves.size();
+}
+
+void deleteOctree(OctreeNode* node){
+    if (node == nullptr)
+        return;
+
     for (int i = 0; i < 8; i++)
     {
-        modelCount += printLeaves(node->children[i]);
+        deleteOctree(node->children[i]);
     }
-    return modelCount;
+    delete node;
 }
+
+void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
+    if (node == nullptr || stn == nullptr)
+        return;
+
+    // Check if the node's model is within the octree cell
+    if (stn->NodeModel && stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere))
+    {
+        // If it's a leaf node, add the model to this cell
+        if (node->children[0] == nullptr) // Assuming all children are null for a leaf
+        {
+            node->nodeInCell.push_back(stn);
+        }
+        else
+        {
+            // Otherwise, try to insert into children
+            for (int i = 0; i < 8; i++)
+            {
+                insertNodeIntoOctree(node->children[i], stn);
+            }
+        }
+    }
+}
+

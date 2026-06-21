@@ -28,7 +28,7 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
 }
 
 bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
-    /*glm::mat4 centerCircleModel = glm::mat4(1.0f);
+    glm::mat4 centerCircleModel = glm::mat4(1.0f);
 
     // Correct TRS order: Translate * Rotate * Scale
     centerCircleModel = glm::translate(centerCircleModel, transform.position);
@@ -52,7 +52,7 @@ bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, gl
     if (!isOnFrustum)
     {
         return false; // Skip drawing this mesh if it's outside the frustum
-    }*/
+    }
 
     for (unsigned int i = 0; i < meshes.size(); i++)
     {

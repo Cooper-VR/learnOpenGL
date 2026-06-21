@@ -247,17 +247,5 @@ void setUpImGui(GLFWwindow *window)
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void deleteOctree(OctreeNode* node)
-{
-    if (node == nullptr)
-        return;
-
-    for (int i = 0; i < 8; i++)
-    {
-        deleteOctree(node->children[i]);
-    }
-
-    delete node;
-}
 
 #endif
