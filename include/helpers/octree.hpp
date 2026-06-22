@@ -54,13 +54,11 @@ OctreeNode* generateOctree();
 
 void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, int depth);
 
-void insertObjectIntoOctree(OctreeNode* node, SceneTreeNode* stn);
+void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn);
+
+void deleteNodeFromOctree(OctreeNode* node, SceneTreeNode* stn);
 
 void deleteOctree(OctreeNode* node);
-
-void deleteObjectFromOctree(OctreeNode* node, SceneTreeNode* stn);
-
-void CheckSiblings(OctreeNode* node);
 
 void updateNodeInOctree(OctreeNode* node, SceneTreeNode* stn);
 
