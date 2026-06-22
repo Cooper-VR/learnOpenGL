@@ -688,6 +688,10 @@ void drawMainUI(GLFWwindow* window)
         printLeaves();
         cout << "Total leaves in octree: " << octreeLeaves.size() << endl;
     }
+    if(ImGui::Button("generate octree")){
+        delete octree;
+        octree = generateOctree();
+    }
 
     static int stressTestCount = 0;
     ImGui::DragInt("Stress Test Count", &stressTestCount, 1.0f, 0, 1000);
@@ -756,7 +760,7 @@ void ShowFileBrowser()
             ImGui::End();
             return;
         }
-        if (selectedNode != sceneRootNode)
+        if (1)
         {
             Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
             createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", selectedFile, transform, selectedNode);
@@ -837,12 +841,7 @@ void drawSceneTree()
 
     drawSceneTreeHierarchical(sceneRootNode, selectedNode);
 
-    if (selectedNode == sceneRootNode)
-    {
-        selectedNode = nullptr;
-    }
-
-    if (selectedNode)
+    if (selectedNode != nullptr && selectedNode->name != "sceneRoot")
     {
         ImGui::Separator();
         std::snprintf(selectedName, sizeof(selectedName), "%s", selectedNode->name.c_str());

@@ -62,6 +62,8 @@ void deleteOctree(OctreeNode* node);
 
 void updateNodeInOctree(OctreeNode* node, SceneTreeNode* stn);
 
+void deleteOctreeNode(OctreeNode* node);
+
 int printLeaves();
 
 #endif

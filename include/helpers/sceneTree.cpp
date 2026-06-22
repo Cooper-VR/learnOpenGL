@@ -127,6 +127,8 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     auto &nodes = hashTable[slot];
     nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
     
+    deleteNodeFromOctree(octree, nodeToDelete);
+
     // Delete the node
     delete nodeToDelete;
 

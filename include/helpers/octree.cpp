@@ -220,8 +220,9 @@ void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
         // If it's a leaf node, add the model to this cell
         if (node->children[0] == nullptr) // Assuming all children are null for a leaf
         {
-            cout << "Inserting model " << stn->name << " into octree leaf at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << endl;
+            cout << "Inserting model: " << stn->name << " into octree node at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << endl;
             node->nodeInCell.push_back(stn);
+            node->isLeaf = true; // Mark as leaf since it now contains a model
             return;
         }
 
@@ -245,14 +246,63 @@ void deleteNodeFromOctree(OctreeNode* node, SceneTreeNode* stn){
         {
             auto& models = node->nodeInCell;
             models.erase(std::remove(models.begin(), models.end(), stn), models.end());
-        }
-        else
-        {
-            // Otherwise, try to delete from children
-            for (int i = 0; i < 8; i++)
+
+            if (models.empty())
             {
-                deleteNodeFromOctree(node->children[i], stn);
+                cout << "Octree node at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << " is now empty and will be deleted." << endl;
+                node->isLeaf = false; // No models left, mark as non-leaf
+                // delete octree node
+                deleteOctreeNode(node);
             }
         }
+
+        // Otherwise, try to delete from children
+        for (int i = 0; i < 8; i++)
+        {
+            deleteNodeFromOctree(node->children[i], stn);
+        }
+    }
+}
+
+void deleteOctreeNode(OctreeNode* node){
+    if (node == nullptr)
+        return;
+    if (node->nodeInCell.empty() && node->children[0] == nullptr) // No models and no children
+    {
+        OctreeNode* parent = node->parent;
+        //check if nodes siblings are empty, if they are then delete the parent too
+        if (parent != nullptr)
+        {
+            bool allSiblingsEmpty = true;
+            for (int i = 0; i < 8; i++)
+            {
+                if (parent->children[i] != nullptr && parent->children[i] != node)
+                {
+                    if (!parent->children[i]->nodeInCell.empty() || parent->children[i]->children[0] != nullptr)
+                    {
+                        allSiblingsEmpty = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allSiblingsEmpty)
+            {
+                // Delete all siblings
+                for (int i = 0; i < 8; i++)
+                {
+                    if (parent->children[i] != nullptr)
+                    {
+                        deleteOctreeNode(parent->children[i]);
+                        delete parent->children[i];
+                        parent->children[i] = nullptr;
+                    }
+                }
+                // Now delete the parent
+                deleteOctreeNode(parent);
+            }
+        }
+        cout << "Octree node at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << " is now empty and will be deleted." << endl;
+        delete node;
     }
 }
