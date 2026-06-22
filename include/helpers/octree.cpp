@@ -29,17 +29,11 @@ OctreeNode* generateOctree(){
             SceneTreeNode *model = hashTable[i][j];
             if (model == nullptr || model->NodeModel == nullptr)
                 continue;
+            if (model->NodeModel->renderNormal)
+                continue;
 
-            glm::mat4 modelMatrix = glm::mat4(1.0f);
-
-            // Standard TRS order (Translate * Rotate * Scale)
-            modelMatrix = glm::translate(modelMatrix, model->transform.position);
-
-            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.z), glm::vec3(0, 0, 1));
-            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.y), glm::vec3(0, 1, 0));
-            modelMatrix = glm::rotate(modelMatrix, glm::radians(model->transform.rotation.x), glm::vec3(1, 0, 0));
-
-            modelMatrix = glm::scale(modelMatrix, model->transform.scale);
+            model->NodeModel->boundingSphere.center = model->transform.position + model->NodeModel->boundingSphere.localCenter;
+            model->NodeModel->boundingSphere.radius = model->NodeModel->boundingSphere.originalRadius * std::max({model->transform.scale.x, model->transform.scale.y, model->transform.scale.z});
 
             //we need to make a frustum wich will be the octree cell
 
@@ -217,20 +211,22 @@ void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
         return;
 
     // Check if the node's model is within the octree cell
-    if (stn->NodeModel && stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere))
+    stn->NodeModel->boundingSphere.center = stn->transform.position + stn->NodeModel->boundingSphere.localCenter;
+    stn->NodeModel->boundingSphere.radius = stn->NodeModel->boundingSphere.originalRadius * std::max({stn->transform.scale.x, stn->transform.scale.y, stn->transform.scale.z});
+    if (stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere))
     {
         // If it's a leaf node, add the model to this cell
         if (node->children[0] == nullptr) // Assuming all children are null for a leaf
         {
+            cout << "Inserting model " << stn->name << " into octree leaf at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << endl;
             node->nodeInCell.push_back(stn);
+            return;
         }
-        else
+
+        // Otherwise, try to insert into children
+        for (int i = 0; i < 8; i++)
         {
-            // Otherwise, try to insert into children
-            for (int i = 0; i < 8; i++)
-            {
-                insertNodeIntoOctree(node->children[i], stn);
-            }
+            insertNodeIntoOctree(node->children[i], stn);
         }
     }
 }

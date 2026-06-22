@@ -76,8 +76,8 @@ int main()
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        vector<SceneTreeNode*> nodesToDrawNormal;
         vector<SceneTreeNode*> nodesToDrawLast;
-
         vector<OctreeNode*> culledNodes;
         if (octree != nullptr)
         {

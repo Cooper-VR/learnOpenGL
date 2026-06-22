@@ -45,6 +45,7 @@ class Model{
         int numberOfBatches = 0;
         vector<Mesh> meshes;
         bool removeFromDepthBuffer = false;
+        bool renderNormal = false;
         Sphere boundingSphere;
     private:
         bool gammaCorrection;

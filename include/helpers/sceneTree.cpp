@@ -68,6 +68,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
 
     setTreeNode(test, newNode, parent, transform, modelName);
     insertSceneTreeNode(newNode);
+    insertNodeIntoOctree(octree, newNode);
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer) {

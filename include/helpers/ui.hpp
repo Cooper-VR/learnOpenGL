@@ -681,10 +681,6 @@ void drawMainUI(GLFWwindow* window)
         }
     }
     
-
-    if (ImGui::Button("Octree Create Test")){
-        octree = generateOctree();
-    }
     if (ImGui::Button("show octree leaves")){
         printLeaves();
         cout << "Total leaves in octree: " << octreeLeaves.size() << endl;
