@@ -41,14 +41,6 @@ OctreeNode* generateOctree(){
 
             modelMatrix = glm::scale(modelMatrix, model->transform.scale);
 
-            // Transform local center to world space
-            glm::vec4 worldCenter4 = modelMatrix * glm::vec4(model->NodeModel->boundingSphere.localCenter, 1.0f);
-            model->NodeModel->boundingSphere.center = glm::vec3(worldCenter4);
-
-            // Better radius scaling (handles non-uniform scale reasonably)
-            float maxScale = std::max({model->transform.scale.x, model->transform.scale.y, model->transform.scale.z});
-            model->NodeModel->boundingSphere.radius = 1.0f * maxScale; // you should cache original radius
-
             //we need to make a frustum wich will be the octree cell
 
             bool isOnFrustum = model->NodeModel->isOnFrustum(parent->octreeCellFrustum, model->NodeModel->boundingSphere);

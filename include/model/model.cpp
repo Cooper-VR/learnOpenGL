@@ -111,9 +111,6 @@ void Model::loadModel(string const &path, string vertexShaderPath, string fragme
     boundingSphere.radius = furthestDistance;
     boundingSphere.localCenter = boundingSphere.center;
     boundingSphere.originalRadius = boundingSphere.radius;
-
-    cout << "Model with bounding sphere: Center = (" << boundingSphere.center.x << ", " << boundingSphere.center.y << ", " << boundingSphere.center.z << "), Radius = " << boundingSphere.radius << endl;
-
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath, long long *positionsOfVertices)
