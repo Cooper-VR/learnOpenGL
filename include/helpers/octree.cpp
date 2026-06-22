@@ -29,8 +29,10 @@ OctreeNode* generateOctree(){
             SceneTreeNode *model = hashTable[i][j];
             if (model == nullptr || model->NodeModel == nullptr)
                 continue;
-            if (model->NodeModel->renderNormal)
+            if (model->NodeModel->renderNormal){
+                nodesToDrawNormal.push_back(model);
                 continue;
+            }
 
             model->NodeModel->boundingSphere.center = model->transform.position + model->NodeModel->boundingSphere.localCenter;
             model->NodeModel->boundingSphere.radius = model->NodeModel->boundingSphere.originalRadius * std::max({model->transform.scale.x, model->transform.scale.y, model->transform.scale.z});

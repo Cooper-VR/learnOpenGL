@@ -33,16 +33,16 @@ extern SceneTreeNode *rootNode;
 extern SceneTreeNode *sceneRootNode;
 extern SceneTreeNode *selectedNode;
 extern SceneTreeNode *previousSelectedNode;
-
+extern vector<SceneTreeNode*> nodesToDrawNormal;
 void insertSceneTreeNode(SceneTreeNode *node);
 
 void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Transform transform, string name);
 
-void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer);
+void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer, bool renderNormal);
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent);
 
-void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer);
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer, bool renderNormal);
 
 bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, glm::mat4 view);
 

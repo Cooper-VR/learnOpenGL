@@ -103,6 +103,7 @@ void saveScene()
                     sceneFile << hashTable[i][j]->transform.scale.x << ' ' << hashTable[i][j]->transform.scale.y << ' ' << hashTable[i][j]->transform.scale.z << endl;
                     sceneFile << hashTable[i][j]->childrenInstances.size() << endl;
                     sceneFile << hashTable[i][j]->NodeModel->removeFromDepthBuffer << endl;
+                    sceneFile << hashTable[i][j]->NodeModel->renderNormal << endl;
                     for (int k = 0; k < hashTable[i][j]->childrenInstances.size(); k++)
                     {
                         sceneFile << hashTable[i][j]->childrenInstances[k]->hashID << endl;
@@ -321,6 +322,8 @@ void loadScene()
                 sceneFile >> numChildren;
                 bool removeFromDepthBuffer;
                 sceneFile >> removeFromDepthBuffer;
+                bool renderNormal;
+                sceneFile >> renderNormal;
                 for (int i = 0; i < numChildren; i++)
                 {
                     unsigned int childHash;
@@ -363,7 +366,7 @@ void loadScene()
                     }
                 }
 
-                createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes, removeFromDepthBuffer);
+                createNewModel(path, vertexShaderPaths[0].c_str(), fragmentShaderPaths[0].c_str(), name, transform, hashID, childrenHashes, removeFromDepthBuffer, renderNormal);
 
                 //loop throught the node and 
 
@@ -859,7 +862,8 @@ void drawSceneTree()
             selectedNode->transform = transform;
         }
         ImGui::Checkbox("Remove from Depth Buffer", &selectedNode->NodeModel->removeFromDepthBuffer);
-        
+        ImGui::Checkbox("Render Normal", &selectedNode->NodeModel->renderNormal);
+
         ImGui::Text("Hash ID: %zu", selectedNode->hashID);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;

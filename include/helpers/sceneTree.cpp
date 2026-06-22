@@ -7,7 +7,7 @@ SceneTreeNode* rootNode = nullptr;
 SceneTreeNode* sceneRootNode = nullptr;
 SceneTreeNode* selectedNode = nullptr;
 SceneTreeNode* previousSelectedNode = nullptr;
-
+vector<SceneTreeNode*> nodesToDrawNormal;
 void insertSceneTreeNode(SceneTreeNode *node){
     
     unsigned int slot = node->hashID % HASH_TABLE_SIZE;
@@ -46,7 +46,7 @@ void setTreeNode(Model* model, SceneTreeNode* node, SceneTreeNode* parent, Trans
 
 }
 
-void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer){
+void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string name, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer, bool renderNormal){
     node->NodeModel = model;
 
     node->transform = transform;
@@ -54,6 +54,7 @@ void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string 
     node->hashID = hashID;
     node->childrenHash = childrenHash;
     node->NodeModel->removeFromDepthBuffer = removeFromDepthBuffer;
+    node->NodeModel->renderNormal = renderNormal;
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
@@ -71,7 +72,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
     insertNodeIntoOctree(octree, newNode);
 }
 
-void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer) {
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer, bool renderNormal) {
     Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
     SceneTreeNode *newNode = new SceneTreeNode();
 
@@ -81,7 +82,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
         return;
     }
 
-    setTreeNode(test, newNode, transform, modelName, hashID, childrenHash, removeFromDepthBuffer);
+    setTreeNode(test, newNode, transform, modelName, hashID, childrenHash, removeFromDepthBuffer, renderNormal);
     insertSceneTreeNode(newNode);
 }
 

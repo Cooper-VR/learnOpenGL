@@ -76,7 +76,7 @@ int main()
         glClearColor(skyColor[0], skyColor[1], skyColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        vector<SceneTreeNode*> nodesToDrawNormal;
+
         vector<SceneTreeNode*> nodesToDrawLast;
         vector<OctreeNode*> culledNodes;
         if (octree != nullptr)
@@ -85,94 +85,96 @@ int main()
             numberOfCells = culledNodes.size();
         }
 
-
-        if (octree != nullptr){
-        for (int i = 0; i < culledNodes.size(); i++)
+        if (octree != nullptr)
         {
-            for (int j = 0; j < culledNodes[i]->nodeInCell.size(); j++)
+            for (int i = 0; i < culledNodes.size(); i++)
             {
-                SceneTreeNode *stn = culledNodes[i]->nodeInCell[j];
-                if (stn->NodeModel == nullptr)
-                    continue;
-                Model *model = stn->NodeModel;
-                if (model == nullptr)
-                    continue;
-                if (stn->frameID == frameID)
-                    continue;
-                if (model->removeFromDepthBuffer)
+                for (int j = 0; j < culledNodes[i]->nodeInCell.size(); j++)
                 {
-                    nodesToDrawLast.push_back(stn);
-                    continue;
-                }
+                    SceneTreeNode *stn = culledNodes[i]->nodeInCell[j];
+                    if (stn->NodeModel == nullptr)
+                        continue;
+                    Model *model = stn->NodeModel;
+                    if (model == nullptr)
+                        continue;
+                    if (stn->frameID == frameID)
+                        continue;
 
-                stn->frameID = frameID;
-                bool drawResult = drawSceneNode(stn, camera, projection, view);
 
-                if (drawResult)
-                {
+                    stn->frameID = frameID;
+                    bool drawResult = drawSceneNode(stn, camera, projection, view);
 
-
-                    numberOfVertices += model->numberOfVertices;
-                    numberOfBatches += model->numberOfBatches;
-                    model->numberOfVertices = 0;
-                    model->numberOfBatches = 0;
-                }
-
-                if (drawResult)
-                {
-                    for (int k = 0; k < model->meshes.size(); k++)
+                    if (drawResult)
                     {
-                        model->meshes[k].shader->use();
-                        model->meshes[k].shader->setVec3("viewPos", camera.Position);
-                        // set view pos for shader editor part too
-                        int vertexVec3Counter = 0;
-                        for (int j = 0; j < vertexUniforms.size(); j++)
+
+                        numberOfVertices += model->numberOfVertices;
+                        numberOfBatches += model->numberOfBatches;
+                        model->numberOfVertices = 0;
+                        model->numberOfBatches = 0;
+                    }
+
+                    if (drawResult)
+                    {
+                        for (int k = 0; k < model->meshes.size(); k++)
                         {
-                            if (vertexUniforms[j] == "viewPos")
+                            model->meshes[k].shader->use();
+                            model->meshes[k].shader->setVec3("viewPos", camera.Position);
+                            // set view pos for shader editor part too
+                            int vertexVec3Counter = 0;
+                            for (int j = 0; j < vertexUniforms.size(); j++)
                             {
-                                vertexUniformVec3s[vertexVec3Counter] = camera.Position;
-                                model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vertexVec3Counter]);
+                                if (vertexUniforms[j] == "viewPos")
+                                {
+                                    vertexUniformVec3s[vertexVec3Counter] = camera.Position;
+                                    model->meshes[k].shader->setVec3(vertexUniforms[j].c_str(), vertexUniformVec3s[vertexVec3Counter]);
+                                }
+
+                                if (vertexUniformTypes[j] == "vec3")
+                                {
+                                    vertexVec3Counter++;
+                                }
                             }
 
-                            if (vertexUniformTypes[j] == "vec3")
+                            int fragmentVec3Counter = 0;
+                            for (int j = 0; j < fragmentUniforms.size(); j++)
                             {
-                                vertexVec3Counter++;
+                                if (fragmentUniforms[j] == "viewPos")
+                                {
+                                    fragmentUniformVec3s[fragmentVec3Counter] = camera.Position;
+                                    model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[fragmentVec3Counter]);
+                                }
+
+                                if (fragmentUniformTypes[j] == "vec3")
+                                {
+                                    fragmentVec3Counter++;
+                                }
                             }
+
+                            model->meshes[k].shader->setVec3("direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
+                            model->meshes[k].shader->setVec3("ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
+                            model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
+                            model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                         }
-
-                        int fragmentVec3Counter = 0;
-                        for (int j = 0; j < fragmentUniforms.size(); j++)
-                        {
-                            if (fragmentUniforms[j] == "viewPos")
-                            {
-                                fragmentUniformVec3s[fragmentVec3Counter] = camera.Position;
-                                model->meshes[k].shader->setVec3(fragmentUniforms[j].c_str(), fragmentUniformVec3s[fragmentVec3Counter]);
-                            }
-
-                            if (fragmentUniformTypes[j] == "vec3")
-                            {
-                                fragmentVec3Counter++;
-                            }
-                        }
-
-                        model->meshes[k].shader->setVec3("direction", dirLightDirection[0], dirLightDirection[1], dirLightDirection[2]);
-                        model->meshes[k].shader->setVec3("ambient", dirLightAmbientColor[0], dirLightAmbientColor[1], dirLightAmbientColor[2]);
-                        model->meshes[k].shader->setVec3("diffuse", dirLightDiffuseColor[0], dirLightDiffuseColor[1], dirLightDiffuseColor[2]);
-                        model->meshes[k].shader->setVec3("specular", dirLightSpecularColor[0], dirLightSpecularColor[1], dirLightSpecularColor[2]);
                     }
                 }
             }
+
+            for (int i = 0; i < nodesToDrawNormal.size(); i++)
+            {
+                if (nodesToDrawNormal[i]->NodeModel->removeFromDepthBuffer)
+                {
+                    nodesToDrawLast.push_back(nodesToDrawNormal[i]);
+                    continue;
+                }
+                drawSceneNode(nodesToDrawNormal[i], camera, projection, view);
+            }
+
+            // draw nodes that should be removed from depth buffer last so that they are on top of everything else and not affected by depth testing
+            for (int i = 0; i < nodesToDrawLast.size(); i++)
+            {
+                drawSceneNode(nodesToDrawLast[i], camera, projection, view);
+            }
         }
-
-        
-
-        //draw nodes that should be removed from depth buffer last so that they are on top of everything else and not affected by depth testing
-        for (int i = 0; i < nodesToDrawLast.size(); i++)
-        {
-            drawSceneNode(nodesToDrawLast[i], camera, projection, view);
-        }
-
-    }
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
