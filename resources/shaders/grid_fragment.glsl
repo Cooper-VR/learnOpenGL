@@ -9,12 +9,7 @@ struct Material {
     float shininess;
 }; 
 
-struct DirLight {
-    vec3 direction;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
+
 
 in vec3 FragPos;  
 in vec3 Normal;  
@@ -23,10 +18,10 @@ in vec3 WorldPos;
   
 uniform vec3 viewPos;
 uniform Material material;
-uniform DirLight dirLight;
 
-uniform float near = 0.1; 
-uniform float far  = 100.0; 
+
+uniform float near = 0.001; 
+uniform float far  = 1.0; 
 
 vec4 grid(vec3 p, float scale);
 float LinearizeDepth(float depth);
@@ -35,15 +30,6 @@ void main()
 {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 lightDir = normalize(-dirLight.direction);
-
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    vec3 lighting = dirLight.ambient + 
-                    dirLight.diffuse * diff + 
-                    dirLight.specular * spec;
 
     float depth = LinearizeDepth(gl_FragCoord.z);
     vec4 gridColor = grid(FragPos, 10.0);   // grid density
@@ -54,7 +40,7 @@ void main()
 
 
 
-    FragColor = vec4(finalColor * lighting, 1.0)* clamp(1/depth, 0, 0.4);
+    FragColor = vec4(finalColor, 1.0)* clamp(1/depth, 0, 0.4);
 
 }
 
