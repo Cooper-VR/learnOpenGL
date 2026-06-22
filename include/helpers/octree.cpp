@@ -68,7 +68,6 @@ OctreeNode* generateOctree(){
 
     if (numInCell <= 1){
         //we are at a leaf node, we can stop
-        cout << "Root is leaf node. Storing model in root." << endl;
         if (!nodesInCell.empty())
             parent->nodeInCell.push_back(nodesInCell[0]);
         parent->isLeaf = true;
@@ -149,7 +148,6 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
         {
             parent->nodeInCell.push_back(nodesInCell[0]);
             octreeLeaves.push_back(parent);
-            cout << "    leaf node at depth " << depth << " storing model: " << nodesInCell[0]->name << endl;
             parent->isLeaf = true;
         }
 
@@ -158,11 +156,9 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
 
     if (depth >= 8)  // max depth
     {
-        cout << endl;
         for (auto* n : nodesInCell){
             parent->nodeInCell.push_back(n);
         }
-        cout << "   -leaf node at depth " << depth << " storing " << nodesInCell.size() << " models." << endl;
         parent->isLeaf = true;
         octreeLeaves.push_back(parent);
         return;
@@ -209,36 +205,121 @@ int printLeaves(){
     return octreeLeaves.size();
 }
 
+void deleteObjectFromOctree(OctreeNode* node, SceneTreeNode* stn){
+    //ima sorta copy the insert, just keeping track of the nodes i would insert into and removing from those nodes instead of adding to them
+    if (node == nullptr || stn == nullptr || stn->NodeModel == nullptr)
+    {
+        cout << "Error: Null node or model passed to deleteObjectFromOctree." << endl;
+        return;
+    }
+
+    bool isOnFrustum = stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere);
+
+    if (!isOnFrustum)
+        return; //model is not in this cell
+    
+    if (node->isLeaf){
+        //we are at a leaf node, we can stop
+        auto it = std::find(node->nodeInCell.begin(), node->nodeInCell.end(), stn);
+        if (it != node->nodeInCell.end())
+        {
+            cout << "Deleting model " << stn->name << " from octree leaf at position: " << node->position.x << ", " << node->position.y << ", " << node->position.z << endl;
+            node->nodeInCell.erase(it);
+            if (node->nodeInCell.empty())
+            {
+                node->isLeaf = false;
+                auto leafIt = std::find(octreeLeaves.begin(), octreeLeaves.end(), node);
+                if (leafIt != octreeLeaves.end())
+                {
+                    octreeLeaves.erase(leafIt);
+                }
+
+                //lets check the sibling nodes too, if they are empty then the children can be deleted and the parent can become an empty leaf
+                CheckSiblings(node);
+            }
+        }
+        return;
+    }
+
+}
+
 void deleteOctree(OctreeNode* node){
     if (node == nullptr)
         return;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
         deleteOctree(node->children[i]);
+        node->children[i] = nullptr;
     }
+
     delete node;
 }
 
-void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
-    if (node == nullptr || stn == nullptr)
+void CheckSiblings(OctreeNode* node){
+    if (node == nullptr || node->parent == nullptr)
+        return;
+    OctreeNode* parent = node->parent;
+    if (parent == nullptr)
         return;
 
-    // Check if the node's model is within the octree cell
-    if (stn->NodeModel && stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere))
+    bool allSiblingsEmpty = true;
+
+    for (int i = 0; i < 8; ++i)
     {
-        // If it's a leaf node, add the model to this cell
-        if (node->children[0] == nullptr) // Assuming all children are null for a leaf
+        if (parent->children[i] != nullptr && !parent->children[i]->nodeInCell.empty())
         {
-            node->nodeInCell.push_back(stn);
+            allSiblingsEmpty = false;
+            break;
         }
-        else
+    }
+
+    if (allSiblingsEmpty)
+    {
+        // Delete all children
+        for (int i = 0; i < 8; ++i)
         {
-            // Otherwise, try to insert into children
-            for (int i = 0; i < 8; i++)
-            {
-                insertNodeIntoOctree(node->children[i], stn);
-            }
+            delete parent->children[i];
+            parent->children[i] = nullptr;
         }
+
+        //check the parent now, a sorta waterfall effect
+        CheckSiblings(parent);
+    }
+}
+
+void insertObjectIntoOctree(OctreeNode* root, SceneTreeNode* stn){
+    if (root == nullptr || stn == nullptr || stn->NodeModel == nullptr)
+    {
+        cout << "Error: Null node or model passed to insertObjectIntoOctree." << endl;
+        return;
+    }
+
+    //we need to check if the model is in the octree cell, if it is then we need to insert it into the correct child node
+    bool isOnFrustum = stn->NodeModel->isOnFrustum(root->octreeCellFrustum, stn->NodeModel->boundingSphere);
+
+    if (!isOnFrustum)
+        return; //model is not in this cell
+
+    //if we are the only one in here and no children then add here
+    if (root->isLeaf){
+        //we are at a leaf node, we can stop
+        root->nodeInCell.push_back(stn);
+        return;
+    }
+
+    if (root->children[0] == nullptr && !root->isLeaf){
+        //has no children so its an empty leaf
+        root->nodeInCell.push_back(stn);
+        root->isLeaf = true;
+        octreeLeaves.push_back(root);
+        return;
+    }
+
+    //we are not at a leaf node, we need to check which child node this model belongs in and insert it there
+
+    for (int i = 0; i < 8; i++)
+    {
+        insertObjectIntoOctree(root->children[i], stn);
     }
 }

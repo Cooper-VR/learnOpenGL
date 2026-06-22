@@ -19,6 +19,7 @@ namespace fs = std::filesystem;
 static int numberOfVertices = 0;
 static int numberOfBatches = 0;
 static int numberOfCells = 0;
+static int numberOfIterations = 0;
 
 float skyColor[3]{0.4f, 0.4f, 0.9f};
 float dirLightDirection[3] = {-0.2f, -1.0f, -0.3f};
@@ -611,6 +612,8 @@ void drawMainUI(GLFWwindow* window)
     ImGui::Text("Number of Vertices: %d", numberOfVertices);
     ImGui::Text("Number of Batches: %d", numberOfBatches);
     ImGui::Text("Number of Cells: %d", numberOfCells);
+    ImGui::Text("Number of Iterations: %d", numberOfIterations);
+    numberOfIterations = 0;
 
     ImGui::SliderFloat("RotateSensitivity", &RotateSensitivity, 0.1f, 5.0f);
     ImGui::SliderFloat("PanSensitivity", &PanSensitivity, 0.1f, 5.0f);
@@ -654,6 +657,7 @@ void drawMainUI(GLFWwindow* window)
     if (ImGui::Button("Load Scene"))
     {
         loadScene();
+        octree = generateOctree();
     }
     if (ImGui::Button("reload shaders"))
     {
@@ -700,6 +704,8 @@ void drawMainUI(GLFWwindow* window)
                 createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", ("tester" + std::to_string(i * stressTestCount + j)), transform, sceneRootNode);
             }
         }
+
+        octree = generateOctree();
     }
     
     ImGui::End();
@@ -1439,7 +1445,9 @@ void drawSceneTree()
             SceneTreeNode *nodeToDelete = selectedNode;
             SceneTreeNode *parentNode = nodeToDelete->parentNode;
 
+            cout << "Deleting node: " << nodeToDelete->name << endl;
             removeNodeFromSceneTree(nodeToDelete);
+
 
             selectedNode = nullptr;
         }

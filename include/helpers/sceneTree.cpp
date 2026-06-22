@@ -68,6 +68,9 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
 
     setTreeNode(test, newNode, parent, transform, modelName);
     insertSceneTreeNode(newNode);
+    test->boundingSphere.center = transform.position;
+    test->boundingSphere.radius = 1.0f; // You may want to calculate this based on the model's actual geometry
+    insertObjectIntoOctree(octree, newNode);
 }
 
 void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, unsigned int hashID, vector<unsigned int> childrenHash, bool removeFromDepthBuffer) {
@@ -124,6 +127,8 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     unsigned int slot = nodeToDelete->hashID % HASH_TABLE_SIZE;
     auto &nodes = hashTable[slot];
     nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
+
+    deleteObjectFromOctree(octree, nodeToDelete);
 
     // Delete the node
     delete nodeToDelete;
