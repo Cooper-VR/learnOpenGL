@@ -235,3 +235,26 @@ void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
     }
 }
 
+void deleteNodeFromOctree(OctreeNode* node, SceneTreeNode* stn){
+    if (node == nullptr || stn == nullptr)
+        return;
+
+    // Check if the node's model is within the octree cell
+    if (stn->NodeModel && stn->NodeModel->isOnFrustum(node->octreeCellFrustum, stn->NodeModel->boundingSphere))
+    {
+        // If it's a leaf node, remove the model from this cell
+        if (node->children[0] == nullptr) // Assuming all children are null for a leaf
+        {
+            auto& models = node->nodeInCell;
+            models.erase(std::remove(models.begin(), models.end(), stn), models.end());
+        }
+        else
+        {
+            // Otherwise, try to delete from children
+            for (int i = 0; i < 8; i++)
+            {
+                deleteNodeFromOctree(node->children[i], stn);
+            }
+        }
+    }
+}
