@@ -274,4 +274,3 @@ void insertNodeIntoOctree(OctreeNode* node, SceneTreeNode* stn){
         }
     }
 }
-

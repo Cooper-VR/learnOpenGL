@@ -33,6 +33,16 @@ struct Plane
 	{
 		return glm::dot(normal, point) - distance;
 	}
+
+    void normalize()
+    {
+        float length = glm::length(normal);
+        if (length > 0.000001f)
+        {
+            normal /= length;
+            distance /= length;
+        }
+    }
 };
 
 struct Frustum

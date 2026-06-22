@@ -81,5 +81,13 @@ Frustum Camera::createFrustumFromCamera(float aspect, float fovY, float zNear, f
 	frustum.leftFace = { Position, glm::cross(Up, frontMultFar + Right * halfHSide) };
 	frustum.topFace = { Position, glm::cross(Right, frontMultFar - Up * halfVSide) };
 	frustum.bottomFace = { Position, glm::cross(frontMultFar + Up * halfVSide, Right) };
+
+    frustum.nearFace.normalize();
+    frustum.farFace.normalize();
+    frustum.rightFace.normalize();
+    frustum.leftFace.normalize();
+    frustum.topFace.normalize();
+    frustum.bottomFace.normalize();
+    
 	return frustum;
 }

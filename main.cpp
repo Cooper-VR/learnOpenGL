@@ -91,11 +91,19 @@ int main()
         
         //we have spheres for the bounds models, we are llikly gonna have to change it away from by-mesh culling to model culling
         //so realistically a octree cell is just 6 planes, so we can check the signed distanced between them to see if its inside of outside of a cell
-    
-
-
 
         
+        if (octree != nullptr)
+        {
+            vector<OctreeNode*> culledNodes = getCulledOctreeNodes(octree, camera.camFrustum);
+        }
+        for (int i = 0; i < octreeLeaves.size(); i++)
+        {
+            cout << "Octree Cell " << i << ": position: (" << octreeLeaves[i]->position.x << ", " << octreeLeaves[i]->position.y << ", " << octreeLeaves[i]->position.z
+                 << ") size: (" << octreeLeaves[i]->size.x << ", " << octreeLeaves[i]->size.y << ", " << octreeLeaves[i]->size.z
+                 << ") num models in cell: " << octreeLeaves[i]->nodeInCell.size() << "\n";
+        }
+
         for (int i = 0; i < octreeLeaves.size(); i++)
         {
             for (int j = 0; j < octreeLeaves[i]->nodeInCell.size(); j++)

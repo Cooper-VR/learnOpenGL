@@ -89,7 +89,6 @@ bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, gl
         return false;
     }
 
-
     glm::mat4 modelMatrix(1.0f);
     modelMatrix = glm::translate(modelMatrix, node->transform.position);
     modelMatrix = glm::scale(modelMatrix, node->transform.scale);

@@ -31,6 +31,7 @@ add_executable(learnOpenGL
     include/loaders/stb_image.cpp
     include/helpers/octree.cpp
     include/helpers/sceneTree.cpp
+    include/helpers/setup.cpp
     ${IMGUI_SOURCES}
 )
 
