@@ -13,6 +13,7 @@ struct OctreeNode{
     glm::vec3 size = glm::vec3(0.f, 0.f, 0.f);
     glm::vec3 position = glm::vec3(0.f, 0.f, 0.f);
     unsigned int depth = 0;
+    bool isLeaf = false;
     vector<SceneTreeNode*> nodeInCell; //if this is a leaf node then we will store the model in this cell here, if not then this will be null
     Frustum octreeCellFrustum; //the frustum of this cell, used to check if a model is in this cell or not
 
@@ -22,9 +23,6 @@ struct OctreeNode{
         const glm::vec3 extents = size * 0.5f;
         const glm::vec3 center   = position;
 
-        cout << "Checking octree cell at position: (" << position.x << ", " << position.y << ", " << position.z
-             << ") with size: (" << size.x << ", " << size.y << ", " << size.z
-             << ") against camera frustum.\n";
         // Test against all 6 planes
         return isAABBOnOrForwardPlane(camFrustum.leftFace,   center, extents) &&
                isAABBOnOrForwardPlane(camFrustum.rightFace,  center, extents) &&
@@ -44,11 +42,6 @@ struct OctreeNode{
                 extents.z * std::abs(plane.normal.z);
 
             float signedDist = plane.getSignedDistanceToPlane(center);
-
-            // For debugging - remove later
-            cout << "    Plane normal: (" << plane.normal.x << ", " << plane.normal.y << ", " << plane.normal.z 
-                << ") dist: " << plane.distance 
-                << " signedDist: " << signedDist << " r: " << r << "\n";
 
             return signedDist >= -r;   // Box intersects or is on the inside of the plane
         }

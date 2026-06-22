@@ -244,9 +244,6 @@ vector<OctreeNode*> getCulledOctreeNodes(OctreeNode *root, Frustum cameraFrustum
 
     //ok so check root
     if (isOnFrustum){
-        cout << "Octree Cell position: (" << root->position.x << ", " << root->position.y << ", " << root->position.z
-             << ") size: (" << root->size.x << ", " << root->size.y << ", " << root->size.z
-             << ") num models in cell: " << root->nodeInCell.size() << "\n";
         //then do the children
         for(int i = 0; i < 8; i++)
         {
@@ -258,17 +255,26 @@ vector<OctreeNode*> getCulledOctreeNodes(OctreeNode *root, Frustum cameraFrustum
 }
 
 void getChildrenCulledOctreeNodes(OctreeNode *node, Frustum cameraFrustum, vector<OctreeNode*> &culledNodes){
+    if (node == nullptr)
+        return;
+
+    
     bool isOnFrustum = node->intersectsFrustum(cameraFrustum);
 
     //ok so check root
     if (isOnFrustum){
-        //then do the children
+
+        if (node->isLeaf)
+        {
+            culledNodes.push_back(node);
+            return;
+        }
         for(int i = 0; i < 8; i++)
         {
             getChildrenCulledOctreeNodes(node->children[i], cameraFrustum, culledNodes);
         }
     }
-    else{
-        culledNodes.push_back(node);
-    }
+
+    return;
+    
 }

@@ -62,15 +62,6 @@ OctreeNode* generateOctree(){
         }
     }
     
-    cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
-    cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2 << endl;
-
-    cout << "Number of models in cell: " << numInCell << endl;
-    for (auto* n : nodesInCell)
-    {
-        cout << "Model in cell: " << n->name << endl;
-    }
-
     //ok now if there are more than 1 models in the cell we need to make 8 children and run this again 
     //but with the children as the parent, passing a list of models inside so that the list will get smaller as it gets deeper
     //if we have 1 or 0 models in the cell then we can stop, we will store the list of models in this leaf and return
@@ -80,6 +71,7 @@ OctreeNode* generateOctree(){
         cout << "Root is leaf node. Storing model in root." << endl;
         if (!nodesInCell.empty())
             parent->nodeInCell.push_back(nodesInCell[0]);
+        parent->isLeaf = true;
         return parent;
     }else{
         //we need to make 8 children and run this again 
@@ -112,7 +104,7 @@ OctreeNode* generateOctree(){
         }
     }
 
-
+    parent->isLeaf = false; //this node is not a leaf since it has children
     return parent;
 }
 
@@ -144,11 +136,6 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
         if (isOnFrustum)
         {
             auto *bs = &stn->NodeModel->boundingSphere;
-            cout << "   --> Model " << stn->name
-                 << " center: (" << bs->center.x << ", " << bs->center.y << ", " << bs->center.z
-                 << ") radius: " << bs->radius
-                 << "  Cell center: (" << parent->position.x << ", " << parent->position.y << ", " << parent->position.z << ")\n";
-            cout << "       Model scale: (" << stn->transform.scale.x << ", " << stn->transform.scale.y << ", " << stn->transform.scale.z << ")\n";
             numInCell++;
             nodesInCell.push_back(stn);
         }
@@ -156,47 +143,27 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
 
     // Debug print
 
-    if (numInCell == 1) // max depth or only 1 model
-    {
-        cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
-        cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2;
-        cout << " Depth: " << depth << endl;
-        cout << "Parent node has " << nodesInParent.size() << " models, " << numInCell << " are in this cell." << endl;
-        cout << "Number of models in cell: " << numInCell << endl;
-        for (SceneTreeNode *stn : nodesInCell)
-        {
-            if (stn && stn->NodeModel)
-            {
-                cout << "    Model in cell: " << stn->name << ", HashID: " << stn->hashID << endl;
-            }
-        }
-        cout << endl;
-    }
-
     if (numInCell <= 1)
     {
         if (!nodesInCell.empty())
         {
             parent->nodeInCell.push_back(nodesInCell[0]);
             octreeLeaves.push_back(parent);
+            cout << "    leaf node at depth " << depth << " storing model: " << nodesInCell[0]->name << endl;
+            parent->isLeaf = true;
         }
 
         return;
     }
 
-
-
     if (depth >= 8)  // max depth
     {
-        
-        cout << "Max depth reached. Storing " << nodesInCell.size() << " models in leaf node." << endl;
-        cout << "cell from " << parent->position.x - parent->size.x / 2 << ", " << parent->position.y - parent->size.y / 2 << ", " << parent->position.z - parent->size.z / 2;
-        cout << " to " << parent->position.x + parent->size.x / 2 << ", " << parent->position.y + parent->size.y / 2 << ", " << parent->position.z + parent->size.z / 2;
-        cout << " Depth: " << depth << endl;
         cout << endl;
         for (auto* n : nodesInCell){
             parent->nodeInCell.push_back(n);
         }
+        cout << "   -leaf node at depth " << depth << " storing " << nodesInCell.size() << " models." << endl;
+        parent->isLeaf = true;
         octreeLeaves.push_back(parent);
         return;
     }
@@ -220,6 +187,7 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
         generateOctree(child, nodesInCell, depth + 1);
     }
 
+    parent->isLeaf = false;  // This node is not a leaf since it has children
     return;
 }
 

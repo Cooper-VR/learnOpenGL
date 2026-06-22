@@ -78,37 +78,20 @@ int main()
 
         vector<SceneTreeNode*> nodesToDrawLast;
 
-        //might need to make a quadtree to make this faster
-        //lets walk through the idea:
-        //so our quadtree will be a predefined size, ideally a power of 2 so it divided evenly,
-        //then we need to build out the tree, how should this be done in an effective way though?
-        //maybe only build it when an objects transform changes, so not every frame. would could make it faster too if we only update nearby cells
-        //the acual building might be hard
-
-        //first check if there are any object in a cell, if there are more than 1, then split it into 4 smaller cells
-        //then we want to check each of those 4 cells and see how many objects are in them, if there are 1 or 0 then stop if not then split again
-        //now how do we detect if an mesh is in a cell, cause it can be in multiple cells too
-        
-        //we have spheres for the bounds models, we are llikly gonna have to change it away from by-mesh culling to model culling
-        //so realistically a octree cell is just 6 planes, so we can check the signed distanced between them to see if its inside of outside of a cell
-
-        
+        vector<OctreeNode*> culledNodes;
         if (octree != nullptr)
         {
-            vector<OctreeNode*> culledNodes = getCulledOctreeNodes(octree, camera.camFrustum);
-        }
-        for (int i = 0; i < octreeLeaves.size(); i++)
-        {
-            cout << "Octree Cell " << i << ": position: (" << octreeLeaves[i]->position.x << ", " << octreeLeaves[i]->position.y << ", " << octreeLeaves[i]->position.z
-                 << ") size: (" << octreeLeaves[i]->size.x << ", " << octreeLeaves[i]->size.y << ", " << octreeLeaves[i]->size.z
-                 << ") num models in cell: " << octreeLeaves[i]->nodeInCell.size() << "\n";
+            culledNodes = getCulledOctreeNodes(octree, camera.camFrustum);
+            numberOfCells = culledNodes.size();
         }
 
-        for (int i = 0; i < octreeLeaves.size(); i++)
+
+        if (octree != nullptr){
+        for (int i = 0; i < culledNodes.size(); i++)
         {
-            for (int j = 0; j < octreeLeaves[i]->nodeInCell.size(); j++)
+            for (int j = 0; j < culledNodes[i]->nodeInCell.size(); j++)
             {
-                SceneTreeNode *stn = octreeLeaves[i]->nodeInCell[j];
+                SceneTreeNode *stn = culledNodes[i]->nodeInCell[j];
                 Model *model = stn->NodeModel;
                 if (model == nullptr)
                     continue;
@@ -185,7 +168,7 @@ int main()
             drawSceneNode(nodesToDrawLast[i], camera, projection, view);
         }
 
-        
+    }
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
