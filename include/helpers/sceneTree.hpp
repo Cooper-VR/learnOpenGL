@@ -15,6 +15,16 @@ struct SceneTreeNode{
     vector<unsigned int> childrenHash;
     unsigned int frameID = 0;
 
+    ~SceneTreeNode() {
+        if (NodeModel != nullptr) {
+            delete NodeModel;
+            NodeModel = nullptr;
+        }
+        parentNode = nullptr;
+        hashID = 0;
+        frameID = 0;
+    }
+
 } typedef SceneTreeNode;
 
 

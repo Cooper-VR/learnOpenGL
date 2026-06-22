@@ -86,17 +86,44 @@ void Model::loadModel(string const &path, string vertexShaderPath, string fragme
     this->directory = path.substr(0, path.find_last_of('/'));
 
     // process ASSIMP's root node recursively
-    processNode(scene->mRootNode, scene, vertexShaderPath, fragmentShaderPath);
+    long long positionsOfVertices = 0.0;
+
+    processNode(scene->mRootNode, scene, vertexShaderPath, fragmentShaderPath, &positionsOfVertices);
+
+    int numVertices = 0;
+    for (const auto& mesh : meshes) {
+        numVertices += mesh.vertices.size();
+    }
+
+    positionsOfVertices /= numVertices;
+
+    float furthestDistance = 0.0f;
+    for (const auto& mesh : meshes) {
+        for (const auto& vertex : mesh.vertices) {
+            float distance = glm::length(vertex.Position - glm::vec3(positionsOfVertices));
+            if (distance > furthestDistance) {
+                furthestDistance = distance;
+            }
+        }
+    }
+
+    boundingSphere.center = glm::vec3(positionsOfVertices);
+    boundingSphere.radius = furthestDistance;
+    boundingSphere.localCenter = boundingSphere.center;
+    boundingSphere.originalRadius = boundingSphere.radius;
+
+    cout << "Model with bounding sphere: Center = (" << boundingSphere.center.x << ", " << boundingSphere.center.y << ", " << boundingSphere.center.z << "), Radius = " << boundingSphere.radius << endl;
+
 }
 
-void Model::processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath)
+void Model::processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath, long long *positionsOfVertices)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++){
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(processMesh(mesh, scene, vertexShaderPath, fragmentShaderPath));
+        meshes.push_back(processMesh(mesh, scene, vertexShaderPath, fragmentShaderPath, positionsOfVertices));
     }
     for(unsigned int i = 0; i < node->mNumChildren; i++){
-        processNode(node->mChildren[i], scene, vertexShaderPath, fragmentShaderPath);
+        processNode(node->mChildren[i], scene, vertexShaderPath, fragmentShaderPath, positionsOfVertices);
     }
 }
 
@@ -108,12 +135,10 @@ void Model::reloadShader(string vertexShaderPath, string fragmentShaderPath) {
     }
 }
 
-Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath){
+Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath, long long *positionsOfVertices){
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
-
-    glm::vec3 avgPosition;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -125,7 +150,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
         vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
 
-        avgPosition += vertex.Position;
+        *positionsOfVertices += vertex.Position.x + vertex.Position.y + vertex.Position.z;
 
         vector.x = mesh->mNormals[i].x;
         vector.y = mesh->mNormals[i].y;
@@ -158,24 +183,6 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
         vertices.push_back(vertex);
     }
 
-    avgPosition /= (float)mesh->mNumVertices;
-    glm::vec3 difference;
-    // get furthest vertex from avg position to get radius of bounding sphere
-    float furthestDistance = 0.f;
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-    {
-        difference = vertices[i].Position - avgPosition;
-        float distance = glm::length(difference);
-        if (distance > furthestDistance)
-            furthestDistance = distance;
-    }
-
-    Sphere boundingSphere;
-    boundingSphere.center = avgPosition;
-    boundingSphere.radius = furthestDistance;
-    boundingSphere.localCenter = avgPosition;
-    boundingSphere.originalRadius = furthestDistance;
-
     //process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++){
         aiFace face = mesh->mFaces[i];
@@ -200,7 +207,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderP
 
     Shader *shader = new Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
-    return Mesh(vertices, indices, textures, shader, vertexShaderPath, fragmentShaderPath, boundingSphere);
+    return Mesh(vertices, indices, textures, shader, vertexShaderPath, fragmentShaderPath);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName){

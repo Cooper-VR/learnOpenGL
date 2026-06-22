@@ -124,7 +124,7 @@ void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){
     unsigned int slot = nodeToDelete->hashID % HASH_TABLE_SIZE;
     auto &nodes = hashTable[slot];
     nodes.erase(std::remove(nodes.begin(), nodes.end(), nodeToDelete), nodes.end());
-
+    
     // Delete the node
     delete nodeToDelete;
 

@@ -20,6 +20,13 @@ struct Transform{
     glm::mat4 modelMatrix;
 };
 
+struct Sphere
+{
+	glm::vec3 center{ 0.f, 0.f, 0.f };
+	float radius{ 0.f };
+    glm::vec3 localCenter{ 0.f, 0.f, 0.f };
+    float originalRadius{ 0.f };
+};
 
 class Model{
     public:
@@ -43,8 +50,8 @@ class Model{
         bool gammaCorrection;
 
         void loadModel(string const &path, string vertexShaderPath, string fragmentShaderPath);
-        void processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath);
-        Mesh processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath);
+        void processNode(aiNode *node, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath, long long *positionsOfVertices);
+        Mesh processMesh(aiMesh *mesh, const aiScene *scene, string vertexShaderPath, string fragmentShaderPath, long long *positionsOfVertices);
 
         vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
         

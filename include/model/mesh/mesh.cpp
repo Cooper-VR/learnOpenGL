@@ -2,8 +2,6 @@
 
 void Mesh::Draw(Camera &camera, glm::mat4 modelMatrix, glm::mat4 projection, glm::mat4 viewMatrix)
 {
-
-
     shader->use();
 
     shader->setMat4("projection", projection);
@@ -96,19 +94,4 @@ void Mesh::setupMesh()
     glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
     glBindVertexArray(0);
-}
-
-bool Mesh::isOnFrustum(Frustum &camFrustum, Sphere &sphere)
-{
-    return (isOnOrForwardPlane(camFrustum.leftFace, sphere) &&
-            isOnOrForwardPlane(camFrustum.rightFace, sphere) &&
-            isOnOrForwardPlane(camFrustum.topFace, sphere) &&
-            isOnOrForwardPlane(camFrustum.bottomFace, sphere) &&
-            isOnOrForwardPlane(camFrustum.nearFace, sphere) &&
-            isOnOrForwardPlane(camFrustum.farFace, sphere));
-}
-
-bool Mesh::isOnOrForwardPlane(Plane &plane, Sphere &sphere)
-{
-    return plane.getSignedDistanceToPlane(sphere.center) > -sphere.radius;
 }

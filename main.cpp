@@ -110,6 +110,8 @@ int main()
 
                 if (drawResult)
                 {
+
+
                     numberOfVertices += model->numberOfVertices;
                     numberOfBatches += model->numberOfBatches;
                     model->numberOfVertices = 0;

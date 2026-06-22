@@ -1440,7 +1440,6 @@ void drawSceneTree()
         if (ImGui::Button("Delete"))
         {
             SceneTreeNode *nodeToDelete = selectedNode;
-            SceneTreeNode *parentNode = nodeToDelete->parentNode;
 
             removeNodeFromSceneTree(nodeToDelete);
 
