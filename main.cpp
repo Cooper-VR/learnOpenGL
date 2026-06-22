@@ -92,6 +92,8 @@ int main()
             for (int j = 0; j < culledNodes[i]->nodeInCell.size(); j++)
             {
                 SceneTreeNode *stn = culledNodes[i]->nodeInCell[j];
+                if (stn->NodeModel == nullptr)
+                    continue;
                 Model *model = stn->NodeModel;
                 if (model == nullptr)
                     continue;

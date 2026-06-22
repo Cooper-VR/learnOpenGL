@@ -68,7 +68,7 @@ OctreeNode* generateOctree(){
 
     if (numInCell <= 1){
         //we are at a leaf node, we can stop
-        cout << "Root is leaf node. Storing model in root." << endl;
+
         if (!nodesInCell.empty())
             parent->nodeInCell.push_back(nodesInCell[0]);
         parent->isLeaf = true;
@@ -149,7 +149,7 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
         {
             parent->nodeInCell.push_back(nodesInCell[0]);
             octreeLeaves.push_back(parent);
-            cout << "    leaf node at depth " << depth << " storing model: " << nodesInCell[0]->name << endl;
+
             parent->isLeaf = true;
         }
 
@@ -158,11 +158,11 @@ void generateOctree(OctreeNode* parent, vector<SceneTreeNode*> nodesInParent, in
 
     if (depth >= 8)  // max depth
     {
-        cout << endl;
+
         for (auto* n : nodesInCell){
             parent->nodeInCell.push_back(n);
         }
-        cout << "   -leaf node at depth " << depth << " storing " << nodesInCell.size() << " models." << endl;
+
         parent->isLeaf = true;
         octreeLeaves.push_back(parent);
         return;

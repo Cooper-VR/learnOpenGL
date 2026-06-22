@@ -654,6 +654,8 @@ void drawMainUI(GLFWwindow* window)
     if (ImGui::Button("Load Scene"))
     {
         loadScene();
+        delete octree;
+        octree = generateOctree();
     }
     if (ImGui::Button("reload shaders"))
     {
@@ -796,6 +798,7 @@ void drawSceneTreeHierarchical(SceneTreeNode *node, SceneTreeNode *&selectedNode
         if (clicked && doubleClickTime > 0)
         {
             // double clicked a node
+            cout << "Double clicked node: " << node->name << endl;
 
             glm::vec3 position = selectedNode->transform.position;
             glm::vec3 position2 = camera.Position + camera.Front * 2.0f;
