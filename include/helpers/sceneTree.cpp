@@ -98,8 +98,54 @@ bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, gl
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(node->transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    bool drawResult = node->NodeModel->Draw(camera, projection, view, modelMatrix, node->transform);
-    return drawResult;
+    glm::mat4 centerCircleModel = glm::mat4(1.0f);
+
+    // Correct TRS order: Translate * Rotate * Scale
+    centerCircleModel = glm::translate(centerCircleModel, node->transform.position);
+
+    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(node->transform.rotation.z), glm::vec3(0, 0, 1));
+    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(node->transform.rotation.y), glm::vec3(0, 1, 0));
+    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(node->transform.rotation.x), glm::vec3(1, 0, 0));
+
+    centerCircleModel = glm::scale(centerCircleModel, node->transform.scale);
+
+    // Transform local center to world space
+    glm::vec4 worldCenter4 = centerCircleModel * glm::vec4(node->NodeModel->boundingSphere.localCenter, 1.0f);
+    node->NodeModel->boundingSphere.center = glm::vec3(worldCenter4);
+
+    // Better radius scaling (handles non-uniform scale reasonably)
+    float maxScale = std::max({node->transform.scale.x, node->transform.scale.y, node->transform.scale.z});
+    node->NodeModel->boundingSphere.radius = node->NodeModel->boundingSphere.originalRadius * maxScale; // you should cache original radius
+
+    bool isOnFrustum = node->NodeModel->isOnFrustum(camera.camFrustum, node->NodeModel->boundingSphere);
+
+    if (!isOnFrustum)
+    {
+        return false; // Skip drawing this mesh if it's outside the frustum
+    }
+
+    //go through instances and cull then. i think we need some sorta of array of translations/rotations/scales, 
+    //i think thats when we do this for each instance:
+/*
+    unsigned int instanceVBO;
+glGenBuffers(1, &instanceVBO);
+glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations["some indexed position"], GL_STATIC_DRAW);
+glBindBuffer(GL_ARRAY_BUFFER, 0); 
+Then we also need to set its vertex attribute pointer and enable the vertex attribute:
+
+
+glEnableVertexAttribArray(2);
+glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+glBindBuffer(GL_ARRAY_BUFFER, 0);	
+glVertexAttribDivisor(2, 1);  
+*/
+
+    node->NodeModel->Draw(camera, projection, view, modelMatrix, node->transform);
+
+    // so now we need to check the instances
+    return true;
 }
 
 void removeNodeFromSceneTree(SceneTreeNode* nodeToDelete){

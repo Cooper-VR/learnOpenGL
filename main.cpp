@@ -99,6 +99,8 @@ int main()
                         continue;
                     if (stn->frameID == frameID)
                         continue;
+                    if (stn->isAnInstance)
+                        continue;
 
 
                     stn->frameID = frameID;

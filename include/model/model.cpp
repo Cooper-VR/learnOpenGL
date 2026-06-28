@@ -27,32 +27,7 @@ Model::Model(const char *path, const char *vertexShader, const char *fragShader,
     directory = absolutePath.string();
 }
 
-bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix, Transform transform){
-    glm::mat4 centerCircleModel = glm::mat4(1.0f);
-
-    // Correct TRS order: Translate * Rotate * Scale
-    centerCircleModel = glm::translate(centerCircleModel, transform.position);
-
-    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1));
-    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.y), glm::vec3(0, 1, 0));
-    centerCircleModel = glm::rotate(centerCircleModel, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
-
-    centerCircleModel = glm::scale(centerCircleModel, transform.scale);
-
-    // Transform local center to world space
-    glm::vec4 worldCenter4 = centerCircleModel * glm::vec4(boundingSphere.localCenter, 1.0f);
-    boundingSphere.center = glm::vec3(worldCenter4);
-
-    // Better radius scaling (handles non-uniform scale reasonably)
-    float maxScale = std::max({transform.scale.x, transform.scale.y, transform.scale.z});
-    boundingSphere.radius = boundingSphere.originalRadius * maxScale; // you should cache original radius
-
-    bool isOnFrustum = this->isOnFrustum(camera.camFrustum, boundingSphere);
-
-    if (!isOnFrustum)
-    {
-        return false; // Skip drawing this mesh if it's outside the frustum
-    }
+void Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, glm::mat4 modelMatrix, Transform transform){
 
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
@@ -70,7 +45,6 @@ bool Model::Draw( Camera &camera, glm::mat4 projection, glm::mat4 viewMatrix, gl
             glDepthMask(GL_TRUE);
         }
     }
-    return true;
 }
 
 void Model::loadModel(string const &path, string vertexShaderPath, string fragmentShaderPath) {
