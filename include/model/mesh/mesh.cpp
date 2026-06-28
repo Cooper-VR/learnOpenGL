@@ -38,6 +38,9 @@ void Mesh::Draw(Camera &camera, glm::mat4 modelMatrix, glm::mat4 projection, glm
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+    
+    //will switch to this for instancing later
+    //glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
     glBindVertexArray(0);
 }
 
