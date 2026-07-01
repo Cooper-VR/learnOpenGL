@@ -1444,24 +1444,6 @@ void drawSceneTree()
 
             selectedNode = nullptr;
         }
-
-        if (ImGui::Button("create instance"))
-        {
-            //create a new node
-            //this node will be show up as a regular node but the node its a copy of will have an array for hash/popsition etc
-            //then when we draw we can just draw using that node
-            //but then will will have a problem so we need to also have a parent node sorta thats shows where its from
-            //so when drawing:
-            //we will go through the octree and get the leaves.
-            //this should have three possibilites
-            //1. we get both the inances and the origonal
-            //2. we get only the origonal
-            //3. we get only the instances
-            //for 1, and 3 we dont know the order so when we get an instance we need to check if the origonal is in the frustum
-            //if so then we draw the origonal and the instances that are in the frustum
-            //if not we just draw the instances that are in the frustum. 
-            //we shouldnt have to mark any as already drawn since we already do with the frameID
-        }
     }
 
     ImGui::End();

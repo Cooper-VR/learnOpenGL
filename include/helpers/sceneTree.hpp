@@ -14,9 +14,6 @@ struct SceneTreeNode{
     unsigned int hashID;
     vector<unsigned int> childrenHash;
     unsigned int frameID = 0;
-    vector<SceneTreeNode*> instances;
-    vector<SceneTreeNode> instancesOfThisNode;
-    bool isAnInstance = false;
 
     ~SceneTreeNode() {
         if (NodeModel != nullptr) {
