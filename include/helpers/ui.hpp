@@ -702,7 +702,7 @@ void drawMainUI(GLFWwindow* window)
             for (int j = 0; j < stressTestCount; j++)
             {
                 Transform transform{glm::vec3(i * 3.0f, j * 3.0f, 5.0f), glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
-                createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", ("tester" + std::to_string(i * stressTestCount + j)), transform, sceneRootNode);
+                createNewModel("resources/models/testCube.fbx", "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", ("tester" + std::to_string(i * stressTestCount + j)), transform, sceneRootNode, true);
             }
         }
     }
@@ -763,7 +763,7 @@ void ShowFileBrowser()
         if (1)
         {
             Transform transform{camera.Position + camera.Front * 0.3f, glm::vec3(-90.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
-            createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", selectedFile, transform, selectedNode);
+            createNewModel((currentPath / selectedFile).string().c_str(), "resources/shaders/litObject_vertex.glsl", "resources/shaders/litObject_fragment.glsl", selectedFile, transform, selectedNode, true);
         }
     }
 

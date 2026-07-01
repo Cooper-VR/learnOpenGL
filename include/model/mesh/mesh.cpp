@@ -36,11 +36,14 @@ void Mesh::Draw(Camera &camera, glm::mat4 modelMatrix, glm::mat4 projection, glm
         textures[i].uniformName = (name + number);
     }
 
+
+
     glBindVertexArray(VAO);
+
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     
     //will switch to this for instancing later
-    //glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+    //glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, MAX_INSTANCE_COUNT);
     glBindVertexArray(0);
 }
 
@@ -65,6 +68,8 @@ void Mesh::setupMesh()
     glBindVertexArray(VAO);
     // load data into vertex buffers
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.

@@ -57,7 +57,7 @@ void setTreeNode(Model* model, SceneTreeNode* node, Transform transform, string 
     node->NodeModel->renderNormal = renderNormal;
 }
 
-void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent) {
+void createNewModel(const std::string& modelPath, const std::string& vertexShader, const std::string& fragmentShader, const std::string& modelName, Transform transform, SceneTreeNode* parent, bool renderNormal) {
     Model* test = new Model(modelPath.c_str(), vertexShader.c_str(), fragmentShader.c_str(), modelName);
     SceneTreeNode *newNode = new SceneTreeNode();
 
@@ -67,6 +67,7 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
         return;
     }
 
+    test->renderNormal = renderNormal;
     setTreeNode(test, newNode, parent, transform, modelName);
     insertSceneTreeNode(newNode);
     insertNodeIntoOctree(octree, newNode);
@@ -87,6 +88,22 @@ void createNewModel(const std::string& modelPath, const std::string& vertexShade
 }
 
 bool drawSceneNode(SceneTreeNode* node, Camera &camera, glm::mat4 projection, glm::mat4 view){
+        /*
+    unsigned int instanceVBO;
+glGenBuffers(1, &instanceVBO);
+glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations["some indexed position"], GL_STATIC_DRAW);
+glBindBuffer(GL_ARRAY_BUFFER, 0); 
+Then we also need to set its vertex attribute pointer and enable the vertex attribute:
+
+
+glEnableVertexAttribArray(2);
+glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+glBindBuffer(GL_ARRAY_BUFFER, 0);	
+glVertexAttribDivisor(2, 1);  
+*/
+    
     if(node == nullptr || node->NodeModel == nullptr){
         return false;
     }

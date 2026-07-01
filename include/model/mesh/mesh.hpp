@@ -11,6 +11,7 @@
 using namespace std;
 
 #define MAX_BONE_INFLUENCE 4
+#define MAX_INSTANCE_COUNT 900
 
 struct Vertex {
     glm::vec3 Position;
@@ -46,7 +47,7 @@ class Mesh{
         void reloadShaders(string vertexShaderPath, string fragmentShaderPath);
         void reloadShaders();
     private:
-        unsigned int VAO, VBO, EBO;
+        unsigned int VAO, VBO, EBO, instanceVBO;
         void setupMesh();
 };
 
